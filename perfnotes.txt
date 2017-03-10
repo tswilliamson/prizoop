@@ -1,0 +1,45 @@
+3/6
+Starting point with frame skip 1:						37.9, 46.9% in CPU, 32.0% in render scanline
+readByteSpecial moved to switch case:					39.3, 45.2% in PCU, 33.1% in render scanline
+forced 256 alignment on memory maps:					no perf diff yet 
+moved hram_io to memory map with special case map:		40.9, 43.1% in CPU, 34.3% in render scanline
+writeByte moved over to new system:						42.6, 41.3% in CPU, 35.2% in render scanline
+w/ O3 and non debug:									no gain! :-D lol
+16 buffer lines, 16 cpu steps: 							44.5, 47.6% in CPU, 39.2% in render scanline
+8 buffer lines, 16 cpu steps: 							45.5, 47.3% in CPU, 39.5% in render scanline
+8 buffer lines, 20 cpu steps: 							46.5, 47.9% in CPU, 40.9% in render scanline
+8 buffer lines, 24 cpu steps: 							47.6, 48.3% in CPU, 41.8% in render scanline
+1x1 video test:											58.5, 59.6% in CPU, 28.2% in render scanline
+buffer lines moved to video ram and DMA					bad! VRAM is slow, need to find different memory address to use? look at other memory spots
+buffer copy using int logic								48.7, 48.5% in CPU, 41.2% in render scanline
+try DMA from on-chip memory (doesn't work from static)
+try 3 color mode?
+cpu loop moved to tickDown system:
+name and logo :-)
+
+3/5
+One piece to the bottom: 				12.0, 54.9 for CPU, 33.3 in render scanline
+Faster readShort: 						11.9, 55.4 for CPU, 33.6 in render scanline
+Inline CPU stepping:					11.9, 55.1 for CPU, 33.1 in render scanline
+Less cpuStep branching:					12.0, 54.7 for CPU, 33.0 in render scanline	
+Move vram to on chip:					12.0, 54.8 for CPU, 33.0 in render scanline
+sprite optimization:					nothin'
+un-roll loops, 02:						14.0, 40.2 for CPU, 42.0 in render scanline
+03:										nothin'
+all flags work:							14.2, 39.6 for CPU, 40.0 in render scanline
+No sprite copy:							15.0, 44.2 for CPU, 37.9 in render scanline
+Blit buffer grouped:					15.7, 45.5 for CPU, 35.4 in render scanline
+Overclock to 89 MHz:					22.7, similar #'s
+Frame skip:								28.4, 24.1 for render scanline
+CPU.inl code improvement				27.6
+Added 'inline' to cpu functions			29.2
+Added back in O3/flto:					28.4
+Added support for HALT keyword:			32.0, 47.8 cpu step, 27.3 scanline
+
+Assembly optimization:
+Blit scanline buffer condensed until grouped		
+
+
+Standard DMA 1x1 : 21.7 in render scanline, 58.5 FPS, 59 in cpuStep
+DMA using IX : 64.0 FPS, 19.9 in render scanline, 64.8 in cpuStep
+

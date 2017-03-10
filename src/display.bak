@@ -1,0 +1,252 @@
+#if defined LIN || defined __APPLE__
+	#include <time.h>
+	#include <unistd.h>
+#endif
+
+#include "platform.h"
+#include "memory.h"
+#include "gpu.h"
+#include "debug.h"
+#include "main.h"
+
+#include "display.h"
+
+#include "fxcg\display.h"
+
+#define LCD_GRAM	0x202
+#define LCD_BASE	0xB4000000
+#define SYNCO() __asm__ volatile("SYNCO\n\t":::"memory");
+
+// DMA0 operation register
+#define DMA0_DMAOR	(volatile unsigned short*)0xFE008060
+#define DMA0_CHCR_0	(volatile unsigned*)0xFE00802C
+
+const COLOUR palette[4] = {
+	{ COLOR_WHITE },
+	{ COLOR_LIGHTCYAN },
+	{ COLOR_CYAN },
+	{ COLOR_DARKCYAN },
+};
+
+const int screenWidth = 320; //  LCD_WIDTH_PX;
+
+// scanline buffer
+static unsigned short scanGroup[8][screenWidth];
+static unsigned char curScan = 0;
+
+inline void scanlineFlush() {
+	TIME_SCOPE_NAMED(Scanline_Blit);
+
+	// alternating copy bytes to scale y by 50%
+	memcpy((unsigned short *)(LCD_BASE), scanGroup[0], screenWidth * 4);
+	memcpy((unsigned short *)(LCD_BASE), scanGroup[1], screenWidth * 2);
+	memcpy((unsigned short *)(LCD_BASE), scanGroup[2], screenWidth * 4);
+	memcpy((unsigned short *)(LCD_BASE), scanGroup[3], screenWidth * 2);
+	memcpy((unsigned short *)(LCD_BASE), scanGroup[4], screenWidth * 4);
+	memcpy((unsigned short *)(LCD_BASE), scanGroup[5], screenWidth * 2);
+	memcpy((unsigned short *)(LCD_BASE), scanGroup[6], screenWidth * 4);
+	memcpy((unsigned short *)(LCD_BASE), scanGroup[7], screenWidth * 2);
+
+	curScan = 0;
+}
+
+void scanlineFlushPartial() {
+	do {
+		memcpy((unsigned short *)(LCD_BASE), scanGroup[0], screenWidth * 2);
+		if (curScan == 1) break;
+		memcpy((unsigned short *)(LCD_BASE), scanGroup[1], screenWidth * 2);
+		memcpy((unsigned short *)(LCD_BASE), scanGroup[1], screenWidth * 2);
+		if (curScan == 2) break;
+		memcpy((unsigned short *)(LCD_BASE), scanGroup[2], screenWidth * 2);
+		if (curScan == 3) break;
+		memcpy((unsigned short *)(LCD_BASE), scanGroup[3], screenWidth * 2);
+		memcpy((unsigned short *)(LCD_BASE), scanGroup[3], screenWidth * 2);
+		if (curScan == 4) break;
+		memcpy((unsigned short *)(LCD_BASE), scanGroup[4], screenWidth * 2);
+		if (curScan == 5) break;
+		memcpy((unsigned short *)(LCD_BASE), scanGroup[5], screenWidth * 2);
+		memcpy((unsigned short *)(LCD_BASE), scanGroup[5], screenWidth * 2);
+		if (curScan == 6) break;
+		memcpy((unsigned short *)(LCD_BASE), scanGroup[6], screenWidth * 2);
+		if (curScan == 7) break;
+		memcpy((unsigned short *)(LCD_BASE), scanGroup[7], screenWidth * 2);
+		memcpy((unsigned short *)(LCD_BASE), scanGroup[7], screenWidth * 2);
+	} while (0);
+
+	curScan = 0;
+}
+
+void renderScanline(void) {
+	TIME_SCOPE();
+
+	if (tiles == NULL) {
+		tiles = (tilestype*)malloc(sizeof(tilestype));
+	}
+
+	int mapOffset = (gpu.control & GPU_CONTROL_TILEMAP) ? 0x1c00 : 0x1800;
+	mapOffset += (((gpu.scanline + gpu.scrollY) & 255) >> 3) << 5;
+	
+	int y = (gpu.scanline + gpu.scrollY) & 7;
+	
+	unsigned char scanlineRow[160];
+
+	unsigned short* p = scanGroup[curScan];
+
+	// if bg enabled
+	{
+		TIME_SCOPE_NAMED(Scanline_BG);
+		int i;
+		int x = gpu.scrollX & 7;
+		unsigned char *scanlineCol = scanlineRow;
+
+		// finish/draw left tile
+		int lineOffset = (gpu.scrollX >> 3);
+		unsigned short tile = (unsigned short)vram[mapOffset + lineOffset];
+		for (i = 0; x < 8; x++, i++) {
+			unsigned char colour = tiles->data[tile][y][x];
+			*scanlineCol++ = colour;
+		}
+		// middle 15 tiles
+		for (; i < 153; i += 8) {
+			lineOffset = (lineOffset + 1) & 31;
+			tile = (unsigned short)vram[mapOffset + lineOffset];
+
+			// use 32 bit copies:
+			((int*)scanlineCol)[0] = *((int*)&tiles->data[tile][y][0]);
+			((int*)scanlineCol)[4] = *((int*)&tiles->data[tile][y][4]);
+			scanlineCol += 8;
+		}
+		// right tile
+		lineOffset = (lineOffset + 1) & 31;
+		tile = (unsigned short)vram[mapOffset + lineOffset];
+		for (x = 0; i < 160; i++, x++) {
+			unsigned char colour = tiles->data[tile][y][x];
+			*scanlineCol++ = colour;
+		}
+
+		// fill in color data 
+		unsigned short *scanline = p;
+		scanlineCol = scanlineRow;
+		for (i = 0; i < 160; i++) {
+			// 2x x scaling
+			unsigned short col = backgroundPalette[*scanlineCol++].rgb;
+			*scanline++ = col;
+			*scanline++ = col;
+		}
+	}
+	
+	// if sprites enabled
+	{
+		TIME_SCOPE_NAMED(Scanline_Sprite);
+		for (int i = 0; i < 40; i++) {
+			const sprite& sprite = ((struct sprite *)oam)[i];
+
+			if (sprite.x) {
+				int sx = sprite.x - 8;
+				int sy = sprite.y - 16;
+
+				if (sy <= gpu.scanline && (sy + 8) > gpu.scanline) {
+					COLOUR *pal = spritePalette[sprite.palette];
+
+					// 2x x scale
+					int pixelOffset = sx * 2;
+
+					unsigned char tileRow;
+					if (sprite.vFlip) tileRow = 7 - (gpu.scanline - sy);
+					else tileRow = gpu.scanline - sy;
+
+					int x;
+					for (x = 0; x < 8; x++) {
+						if (sx + x >= 0 && sx + x < 160 && (~sprite.priority || !scanlineRow[sx + x])) {
+							unsigned char colour;
+
+							if (sprite.hFlip) colour = tiles->data[sprite.tile][tileRow][7 - x];
+							else colour = tiles->data[sprite.tile][tileRow][x];
+
+							if (colour) {
+								unsigned short col = pal[colour].rgb;
+								p[pixelOffset] = col;
+								p[pixelOffset + 1] = col;
+							}
+
+							pixelOffset += 2;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// blit every 8 scan lines
+	curScan++;
+	if (curScan == 8)
+	{
+		scanlineFlush();
+	}
+}
+
+void drawFramebuffer(void) {
+	TIME_SCOPE();
+
+	// frame counter
+	static int framecounter = 0;
+	framecounter++;
+
+	// determine frame rate based on last framebuffer call:
+	static int fps = 0;
+	int curfps = fps;
+#if 0
+	// TODO : TRY this code on device:
+	static unsigned short lasttime = 0;
+	static int fps = 0;
+	unsigned short curtime = *((unsigned short*)RTC_port);
+	if (curtime > lasttime) {
+		curfps = 655360 / (int)(curtime - lasttime);
+	}
+	lasttime = curtime;
+#else
+
+	static int lastticks = 0;
+	if (framecounter % 8 == 0) {
+		int ticks = RTC_GetTicks();
+		int tickdiff = ticks - lastticks;
+		curfps = 10240 / tickdiff;
+		lastticks = ticks;
+	}
+#endif
+
+	if (curfps != fps) {
+		fps = curfps;
+		// report frame rate:
+		memset(ScopeTimer::debugString, 0, sizeof(ScopeTimer::debugString));
+		sprintf(ScopeTimer::debugString, "FPS:%d.%d, Frames:%d", fps / 10, fps % 10, framecounter);
+	}
+
+	extern void refresh();
+	refresh();
+
+	//if (framecounter & 1)
+	//	return;
+
+	// draw frame buffer here
+#if 1
+	// if we request a frame buffer somehow before the scanlines are done:
+	if (curScan != 0) {
+		scanlineFlushPartial();
+		curScan = 0;
+	}
+
+	// we write directly to the LCD controller, so do the magic that let's us reset the window
+	Bdisp_WriteDDRegister3_bit7(1);
+	Bdisp_DefineDMARange(38, 357, 0, 215);
+	Bdisp_DDRegisterSelect(LCD_GRAM);
+
+	*((volatile unsigned*) MSTPCR0) &= ~(1 << 21);//Clear bit 21
+
+	// Disable all DMA
+	*DMA0_CHCR_0 &= ~1; //Disable DMA on channel 0
+	*DMA0_DMAOR = 0;
+#else
+	Bdisp_PutDisp_DD();
+#endif
+}

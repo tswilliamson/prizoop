@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\cb.cpp" />
+    <ClCompile Include="..\src\cpu.cpp" />
+    <ClCompile Include="..\src\debug.cpp" />
+    <ClCompile Include="..\src\display_directlcd.cpp" />
+    <ClCompile Include="..\src\Prizm_SafeOverClock.c" />
+    <ClCompile Include="..\src\ScopeTimer.cpp" />
+    <ClCompile Include="..\src\gpu.cpp" />
+    <ClCompile Include="..\src\interrupts.cpp" />
+    <ClCompile Include="..\src\keys.cpp" />
+    <ClCompile Include="..\src\memory.cpp" />
+    <ClCompile Include="..\src\registers.cpp" />
+    <ClCompile Include="..\src\rom.cpp" />
+    <ClCompile Include="..\src\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\cb.h" />
+    <ClInclude Include="..\src\cpu.h" />
+    <ClInclude Include="..\src\debug.h" />
+    <ClInclude Include="..\src\display.h" />
+    <ClInclude Include="..\src\Prizm_SafeOverClock.h" />
+    <ClInclude Include="..\src\ScopeTimer.h" />
+    <ClInclude Include="..\src\gpu.h" />
+    <ClInclude Include="..\src\interrupts.h" />
+    <ClInclude Include="..\src\keys.h" />
+    <ClInclude Include="..\src\main.h" />
+    <ClInclude Include="..\src\memory.h" />
+    <ClInclude Include="..\src\platform.h" />
+    <ClInclude Include="..\src\registers.h" />
+    <ClInclude Include="..\src\rom.h" />
+    <ClInclude Include="..\src\tmu.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Makefile" />
+    <None Include="..\src\cpu_instructions.inl" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{0A1E9BF8-05DD-4F73-81D8-18DA73DB5796}</ProjectGuid>
+    <Keyword>MakeFileProj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\include</IncludePath>
+    <NMakeBuildCommandLine>cd..
+make.bat</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>cd..
+rebuild.bat</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>cd..
+clean.bat</NMakeCleanCommandLine>
+    <NMakeOutput>$(ProjectDir)\..\$(ProjectName).g3a</NMakeOutput>
+    <NMakeIncludeSearchPath>$(ProjectDir)\..\..\include</NMakeIncludeSearchPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
