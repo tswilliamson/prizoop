@@ -18,8 +18,12 @@ PARAM.SFO
 EBOOT.PBP
 data/
 *.gb
-*.bat
 debug.txt
 *.suo
 /cxi
 /proj/*.user
+/build/*.o
+/build/*.d
+/prizoop.bin
+/proj/*.opendb
+/proj/*.sdf

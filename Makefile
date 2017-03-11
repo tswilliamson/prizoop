@@ -33,16 +33,16 @@ MKG3AFLAGS := -n basic:Prizoop -i uns:../unselected.bmp -i sel:../selected.bmp
 
 CFLAGS	= -O2 \
 		  -Wall \
-		  -fpermissive \
-		  -fno-threadsafe-statics \
-		  -fno-rtti \
-		  -fno-exceptions \
 		  -funroll-loops \
 		  -fno-trapping-math \
 		  -fno-trapv \
-		  -fno-use-cxa-get-exception-ptr \
 		  $(MACHDEP) $(INCLUDE) 
-CXXFLAGS	=	$(CFLAGS)
+CXXFLAGS	=	$(CFLAGS) \
+		  -fpermissive \
+		  -fno-rtti \
+		  -fno-exceptions \
+		  -fno-threadsafe-statics \
+		  -fno-use-cxa-get-exception-ptr
 
 LDFLAGS	= $(MACHDEP) -O2 -T$(FXCGSDK)/common/prizm.ld -Wl,-static -Wl,-gc-sections
 
