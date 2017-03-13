@@ -100,10 +100,6 @@ void hblank(void) {
 void updateTile(unsigned short address, unsigned char value) {
 	TIME_SCOPE();
 
-	if (tiles == NULL) {
-		tiles = (tilestype*)malloc(sizeof(tilestype));
-	}
-
 	address &= 0x1ffe;
 	
 	unsigned short tile = (address >> 4) & 511;

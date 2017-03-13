@@ -58,7 +58,6 @@ unsigned char loadROM(const char *filename) {
 	enum romType type;
 	int romSize;
 	int ramSize;
-	int key;
 	int i;
 	
 	int length;
@@ -67,7 +66,7 @@ unsigned char loadROM(const char *filename) {
 
 	int hFile;
 	unsigned short pFile[256];
-	Bfile_StrToName_ncpy(pFile, (unsigned char*)filename, strlen(filename)+2);
+	Bfile_StrToName_ncpy(pFile, (const char*)filename, strlen(filename)+2);
 
 	//char buffer[64];
 	//Bfile_NameToStr_ncpy(buffer, pFile, sizeof(pFile) / 2);
@@ -132,7 +131,7 @@ unsigned char loadROM(const char *filename) {
 		return 0;
 	}
 	
-	if(length != (size_t) romSize * 16 * 1024) {
+	if(length != romSize * 16 * 1024) {
 		printf("ROM filesize does not equal ROM size!\n");
 		//fclose(f);
 		//return 0;

@@ -1,5 +1,7 @@
 #pragma once
 
+#if DEBUG && !TARGET_WINSIM
+
 #include "tmu.h"
 
 struct ScopeTimer {
@@ -41,10 +43,14 @@ struct TimedInstance {
 	}
 };
 
-#if DEBUG
 #define TIME_SCOPE() static ScopeTimer __timer(__FUNCTION__, __LINE__); TimedInstance __timeMe(&__timer);
 #define TIME_SCOPE_NAMED(Name) static ScopeTimer __timer(#Name, __LINE__); TimedInstance __timeMe(&__timer);
 #else
+struct ScopeTimer {
+	static void InitSystem() {}
+	static void DisplayTimes() {}
+	static void Shutdown() {}
+};
 #define TIME_SCOPE() 
 #define TIME_SCOPE_NAMED(Name) 
 #endif

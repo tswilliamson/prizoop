@@ -12,6 +12,19 @@
 #include "main.h"
 
 #include "cpu.h"
+
+#if TARGET_WINSIM
+#include <Windows.h>
+#define DEBUG_ROM 0
+#endif
+
+#if DEBUG_ROM
+int iter = 0;
+#define DebugInstruction(name) { char buffer[256]; sprintf(buffer, "(%d) 0x%04x : %s\n", iter++, registers.pc-1, name); OutputDebugString(buffer); }
+#else
+#define DebugInstruction(...) 
+#endif
+
 /*
 	References:
 
@@ -65,8 +78,12 @@ void reset(void) {
 	keys.k2.left = 1;
 	keys.k2.up = 1;
 	keys.k2.down = 1;
-	
-	memset(tiles, 0, sizeof(tiles));
+
+	if (tiles == NULL) {
+		tiles = (tilestype*)malloc(sizeof(tilestype));
+	}
+
+	memset(tiles, 0, sizeof(tilestype));
 	
 	backgroundPalette[0] = 0;
 	backgroundPalette[1] = 1;
@@ -131,8 +148,8 @@ inline void undefined(void) {
 	registers.pc--;
 	
 	unsigned char instruction = readByte(registers.pc);
-	
-	#ifdef WIN
+
+	#if TARGET_WINSIM
 		char d[100];
 		sprintf(d, "Undefined instruction 0x%02x!\n\nCheck stdout for more details.", instruction);
 		MessageBox(NULL, d, "Prizoop", MB_OK);
@@ -1298,10 +1315,10 @@ void cpuStep() {
 
 			// perform inlined instruction op
 			switch (readByte(registers.pc++)) {
-				#define INSTRUCTION_0(name,numticks,func,id,code)   case id: func(); cpu.ticks += numticks; code break;
-				#define INSTRUCTION_1(name,numticks,func,id,code)   case id: { unsigned char operand = readByte(registers.pc++); func(operand); cpu.ticks += numticks; code } break;
-				#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: { char operand = readByte(registers.pc++); func(operand); cpu.ticks += numticks; code } break;
-				#define INSTRUCTION_2(name,numticks,func,id,code)   case id: { unsigned short operand = readShort(registers.pc++); ++registers.pc; func(operand); cpu.ticks += numticks; code } break;
+				#define INSTRUCTION_0(name,numticks,func,id,code)   case id: DebugInstruction(name); func(); cpu.ticks += numticks; code break;
+				#define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name); { unsigned char operand = readByte(registers.pc++); func(operand); cpu.ticks += numticks; code } break;
+				#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name); { char operand = readByte(registers.pc++); func(operand); cpu.ticks += numticks; code } break;
+				#define INSTRUCTION_2(name,numticks,func,id,code)   case id: DebugInstruction(name); { unsigned short operand = readShort(registers.pc++); ++registers.pc; func(operand); cpu.ticks += numticks; code } break;
 				#include "cpu_instructions.inl"
 				#undef INSTRUCTION_0
 				#undef INSTRUCTION_1

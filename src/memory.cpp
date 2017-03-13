@@ -53,7 +53,7 @@ const unsigned char ioReset[0x100] = {
 
 // Tile memory update area (bit 2)
 //		0x8000 - 0x97ff
-const unsigned char specialMap[256] ALIGN_256 =
+const unsigned char specialMap[256] ALIGN(256) =
 {
 	0x01, 0x00, 0x00, 0x00,  0x01, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x03,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
@@ -77,13 +77,13 @@ const unsigned char specialMap[256] ALIGN_256 =
 };
 
 // forced alignment allows us to simply bitwise or in the memory map
-unsigned char cart[0x8000] __attribute__((aligned(0x100)));
-unsigned char wram[0x2000] __attribute__((aligned(0x100)));
-unsigned char oam[0x100] __attribute__((aligned(0x100)));
-unsigned char hram_io[0x100] __attribute__((aligned(0x100)));
-unsigned char* memoryMap[256] __attribute__((aligned(0x100)));
-unsigned char vram[0x2000] __attribute__((aligned(0x100)));
-unsigned char sram[0x2000] __attribute__((aligned(0x100)));
+unsigned char cart[0x8000] ALIGN(256) = { 0 };
+unsigned char wram[0x2000] ALIGN(256) = { 0 };
+unsigned char oam[0x100] ALIGN(256) = { 0 };
+unsigned char hram_io[0x100] ALIGN(256) = { 0 };
+unsigned char* memoryMap[256] ALIGN(256) = { 0 };
+unsigned char vram[0x2000] ALIGN(256) = { 0 };
+unsigned char sram[0x2000] ALIGN(256) = { 0 };
 
 unsigned int randseed;
 

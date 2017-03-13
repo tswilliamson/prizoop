@@ -2,7 +2,9 @@
 
 #include "platform.h"
 
+#if __GNUC__
 #pragma GCC diagnostic ignored "-fpermissive"
+#endif
 
 struct keys1type {
 	#ifdef LITTLE_E

@@ -7,7 +7,7 @@
 # to use a system environment var in the future.
 #---------------------------------------------------------------------------------
 ifeq ($(strip $(FXCGSDK)),)
-export FXCGSDK := $(abspath ../../)
+$(error "Please set FXCGSDK in your environment. export FXCGSDK=<path to sdk location>)
 endif
 
 include $(FXCGSDK)/common/prizm_rules
@@ -20,7 +20,7 @@ include $(FXCGSDK)/common/prizm_rules
 # INCLUDES is a list of directories containing extra header files
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
-BUILD		:=	build
+BUILD		:=	$(CONFIG)
 SOURCES		:=	src
 DATA		:=	data  
 INCLUDES	:=
@@ -36,7 +36,7 @@ CFLAGS	= -O2 \
 		  -funroll-loops \
 		  -fno-trapping-math \
 		  -fno-trapv \
-		  $(MACHDEP) $(INCLUDE) 
+		  $(MACHDEP) $(INCLUDE) $(DEFINES)
 CXXFLAGS	=	$(CFLAGS) \
 		  -fpermissive \
 		  -fno-rtti \
@@ -64,7 +64,7 @@ LIBDIRS	:=
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export OUTPUT	:=	$(CURDIR)/$(BUILD)/$(TARGET)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
@@ -106,7 +106,7 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES), -iquote $(CURDIR)/$(dir)) \
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib) \
 					-L$(LIBFXCG_LIB)
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export OUTPUT	:=	$(CURDIR)/$(BUILD)/$(TARGET)
 .PHONY: $(BUILD) clean
 
 #---------------------------------------------------------------------------------

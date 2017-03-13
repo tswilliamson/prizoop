@@ -27,3 +27,7 @@ debug.txt
 /prizoop.bin
 /proj/*.opendb
 /proj/*.sdf
+/DeviceDebug
+/DeviceRelease
+/Emulator
+/proj/WindowsSim

@@ -1,4 +1,7 @@
 
+// display DMA not supported in windows simulator or emulator
+#if TARGET_PRIZM
+
 #include "platform.h"
 #include "memory.h"
 #include "gpu.h"
@@ -126,10 +129,6 @@ void renderScanline1x1(void) {
 		return;
 
 	TIME_SCOPE();
-
-	if (tiles == NULL) {
-		tiles = (tilestype*)malloc(sizeof(tilestype));
-	}
 
 	int mapOffset = (gpu.control & GPU_CONTROL_TILEMAP) ? 0x1c00 : 0x1800;
 	mapOffset += (((gpu.scanline + gpu.scrollY) & 255) >> 3) << 5;
@@ -266,12 +265,6 @@ void renderScanline1x1(void) {
 
 
 inline void scanlineFlushFit() {
-	const unsigned int palette[4] = {
-		COLOR_WHITE | (COLOR_WHITE << 16),
-		COLOR_LIGHTCYAN | (COLOR_LIGHTCYAN << 16),
-		COLOR_CYAN | (COLOR_CYAN << 16),
-		COLOR_DARKCYAN | (COLOR_DARKCYAN << 16),
-	};
 	const int scanBufferSize = SCANLINE_BUFFER * 160 * 4 * 3 / 2;
 
 #if USEMEMCPY
@@ -336,10 +329,6 @@ void renderScanlineFit(void) {
 
 	TIME_SCOPE();
 
-	if (tiles == NULL) {
-		tiles = (tilestype*)malloc(sizeof(tilestype));
-	}
-	
 	const int scanBufferOffset[8] = {
 		0, 1, 3, 4,
 		6, 7, 9, 10,
@@ -580,3 +569,5 @@ void drawFramebufferMain(void) {
 	extern void refresh();
 	refresh();
 }
+
+#endif

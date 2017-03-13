@@ -1,7 +1,5 @@
 #pragma once
 
-#define DEBUG 0
-
 #include "stdio.h"
 #include "string.h"
 #include "stdlib.h"
@@ -12,6 +10,14 @@
 #include "fxcg\registers.h"
 #include "fxcg\rtc.h"
 #include "fxcg\system.h"
+
+#if TARGET_WINSIM
+#define ALIGN(x) alignas(x)
+#define LITTLE_E
+#else
+#define ALIGN(x) __attribute__((aligned(x)))
+#define BIG_E
+#endif
 
 #include "ScopeTimer.h"
 

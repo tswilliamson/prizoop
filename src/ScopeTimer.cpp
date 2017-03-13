@@ -1,4 +1,7 @@
 
+// ScopeTimer not supported on windows simulator or non-Debug
+#if DEBUG && !TARGET_WINSIM
+
 #include "platform.h"
 #include "ScopeTimer.h"
 
@@ -160,3 +163,5 @@ void ScopeTimer::DisplayTimes() {
 	// wait for exit key
 	} while (toKey != KEY_CTRL_EXIT);
 }
+
+#endif

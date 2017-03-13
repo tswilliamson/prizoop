@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="winsim">
+      <UniqueIdentifier>{80e0df14-724b-48b1-8ebd-32f08df57407}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ScopeTimer.cpp">
@@ -52,6 +55,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Prizm_SafeOverClock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\winsim\winmain.cpp">
+      <Filter>winsim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\winsim\prizmsim.cpp">
+      <Filter>winsim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\display_emu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -100,6 +112,9 @@
     </ClInclude>
     <ClInclude Include="..\src\Prizm_SafeOverClock.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\winsim\prizmsim.h">
+      <Filter>winsim</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

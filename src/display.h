@@ -1,11 +1,5 @@
 #pragma once
 
-struct rgb {
-	unsigned short rgb;
-};
-
-typedef struct rgb COLOUR;
-
 void SetupDisplayDriver(bool withStretch, char withFrameskip);
 void SetupDisplayColors(unsigned short c0, unsigned short c1, unsigned short c2, unsigned short c3);
 

@@ -8,7 +8,11 @@
 #include "keys.h"
 #include "memory.h"
 
+#if !TARGET_WINSIM
 #include "Prizm_SafeOverClock.h"
+#else
+#define SetSafeClockSpeed(...) {}
+#endif
 
 bool shouldExit = false;
 bool overclocked = false;
@@ -22,24 +26,16 @@ void clockdown() {
 	ScopeTimer::Shutdown();
 }
 
-// returns 0 if the key is down, 1 if up (to match gameboy conventions)
-unsigned char keyDown_fast(int keyCode) {
-	static const unsigned short* keyboard_register = (unsigned short*)0xA44B0000;
-
-	int row, col, word, bit;
-	row = keyCode % 10;
-	col = keyCode / 10 - 1;
-	word = row >> 1;
-	bit = col + 8 * (row & 1);
-	return (0 != (keyboard_register[word] & 1 << bit)) ? 0 : 1;
-}
-
 struct colorconfig {
 	const char* name;
 	unsigned short col[4];
 };
 
+#if TARGET_WINSIM
+int simmain(void) {
+#else
 int main(void) {
+#endif
 	int key;
 
 	// prepare for full color mode
@@ -51,7 +47,7 @@ int main(void) {
 	// figure out options
 	bool overclock = false;
 	bool scale = true;
-	char frameskip = 2;
+	char frameskip = 0;
 	int colorScheme = 0;
 	const colorconfig colorSchemes[] = {
 		{ "Cyan",		{ COLOR_WHITE, COLOR_LIGHTCYAN, COLOR_CYAN, COLOR_DARKCYAN } },
@@ -166,28 +162,7 @@ int main(void) {
 			interruptStep();
 		}
 	}
+
+	return 0;
 }
 
-
-void refresh() {
-	{
-		keys.k1.a = keyDown_fast(78);	// SHIFT
-		keys.k1.b = keyDown_fast(77);	// ALPHA
-		keys.k1.select = keyDown_fast(68); // OPTN
-		keys.k1.start = keyDown_fast(58); // VARS
-		keys.k2.right = keyDown_fast(27);
-		keys.k2.left = keyDown_fast(38);
-		keys.k2.up = keyDown_fast(28);
-		keys.k2.down = keyDown_fast(37);
-	}
-
-	if (keyDown_fast(79) == 0) {
-		ScopeTimer::DisplayTimes();
-	}
-
-	if (keyDown_fast(48) == 0) {
-		// MENU key initiate a GetKey to let the app escape
-		int key;
-		GetKey(&key);
-	}
-}
