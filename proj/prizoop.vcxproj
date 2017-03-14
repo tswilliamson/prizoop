@@ -250,7 +250,7 @@ clean.bat FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET=PRIZMEMU -DDEBUG=1" 
       <AdditionalLibraryDirectories>$(ProjectDir)\..\winsim\freeglut\lib\x64</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
-      <PreprocessorDefinitions>TARGET_WINSIM=1 DEBUG=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>TARGET_WINSIM=1;DEBUG=1</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalIncludeDirectories>..\src\;..\winsim</AdditionalIncludeDirectories>
       <Optimization>MaxSpeed</Optimization>
@@ -265,7 +265,7 @@ clean.bat FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET=PRIZMEMU -DDEBUG=1" 
       <AdditionalLibraryDirectories>$(ProjectDir)\..\winsim\freeglut\lib</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
-      <PreprocessorDefinitions>TARGET_WINSIM=1  DEBUG=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>TARGET_WINSIM=1;DEBUG=1</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalIncludeDirectories>..\src\;..\winsim</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>

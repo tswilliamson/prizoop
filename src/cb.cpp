@@ -297,62 +297,8 @@ void cb_n(unsigned char instruction) {
 	cpu.ticks += extendedInstructionTicks[instruction];
 }
 
-static unsigned char rlc(unsigned char value) {
-	int carry = (value & 0x80) >> 7;
-	
-	if(value & 0x80) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
-	
-	value <<= 1;
-	value += carry;
-	
-	if(value) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-	
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
-	
-	return value;
-}
-
-static unsigned char rrc(unsigned char value) {
-	int carry = value & 0x01;
-	
-	value >>= 1;
-	
-	if(carry) {
-		FLAGS_SET(FLAGS_CARRY);
-		value |= 0x80;
-	}
-	else FLAGS_CLEAR(FLAGS_CARRY);
-	
-	if(value) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-	
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
-	
-	return value;
-}
-
-static unsigned char rl(unsigned char value) {
-	int carry = FLAGS_ISSET(FLAGS_CARRY) ? 1 : 0;
-	
-	if(value & 0x80) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
-	
-	value <<= 1;
-	value += carry;
-	
-	if(value) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-	
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
-	
-	return value;
-}
-
-static unsigned char rr(unsigned char value) {
-	value >>= 1;
-	if(FLAGS_ISCARRY) value |= 0x80;
+inline unsigned char rlc(unsigned char value) {
+	value = (value << 1) | (value >> 7);
 	
 	if(value & 0x01) FLAGS_SET(FLAGS_CARRY);
 	else FLAGS_CLEAR(FLAGS_CARRY);
@@ -365,7 +311,60 @@ static unsigned char rr(unsigned char value) {
 	return value;
 }
 
-static unsigned char sla(unsigned char value) {
+inline unsigned char rrc(unsigned char value) {
+	value = (value >> 1) | ((value << 7) & 0x80);
+
+	if (value & 0x80) FLAGS_SET(FLAGS_CARRY);
+	else FLAGS_CLEAR(FLAGS_CARRY);
+
+	if(value) FLAGS_CLEAR(FLAGS_ZERO);
+	else FLAGS_SET(FLAGS_ZERO);
+	
+	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
+	
+	return value;
+}
+
+inline unsigned char rl(unsigned char value) {
+	if (value & 0x80) {
+		value <<= 1;
+		if (FLAGS_ISCARRY) value |= 0x01;
+		FLAGS_SET(FLAGS_CARRY);
+	}
+	else {
+		value <<= 1;
+		if (FLAGS_ISCARRY) value |= 0x01;
+		FLAGS_CLEAR(FLAGS_CARRY);
+	}
+	
+	if(value) FLAGS_CLEAR(FLAGS_ZERO);
+	else FLAGS_SET(FLAGS_ZERO);
+	
+	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
+	
+	return value;
+}
+
+inline unsigned char rr(unsigned char value) {
+	if (value & 0x01) {
+		value >>= 1;
+		if (FLAGS_ISCARRY) value |= 0x80;
+		FLAGS_SET(FLAGS_CARRY);
+	} else {
+		value >>= 1;
+		if (FLAGS_ISCARRY) value |= 0x80;
+		FLAGS_CLEAR(FLAGS_CARRY);
+	}
+	
+	if(value) FLAGS_CLEAR(FLAGS_ZERO);
+	else FLAGS_SET(FLAGS_ZERO);
+	
+	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
+	
+	return value;
+}
+
+inline unsigned char sla(unsigned char value) {
 	if(value & 0x80) FLAGS_SET(FLAGS_CARRY);
 	else FLAGS_CLEAR(FLAGS_CARRY);
 	
@@ -379,7 +378,7 @@ static unsigned char sla(unsigned char value) {
 	return value;
 }
 
-static unsigned char sra(unsigned char value) {
+inline unsigned char sra(unsigned char value) {
 	if(value & 0x01) FLAGS_SET(FLAGS_CARRY);
 	else FLAGS_CLEAR(FLAGS_CARRY);
 	
@@ -393,7 +392,7 @@ static unsigned char sra(unsigned char value) {
 	return value;
 }
 
-static unsigned char swap(unsigned char value) {
+inline unsigned char swap(unsigned char value) {
 	value = ((value & 0xf) << 4) | ((value & 0xf0) >> 4);
 	
 	if(value) FLAGS_CLEAR(FLAGS_ZERO);
@@ -418,7 +417,7 @@ static unsigned char srl(unsigned char value) {
 	return value;
 }
 
-static void bit(unsigned char bit, unsigned char value) {
+inline void bit(unsigned char bit, unsigned char value) {
 	if(value & bit) FLAGS_CLEAR(FLAGS_ZERO);
 	else FLAGS_SET(FLAGS_ZERO);
 	
@@ -426,9 +425,8 @@ static void bit(unsigned char bit, unsigned char value) {
 	FLAGS_SET(FLAGS_HALFCARRY);
 }
 
-static unsigned char set(unsigned char bit, unsigned char value) {
+inline void set(unsigned char bit, unsigned char& value) {
 	value |= bit;
-	return value;
 }
 
 // 0x00
@@ -570,7 +568,7 @@ void sra_h(void) { registers.h = sra(registers.h); }
 void sra_l(void) { registers.l = sra(registers.l); }
 
 // 0x2e
-void sra_hlp(void) { writeByte(registers.hl, sra(registers.hl)); }
+void sra_hlp(void) { writeByte(registers.hl, sra(readByte(registers.hl))); }
 
 // 0x2f
 void sra_a(void) { registers.a = sra(registers.a); }
@@ -1018,193 +1016,193 @@ void res_7_hlp(void) { writeByte(registers.hl, readByte(registers.hl) & ~(1 << 7
 void res_7_a(void) { registers.a &= ~(1 << 7); }
 
 // 0xc0
-void set_0_b(void) { registers.b = set(1 << 0, registers.b); }
+void set_0_b(void) { set(1 << 0, registers.b); }
 
 // 0xc1
-void set_0_c(void) { registers.c = set(1 << 0, registers.c); }
+void set_0_c(void) { set(1 << 0, registers.c); }
 
 // 0xc2
-void set_0_d(void) { registers.d = set(1 << 0, registers.d); }
+void set_0_d(void) { set(1 << 0, registers.d); }
 
 // 0xc3
-void set_0_e(void) { registers.e = set(1 << 0, registers.e); }
+void set_0_e(void) { set(1 << 0, registers.e); }
 
 // 0xc4
-void set_0_h(void) { registers.h = set(1 << 0, registers.h); }
+void set_0_h(void) { set(1 << 0, registers.h); }
 
 // 0xc5
-void set_0_l(void) { registers.l = set(1 << 0, registers.l); }
+void set_0_l(void) { set(1 << 0, registers.l); }
 
 // 0xc6
-void set_0_hlp(void) { writeByte(registers.hl, set(1 << 0, readByte(registers.hl))); }
+void set_0_hlp(void) { writeByte(registers.hl, (1 << 0) | readByte(registers.hl)); }
 
 // 0xc7
-void set_0_a(void) { registers.a = set(1 << 0, registers.a); }
+void set_0_a(void) { set(1 << 0, registers.a); }
 
 // 0xc8
-void set_1_b(void) { registers.b = set(1 << 1, registers.b); }
+void set_1_b(void) { set(1 << 1, registers.b); }
 
 // 0xc9
-void set_1_c(void) { registers.c = set(1 << 1, registers.c); }
+void set_1_c(void) { set(1 << 1, registers.c); }
 
 // 0xca
-void set_1_d(void) { registers.d = set(1 << 1, registers.d); }
+void set_1_d(void) { set(1 << 1, registers.d); }
 
 // 0xcb
-void set_1_e(void) { registers.e = set(1 << 1, registers.e); }
+void set_1_e(void) { set(1 << 1, registers.e); }
 
 // 0xcc
-void set_1_h(void) { registers.h = set(1 << 1, registers.h); }
+void set_1_h(void) { set(1 << 1, registers.h); }
 
 // 0xcd
-void set_1_l(void) { registers.l = set(1 << 1, registers.l); }
+void set_1_l(void) { set(1 << 1, registers.l); }
 
 // 0xce
-void set_1_hlp(void) { writeByte(registers.hl, set(1 << 1, readByte(registers.hl))); }
+void set_1_hlp(void) { writeByte(registers.hl, (1 << 1) | readByte(registers.hl)); }
 
 // 0xcf
-void set_1_a(void) { registers.a = set(1 << 1, registers.a); }
+void set_1_a(void) { set(1 << 1, registers.a); }
 
 // 0xd0
-void set_2_b(void) { registers.b = set(1 << 2, registers.b); }
+void set_2_b(void) { set(1 << 2, registers.b); }
 
 // 0xd1
-void set_2_c(void) { registers.c = set(1 << 2, registers.c); }
+void set_2_c(void) { set(1 << 2, registers.c); }
 
 // 0xd2
-void set_2_d(void) { registers.d = set(1 << 2, registers.d); }
+void set_2_d(void) { set(1 << 2, registers.d); }
 
 // 0xd3
-void set_2_e(void) { registers.e = set(1 << 2, registers.e); }
+void set_2_e(void) { set(1 << 2, registers.e); }
 
 // 0xd4
-void set_2_h(void) { registers.h = set(1 << 2, registers.h); }
+void set_2_h(void) { set(1 << 2, registers.h); }
 
 // 0xd5
-void set_2_l(void) { registers.l = set(1 << 2, registers.l); }
+void set_2_l(void) { set(1 << 2, registers.l); }
 
 // 0xd6
-void set_2_hlp(void) { writeByte(registers.hl, set(1 << 2, readByte(registers.hl))); }
+void set_2_hlp(void) { writeByte(registers.hl, (1 << 2) | readByte(registers.hl)); }
 
 // 0xd7
-void set_2_a(void) { registers.a = set(1 << 2, registers.a); }
+void set_2_a(void) { set(1 << 2, registers.a); }
 
 // 0xd8
-void set_3_b(void) { registers.b = set(1 << 3, registers.b); }
+void set_3_b(void) { set(1 << 3, registers.b); }
 
 // 0xd9
-void set_3_c(void) { registers.c = set(1 << 3, registers.c); }
+void set_3_c(void) { set(1 << 3, registers.c); }
 
 // 0xda
-void set_3_d(void) { registers.d = set(1 << 3, registers.d); }
+void set_3_d(void) { set(1 << 3, registers.d); }
 
 // 0xdb
-void set_3_e(void) { registers.e = set(1 << 3, registers.e); }
+void set_3_e(void) { set(1 << 3, registers.e); }
 
 // 0xdc
-void set_3_h(void) { registers.h = set(1 << 3, registers.h); }
+void set_3_h(void) { set(1 << 3, registers.h); }
 
 // 0xdd
-void set_3_l(void) { registers.l = set(1 << 3, registers.l); }
+void set_3_l(void) { set(1 << 3, registers.l); }
 
 // 0xde
-void set_3_hlp(void) { writeByte(registers.hl, set(1 << 3, readByte(registers.hl))); }
+void set_3_hlp(void) { writeByte(registers.hl, (1 << 3) | readByte(registers.hl)); }
 
 // 0xdf
-void set_3_a(void) { registers.a = set(1 << 3, registers.a); }
+void set_3_a(void) { set(1 << 3, registers.a); }
 
 // 0xe0
-void set_4_b(void) { registers.b = set(1 << 4, registers.b); }
+void set_4_b(void) { set(1 << 4, registers.b); }
 
 // 0xe1
-void set_4_c(void) { registers.c = set(1 << 4, registers.c); }
+void set_4_c(void) { set(1 << 4, registers.c); }
 
 // 0xe2
-void set_4_d(void) { registers.d = set(1 << 4, registers.d); }
+void set_4_d(void) { set(1 << 4, registers.d); }
 
 // 0xe3
-void set_4_e(void) { registers.e = set(1 << 4, registers.e); }
+void set_4_e(void) { set(1 << 4, registers.e); }
 
 // 0xe4
-void set_4_h(void) { registers.h = set(1 << 4, registers.h); }
+void set_4_h(void) { set(1 << 4, registers.h); }
 
 // 0xe5
-void set_4_l(void) { registers.l = set(1 << 4, registers.l); }
+void set_4_l(void) { set(1 << 4, registers.l); }
 
 // 0xe6
-void set_4_hlp(void) { writeByte(registers.hl, set(1 << 4, readByte(registers.hl))); }
+void set_4_hlp(void) { writeByte(registers.hl, (1 << 4) | readByte(registers.hl)); }
 
 // 0xe7
-void set_4_a(void) { registers.a = set(1 << 4, registers.a); }
+void set_4_a(void) { set(1 << 4, registers.a); }
 
 // 0xe8
-void set_5_b(void) { registers.b = set(1 << 5, registers.b); }
+void set_5_b(void) { set(1 << 5, registers.b); }
 
 // 0xe9
-void set_5_c(void) { registers.c = set(1 << 5, registers.c); }
+void set_5_c(void) { set(1 << 5, registers.c); }
 
 // 0xea
-void set_5_d(void) { registers.d = set(1 << 5, registers.d); }
+void set_5_d(void) { set(1 << 5, registers.d); }
 
 // 0xeb
-void set_5_e(void) { registers.e = set(1 << 5, registers.e); }
+void set_5_e(void) { set(1 << 5, registers.e); }
 
 // 0xec
-void set_5_h(void) { registers.h = set(1 << 5, registers.h); }
+void set_5_h(void) { set(1 << 5, registers.h); }
 
 // 0xed
-void set_5_l(void) { registers.l = set(1 << 5, registers.l); }
+void set_5_l(void) { set(1 << 5, registers.l); }
 
 // 0xee
-void set_5_hlp(void) { writeByte(registers.hl, set(1 << 5, readByte(registers.hl))); }
+void set_5_hlp(void) { writeByte(registers.hl, (1 << 5) | readByte(registers.hl)); }
 
 // 0xef
-void set_5_a(void) { registers.a = set(1 << 5, registers.a); }
+void set_5_a(void) { set(1 << 5, registers.a); }
 
 // 0xf0
-void set_6_b(void) { registers.b = set(1 << 6, registers.b); }
+void set_6_b(void) { set(1 << 6, registers.b); }
 
 // 0xf1
-void set_6_c(void) { registers.c = set(1 << 6, registers.c); }
+void set_6_c(void) { set(1 << 6, registers.c); }
 
 // 0xf2
-void set_6_d(void) { registers.d = set(1 << 6, registers.d); }
+void set_6_d(void) { set(1 << 6, registers.d); }
 
 // 0xf3
-void set_6_e(void) { registers.e = set(1 << 6, registers.e); }
+void set_6_e(void) { set(1 << 6, registers.e); }
 
 // 0xf4
-void set_6_h(void) { registers.h = set(1 << 6, registers.h); }
+void set_6_h(void) { set(1 << 6, registers.h); }
 
 // 0xf5
-void set_6_l(void) { registers.l = set(1 << 6, registers.l); }
+void set_6_l(void) { set(1 << 6, registers.l); }
 
 // 0xf6
-void set_6_hlp(void) { writeByte(registers.hl, set(1 << 6, readByte(registers.hl))); }
+void set_6_hlp(void) { writeByte(registers.hl, (1 << 6) | readByte(registers.hl)); }
 
 // 0xf7
-void set_6_a(void) { registers.a = set(1 << 6, registers.a); }
+void set_6_a(void) { set(1 << 6, registers.a); }
 
 // 0xf8
-void set_7_b(void) { registers.b = set(1 << 7, registers.b); }
+void set_7_b(void) { set(1 << 7, registers.b); }
 
 // 0xf9
-void set_7_c(void) { registers.c = set(1 << 7, registers.c); }
+void set_7_c(void) { set(1 << 7, registers.c); }
 
 // 0xfa
-void set_7_d(void) { registers.d = set(1 << 7, registers.d); }
+void set_7_d(void) { set(1 << 7, registers.d); }
 
 // 0xfb
-void set_7_e(void) { registers.e = set(1 << 7, registers.e); }
+void set_7_e(void) { set(1 << 7, registers.e); }
 
 // 0xfc
-void set_7_h(void) { registers.h = set(1 << 7, registers.h); }
+void set_7_h(void) { set(1 << 7, registers.h); }
 
 // 0xfd
-void set_7_l(void) { registers.l = set(1 << 7, registers.l); }
+void set_7_l(void) { set(1 << 7, registers.l); }
 
 // 0xfe
-void set_7_hlp(void) { writeByte(registers.hl, set(1 << 7, readByte(registers.hl))); }
+void set_7_hlp(void) { writeByte(registers.hl, (1 << 7) | readByte(registers.hl)); }
 
 // 0xff
-void set_7_a(void) { registers.a = set(1 << 7, registers.a); }
+void set_7_a(void) { set(1 << 7, registers.a); }

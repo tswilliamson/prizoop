@@ -92,8 +92,8 @@ void DisplayGLUTScreen() {
 
 // returns width in pixels printed
 static int PrintTextHelper(HFONT Font, int height, int x, int y, const char* string, int color, int back_color) {
-	static HDC Compat = CreateCompatibleDC(wglGetCurrentDC());
-	static HBITMAP Bitmap = CreateCompatibleBitmap(renderContext, 384, 216);
+	HDC Compat = CreateCompatibleDC(wglGetCurrentDC());
+	HBITMAP Bitmap = CreateCompatibleBitmap(renderContext, 384, 216);
 
 	::SelectObject(Compat, Bitmap);
 	::SelectObject(Compat, Font);
@@ -127,13 +127,16 @@ static int PrintTextHelper(HFONT Font, int height, int x, int y, const char* str
 		}
 	}
 
+	DeleteObject(Bitmap);
+	DeleteObject(Compat);
+
 	return rect.right;
 }
 
-void PrintMini(int *x, int *y, const char *MB_string, int mode_flags, unsigned int xlimit, int P6, int P7, int color, int back_color, int writeflag, int P11) {
-	static HFONT Font = CreateFont(18, 0, 0, 0, FW_BOLD, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, NONANTIALIASED_QUALITY, FF_ROMAN, "Times New Roman");
+static HFONT MiniFont = CreateFont(18, 0, 0, 0, FW_BOLD, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, NONANTIALIASED_QUALITY, FF_ROMAN, "Times New Roman");
 
-	x += PrintTextHelper(Font, 18, *x, *y, MB_string, color, back_color);
+void PrintMini(int *x, int *y, const char *MB_string, int mode_flags, unsigned int xlimit, int P6, int P7, int color, int back_color, int writeflag, int P11) {
+	x += PrintTextHelper(MiniFont, 18, *x, *y, MB_string, color, back_color);
 
 	glutPostRedisplay();
 	glutMainLoopEvent();

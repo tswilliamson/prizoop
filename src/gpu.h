@@ -12,7 +12,7 @@
 #define GPU_CONTROL_WINDOWTILEMAP (1 << 6)
 #define GPU_CONTROL_DISPLAYENABLE (1 << 7)
 
-struct gpu {
+struct gpu_type {
 	unsigned char control;
 	unsigned char scrollX;
 	unsigned char scrollY;

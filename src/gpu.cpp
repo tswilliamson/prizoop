@@ -10,7 +10,7 @@
 
 #include "gpu.h"
 
-struct gpu gpu;
+struct gpu_type gpu;
 
 tilestype* tiles = NULL;
 
@@ -43,6 +43,9 @@ void gpuStep(void) {
 				hblank();
 				
 				if(gpu.scanline == 144) {
+					if (drawFramebuffer) {
+						drawFramebuffer();
+					}
 					if(interrupt.enable & INTERRUPTS_VBLANK) interrupt.flags |= INTERRUPTS_VBLANK;
 					
 					gpuMode = GPU_MODE_VBLANK;

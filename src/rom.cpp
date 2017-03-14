@@ -109,8 +109,8 @@ unsigned char loadROM(const char *filename) {
 	
 	if(type != ROM_PLAIN) {
 		printf("Only 32KB games with no mappers are supported!\n");
-		Bfile_CloseFile_OS(hFile);
-		return 0;
+		//Bfile_CloseFile_OS(hFile);
+		//return 0;
 	}
 	
 	romSize = header[ROM_OFFSET_ROM_SIZE];

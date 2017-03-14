@@ -5,8 +5,6 @@ Fork of the multiplatform Game Boy emulator, Cinoop, by CTurt, with intense focu
 
 Currently 100% C with a bit of direct register usage for the Prizm, and will likely feature a bit of assembly language hopefully soon :-)
 
-Read my article about writing Cinoop [here](http://cturt.github.io/cinoop.html).
-
 ## Support
 
 **Games:** Tetris is most likely the only playable game,

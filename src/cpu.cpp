@@ -202,14 +202,14 @@ static inline void add(unsigned char *destination, unsigned char value) {
 	
 	if(result & 0xff00) FLAGS_SET(FLAGS_CARRY);
 	else FLAGS_CLEAR(FLAGS_CARRY);
-	
+
+	if (((*destination & 0x0f) + (value & 0x0f)) > 0x0f) FLAGS_SET(FLAGS_HALFCARRY);
+	else FLAGS_CLEAR(FLAGS_HALFCARRY);
+
 	*destination = (unsigned char)(result & 0xff);
 	
 	if(*destination) FLAGS_CLEAR(FLAGS_ZERO);
 	else FLAGS_SET(FLAGS_ZERO);
-	
-	if(((*destination & 0x0f) + (value & 0x0f)) > 0x0f) FLAGS_SET(FLAGS_HALFCARRY);
-	else FLAGS_CLEAR(FLAGS_HALFCARRY);
 	
 	FLAGS_CLEAR(FLAGS_NEGATIVE);
 }
@@ -219,11 +219,11 @@ static inline void add2(unsigned short *destination, unsigned short value) {
 	
 	if(result & 0xffff0000) FLAGS_SET(FLAGS_CARRY);
 	else FLAGS_CLEAR(FLAGS_CARRY);
+
+	if (((*destination & 0x0fff) + (value & 0x0fff)) & 0x1000) FLAGS_SET(FLAGS_HALFCARRY);
+	else FLAGS_CLEAR(FLAGS_HALFCARRY);
 	
 	*destination = (unsigned short)(result & 0xffff);
-	
-	if(((*destination & 0x0f) + (value & 0x0f)) > 0x0f) FLAGS_SET(FLAGS_HALFCARRY);
-	else FLAGS_CLEAR(FLAGS_HALFCARRY);
 	
 	// zero flag left alone
 	
@@ -238,15 +238,15 @@ static inline void adc(unsigned char value) {
 	if(result & 0xff00) FLAGS_SET(FLAGS_CARRY);
 	else FLAGS_CLEAR(FLAGS_CARRY);
 	
-	if(value == registers.a) FLAGS_SET(FLAGS_ZERO);
-	else FLAGS_CLEAR(FLAGS_ZERO);
-	
 	if(((value & 0x0f) + (registers.a & 0x0f)) > 0x0f) FLAGS_SET(FLAGS_HALFCARRY);
 	else FLAGS_CLEAR(FLAGS_HALFCARRY);
 	
-	FLAGS_SET(FLAGS_NEGATIVE);
+	FLAGS_CLEAR(FLAGS_NEGATIVE);
 	
 	registers.a = (unsigned char)(result & 0xff);
+
+	if (registers.a == 0) FLAGS_SET(FLAGS_ZERO);
+	else FLAGS_CLEAR(FLAGS_ZERO);
 }
 
 static inline void sbc(unsigned char value) {
@@ -345,14 +345,11 @@ inline void ld_b_n(unsigned char operand) { registers.b = operand; }
 
 // 0x07
 inline void rlca(void) {
-	unsigned char carry = (registers.a & 0x80) >> 7;
-	if(carry) FLAGS_SET(FLAGS_CARRY);
+	registers.a = (registers.a << 1) | (registers.a >> 7);
+	if(registers.a & 0x01) FLAGS_SET(FLAGS_CARRY);
 	else FLAGS_CLEAR(FLAGS_CARRY);
 	
-	registers.a <<= 1;
-	registers.a += carry;
-	
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_ZERO | FLAGS_HALFCARRY);
+	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
 }
 
 // 0x08
@@ -378,14 +375,12 @@ inline void ld_c_n(unsigned char operand) { registers.c = operand; }
 
 // 0x0f
 inline void rrca(void) {
-	unsigned char carry = registers.a & 0x01;
-	if(carry) FLAGS_SET(FLAGS_CARRY);
+	registers.a = (registers.a >> 1) | ((registers.a << 7) & 0x80);
+
+	if (registers.a & 0x80) FLAGS_SET(FLAGS_CARRY);
 	else FLAGS_CLEAR(FLAGS_CARRY);
 	
-	registers.a >>= 1;
-	if(carry) registers.a |= 0x80;
-	
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_ZERO | FLAGS_HALFCARRY);
+	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
 }
 
 // 0x10
@@ -495,26 +490,40 @@ inline void ld_h_n(unsigned char operand) { registers.h = operand; }
 
 // 0x27
 inline void daa(void) {
+	int s = registers.a;
+
+	if (!FLAGS_ISNEGATIVE)
 	{
-		unsigned short s = registers.a;
-		
-		if(FLAGS_ISNEGATIVE) {
-			if(FLAGS_ISHALFCARRY) s = (s - 0x06)&0xFF;
-			if(FLAGS_ISCARRY) s -= 0x60;
-		}
-		else {
-			if(FLAGS_ISHALFCARRY || (s & 0xF) > 9) s += 0x06;
-			if(FLAGS_ISCARRY || s > 0x9F) s += 0x60;
-		}
-		
-		registers.a = s;
-		FLAGS_CLEAR(FLAGS_HALFCARRY);
-		
-		if(registers.a) FLAGS_CLEAR(FLAGS_ZERO);
-		else FLAGS_SET(FLAGS_ZERO);
-		
-		if(s >= 0x100) FLAGS_SET(FLAGS_CARRY);
+		if ((FLAGS_ISHALFCARRY) || (s & 0xF) > 9)
+			s += 0x06;
+
+		if ((FLAGS_ISCARRY) || s > 0x9F)
+			s += 0x60;
 	}
+	else
+	{
+		if (FLAGS_ISHALFCARRY)
+			s = (s - 6) & 0xFF;
+
+		if (FLAGS_ISCARRY)
+			s -= 0x60;
+	}
+
+	if ((s & 0x100) == 0x100) {
+		FLAGS_SET(FLAGS_CARRY);
+	}
+	else {
+		// no carry clear
+	}
+
+	s = s & 0xFF;
+		
+	if(s != 0) FLAGS_CLEAR(FLAGS_ZERO);
+	else FLAGS_SET(FLAGS_ZERO);
+
+	registers.a = (unsigned char) s;
+
+	FLAGS_CLEAR(FLAGS_HALFCARRY);
 }
 
 // 0x28
@@ -1195,17 +1204,26 @@ inline void and_n(unsigned char operand) {
 inline void rst_20(void) { writeShortToStack(registers.pc); registers.pc = 0x0020; }
 
 // 0xe8
-inline void add_sp_n(char operand) {
-	int result = registers.sp + operand;
-	
-	if(result & 0xffff0000) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
-	
+inline void add_sp_n(unsigned char operand) {
+	unsigned int result = registers.sp + operand;
+
+	if ((result & 0xff00) != (registers.sp & 0xff00))
+		FLAGS_SET(FLAGS_CARRY);
+	else
+		FLAGS_CLEAR(FLAGS_CARRY);
+
+	if ((registers.sp & 0x000f) + (operand & 0x0f) > 0x0f) 
+		FLAGS_SET(FLAGS_HALFCARRY);
+	else
+		FLAGS_CLEAR(FLAGS_HALFCARRY);
+
+	// signed result
+	if (operand & 0x80) {
+		result -= 0x0100;
+	}
+
 	registers.sp = result & 0xffff;
-	
-	if(((registers.sp & 0x0f) + (operand & 0x0f)) > 0x0f) FLAGS_SET(FLAGS_HALFCARRY);
-	else FLAGS_CLEAR(FLAGS_HALFCARRY);
-	
+
 	// _does_ clear the zero flag
 	FLAGS_CLEAR(FLAGS_ZERO | FLAGS_NEGATIVE);
 }
@@ -1231,7 +1249,7 @@ inline void rst_28(void) { writeShortToStack(registers.pc); registers.pc = 0x002
 inline void ld_ff_ap_n(unsigned char operand) { registers.a = readByte(0xff00 + operand); }
 
 // 0xf1
-inline void pop_af(void) { registers.af = readShortFromStack(); }
+inline void pop_af(void) { registers.af = readShortFromStack(); registers.f &= 0xF0; }
 
 // 0xf2
 inline void ld_a_ff_c(void) { registers.a = readByte(0xff00 + registers.c); }
@@ -1250,14 +1268,23 @@ inline void rst_30(void) { writeShortToStack(registers.pc); registers.pc = 0x003
 
 // 0xf8
 inline void ld_hl_sp_n(unsigned char operand) {
-	int result = registers.sp + (signed char)operand;
-	
-	if(result & 0xffff0000) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
-	
-	if(((registers.sp & 0x0f) + (operand & 0x0f)) > 0x0f) FLAGS_SET(FLAGS_HALFCARRY);
-	else FLAGS_CLEAR(FLAGS_HALFCARRY);
-	
+	int result = registers.sp + operand;
+
+	if ((result & 0xff00) != (registers.sp & 0xff00))
+		FLAGS_SET(FLAGS_CARRY);
+	else
+		FLAGS_CLEAR(FLAGS_CARRY);
+
+	if ((registers.sp & 0x000f) + (operand & 0x0f) > 0x0f)
+		FLAGS_SET(FLAGS_HALFCARRY);
+	else
+		FLAGS_CLEAR(FLAGS_HALFCARRY);
+
+	// signed result
+	if (operand & 0x80) {
+		result -= 0x0100;
+	}
+
 	FLAGS_CLEAR(FLAGS_ZERO | FLAGS_NEGATIVE);
 	
 	registers.hl = (unsigned short)(result & 0xffff);
@@ -1317,7 +1344,7 @@ void cpuStep() {
 			switch (readByte(registers.pc++)) {
 				#define INSTRUCTION_0(name,numticks,func,id,code)   case id: DebugInstruction(name); func(); cpu.ticks += numticks; code break;
 				#define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name); { unsigned char operand = readByte(registers.pc++); func(operand); cpu.ticks += numticks; code } break;
-				#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name); { char operand = readByte(registers.pc++); func(operand); cpu.ticks += numticks; code } break;
+				#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name); { signed char operand = readByte(registers.pc++); func(operand); cpu.ticks += numticks; code } break;
 				#define INSTRUCTION_2(name,numticks,func,id,code)   case id: DebugInstruction(name); { unsigned short operand = readShort(registers.pc++); ++registers.pc; func(operand); cpu.ticks += numticks; code } break;
 				#include "cpu_instructions.inl"
 				#undef INSTRUCTION_0

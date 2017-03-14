@@ -1,6 +1,6 @@
 #pragma once
 
-#if DEBUG && !TARGET_WINSIM
+#if (DEBUG && !TARGET_WINSIM)
 
 #include "tmu.h"
 

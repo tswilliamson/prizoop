@@ -2,7 +2,7 @@
 
 #include "platform.h"
 
-struct registers {
+struct registers_type {
 	struct {
 		union {
 			struct {
@@ -65,4 +65,6 @@ struct registers {
 	
 	unsigned short sp;
 	unsigned short pc;
-} extern registers;
+};
+
+extern registers_type registers;

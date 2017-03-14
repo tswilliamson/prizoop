@@ -238,7 +238,7 @@
  INSTRUCTION_0( "PUSH HL", 					8,   push_hl		,	0xe5, {}			)
  INSTRUCTION_1( "AND 0x%02X", 				4,   and_n			,	0xe6, {}			)
  INSTRUCTION_0( "RST 0x20", 				8,   rst_20			,	0xe7, {}			)
- INSTRUCTION_1S("ADD SP,0x%02X", 			8,   add_sp_n		,	0xe8, {}			)
+ INSTRUCTION_1("ADD SP,0x%02X", 			8,   add_sp_n		,	0xe8, {}			)
  INSTRUCTION_0( "JP HL", 					2,   jp_hl			,	0xe9, {}			)
  INSTRUCTION_2( "LD (0x%04X), A", 			8,   ld_nnp_a		,	0xea, {}			)
  INSTRUCTION_0( "UNKNOWN", 					0,   undefined		,	0xeb, {}			)

@@ -1,3 +1,3 @@
 #include "registers.h"
 
-struct registers registers;
+struct registers_type registers;
