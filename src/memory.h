@@ -4,6 +4,8 @@
 	#include <stdlib.h>
 #endif
 
+#include "debug.h"
+
 #include "gpu.h"
 #include "registers.h"
 
@@ -51,7 +53,10 @@ inline void writeByte(unsigned short address, unsigned char value) {
 	((address >> 8) == 0xff && (specialMap[address & 0xFF] & 0x02)) ?
 		writeByteSpecial(address, value) : (void) (memoryMap[address >> 8][address & 0xFF] = value);
 
-	// tile update.. hopefully removed soon
+	// for debugging, usually compiles out
+	DebugWrite(address);
+
+	// tile update.. possibly removed soon
 	if (specialMap[address >> 8] & 0x04) updateTile(address, value);
 }
 

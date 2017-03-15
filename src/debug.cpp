@@ -3,17 +3,13 @@
 #endif
 
 #include "platform.h"
+#include "debug.h"
 
 #include "registers.h"
 #include "memory.h"
 #include "cpu.h"
 #include "interrupts.h"
 
-#include "debug.h"
-
-#if DEBUG
-unsigned char realtimeDebugEnable = 0;
-#endif
 
 static int printY = 0;
 void reset_printf() {
@@ -31,62 +27,76 @@ void ScreenPrint(char* buffer) {
 	printY = (printY + 18) % 224;
 }
 
+#if DEBUG
+unsigned char realtimeDebugEnable = 0;
 
-#ifdef WIN
-void realtimeDebug(void) {
-	char debugMessage[5000];
-	char *debugMessageP = debugMessage;
-	
-	unsigned char instruction = readByte(registers.pc);
-	unsigned short operand = 0;
-	
-	if(instructions[instruction].operandLength == 1) operand = (unsigned short)readByte(registers.pc + 1);
-	if(instructions[instruction].operandLength == 2) operand = readShort(registers.pc + 1);
-	
-	if(instructions[instruction].operandLength) debugMessageP += sprintf(debugMessageP, instructions[instruction].disassembly, operand);
-	else debugMessageP += sprintf(debugMessageP, instructions[instruction].disassembly);
-	
-	debugMessageP += sprintf(debugMessageP, "\n\nAF: 0x%04x\n", registers.af);
-	debugMessageP += sprintf(debugMessageP, "BC: 0x%04x\n", registers.bc);
-	debugMessageP += sprintf(debugMessageP, "DE: 0x%04x\n", registers.de);
-	debugMessageP += sprintf(debugMessageP, "HL: 0x%04x\n", registers.hl);
-	debugMessageP += sprintf(debugMessageP, "SP: 0x%04x\n", registers.sp);
-	debugMessageP += sprintf(debugMessageP, "PC: 0x%04x\n", registers.pc);
-	
-	debugMessageP += sprintf(debugMessageP, "\nIME: 0x%02x\n", interrupt.master);
-	debugMessageP += sprintf(debugMessageP, "IE: 0x%02x\n", interrupt.enable);
-	debugMessageP += sprintf(debugMessageP, "IF: 0x%02x\n", interrupt.flags);
-	
-	debugMessageP += sprintf(debugMessageP, "\nContinue debugging?\n");
-	
-	realtimeDebugEnable = MessageBox(NULL, debugMessage, "Prizoop Breakpoint", MB_YESNO) == IDYES ? 1 : 0;
+#define BORDER "<><><><><><><><><><><><><><><><><><><><>\n"
+
+void LogRegisters(void) {
+	OutputLog("Registers:\n");
+	OutputLog(BORDER);
+	OutputLog("AF: 0x%04x\n", registers.af);
+	OutputLog("BC: 0x%04x\n", registers.bc);
+	OutputLog("DE: 0x%04x\n", registers.de);
+	OutputLog("HL: 0x%04x\n", registers.hl);
+	OutputLog("SP: 0x%04x\n", registers.sp);
+	OutputLog("PC: 0x%04x\n", registers.pc);
+	OutputLog("IME: 0x%02x IE: 0x%02x IF: 0x%02x\n", interrupt.master, interrupt.enable, interrupt.flags);
 }
 
-#ifdef DEBUG_JUMP
-void debugJump(void) {
-	static unsigned short lastPC = 0;
-	
-	if(registers.pc != lastPC) {
-		printf("Jumped to 0x%04x\n", registers.pc);
-		lastPC = registers.pc;
-	}
+#if DEBUG_TRACKINSTRUCTIONS
+int instr_slot = 0;
+InstructionsHistory instr_hist[DEBUG_TRACKINSTRUCTIONS] = { 0 };
+
+void LogInstructionsHistory() {
+	OutputLog("Last %d instructions:\n", DEBUG_TRACKINSTRUCTIONS);
+	OutputLog(BORDER);
+	int i = 1;
+	int curInstruction = instr_slot % DEBUG_TRACKINSTRUCTIONS;
+	OutputLog(" #   PC      INSTR                               AF   BC   DE   HL   SP\n");
+	do {
+		if (instr_hist[curInstruction].regs.pc) {
+			OutputLog("(%02d) 0x%04x: %s", i++, instr_hist[curInstruction].regs.pc - 1, instr_hist[curInstruction].instr);
+			for (int j = 36; j > strlen(instr_hist[curInstruction].instr); j--) {
+				OutputLog(" ");
+			}
+			OutputLog("%04x %04x %04x %04x %04x\n", instr_hist[curInstruction].regs.af, instr_hist[curInstruction].regs.bc, instr_hist[curInstruction].regs.de, instr_hist[curInstruction].regs.hl, instr_hist[curInstruction].regs.sp);
+		}
+		curInstruction = (curInstruction + 1) % DEBUG_TRACKINSTRUCTIONS;
+	} while (curInstruction != (instr_slot % DEBUG_TRACKINSTRUCTIONS));
 }
 #endif
 
-void printRegisters(void) {
-	printf("A: 0x%02x\n", registers.a);
-	printf("F: 0x%02x\n", registers.f);
-	printf("B: 0x%02x\n", registers.b);
-	printf("C: 0x%02x\n", registers.c);
-	printf("D: 0x%02x\n", registers.d);
-	printf("E: 0x%02x\n", registers.e);
-	printf("H: 0x%02x\n", registers.h);
-	printf("L: 0x%02x\n", registers.l);
-	printf("SP: 0x%04x\n", registers.sp);
-	printf("PC: 0x%04x\n", registers.pc);
-	printf("IME: 0x%02x\n", interrupt.master);
-	printf("IE: 0x%02x\n", interrupt.enable);
-	printf("IF: 0x%02x\n", interrupt.flags);
+#if DEBUG_MEMACCESS
+void HitMemAccess() {
+	OutputLog("Hit Mem Access! 0x%04x (val: 0x%02x)\n", DEBUG_MEMACCESS, readByte(DEBUG_MEMACCESS));
+	OutputLog(BORDER);
+
+	// display memory around access
+	OutputLog("Memory around access:\n");
+	OutputLog(BORDER);
+	for (int i = -8; i <= 8; i++) {
+		OutputLog("%02x ", readByte(DEBUG_MEMACCESS + i));
+	}
+	OutputLog("\n");
+	for (int i = -8; i <= 8; i++) {
+		if (i == 0) {
+			OutputLog("** ");
+		} else {
+			OutputLog("   ");
+		}
+	}
+	OutputLog("\n");
+
+	// display register values:
+	LogRegisters();
+
+	// display recent instructions:
+	LogInstructionsHistory();
+
+	DebugBreak();
 }
+#endif
+
 #endif
 

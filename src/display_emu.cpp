@@ -2,6 +2,8 @@
 // simple display functionality for emulator / winsim
 #if !TARGET_PRIZM
 
+#include "debug.h"
+
 #include "gpu.h"
 #include "memory.h"
 #include "keys.h"

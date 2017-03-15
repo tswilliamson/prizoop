@@ -3,6 +3,8 @@
 #endif
 
 #include "platform.h"
+#include "debug.h"
+
 #include "display.h"
 #include "memory.h"
 #include "cpu.h"

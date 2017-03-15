@@ -13,18 +13,6 @@
 
 #include "cpu.h"
 
-#if TARGET_WINSIM
-#include <Windows.h>
-#define DEBUG_ROM 0
-#endif
-
-#if DEBUG_ROM
-int iter = 0;
-#define DebugInstruction(name) { char buffer[256]; sprintf(buffer, "(%d) 0x%04x : %s\n", iter++, registers.pc-1, name); OutputDebugString(buffer); }
-#else
-#define DebugInstruction(...) 
-#endif
-
 /*
 	References:
 
@@ -160,8 +148,6 @@ inline void undefined(void) {
 	#endif
 
 #if DEBUG
-	printRegisters();
-
 	int key;
 	GetKey(&key);
 #endif
@@ -231,16 +217,14 @@ static inline void add2(unsigned short *destination, unsigned short value) {
 }
 
 static inline void adc(unsigned char value) {
-	value += FLAGS_ISCARRY ? 1 : 0;
+	int result = registers.a + value + (FLAGS_ISCARRY ? 1 : 0);
 	
-	int result = registers.a + value;
-	
-	if(result & 0xff00) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
-	
-	if(((value & 0x0f) + (registers.a & 0x0f)) > 0x0f) FLAGS_SET(FLAGS_HALFCARRY);
+	if(((value & 0x0f) + (registers.a & 0x0f) + (FLAGS_ISCARRY ? 1 : 0)) > 0x0f) FLAGS_SET(FLAGS_HALFCARRY);
 	else FLAGS_CLEAR(FLAGS_HALFCARRY);
-	
+
+	if (result & 0xff00) FLAGS_SET(FLAGS_CARRY);
+	else FLAGS_CLEAR(FLAGS_CARRY);
+
 	FLAGS_CLEAR(FLAGS_NEGATIVE);
 	
 	registers.a = (unsigned char)(result & 0xff);
@@ -250,20 +234,20 @@ static inline void adc(unsigned char value) {
 }
 
 static inline void sbc(unsigned char value) {
-	value += FLAGS_ISCARRY ? 1 : 0;
-	
-	FLAGS_SET(FLAGS_NEGATIVE);
-	
-	if(value > registers.a) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
-	
-	if(value == registers.a) FLAGS_SET(FLAGS_ZERO);
-	else FLAGS_CLEAR(FLAGS_ZERO);
-	
-	if((value & 0x0f) > (registers.a & 0x0f)) FLAGS_SET(FLAGS_HALFCARRY);
+	int result = registers.a - value - (FLAGS_ISCARRY ? 1 : 0);
+
+	if ((value & 0x0f) + (FLAGS_ISCARRY ? 1 : 0) > (registers.a & 0x0f)) FLAGS_SET(FLAGS_HALFCARRY);
 	else FLAGS_CLEAR(FLAGS_HALFCARRY);
-	
-	registers.a -= value;
+
+	if (result & 0xff00) FLAGS_SET(FLAGS_CARRY);
+	else FLAGS_CLEAR(FLAGS_CARRY);
+
+	FLAGS_SET(FLAGS_NEGATIVE);
+
+	registers.a = (unsigned char)(result & 0xff);
+
+	if (registers.a == 0) FLAGS_SET(FLAGS_ZERO);
+	else FLAGS_CLEAR(FLAGS_ZERO);
 }
 
 static inline void sub(unsigned char value) {
@@ -349,7 +333,7 @@ inline void rlca(void) {
 	if(registers.a & 0x01) FLAGS_SET(FLAGS_CARRY);
 	else FLAGS_CLEAR(FLAGS_CARRY);
 	
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
+	FLAGS_CLEAR(FLAGS_ZERO | FLAGS_NEGATIVE | FLAGS_HALFCARRY);
 }
 
 // 0x08
@@ -379,8 +363,8 @@ inline void rrca(void) {
 
 	if (registers.a & 0x80) FLAGS_SET(FLAGS_CARRY);
 	else FLAGS_CLEAR(FLAGS_CARRY);
-	
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
+
+	FLAGS_CLEAR(FLAGS_ZERO | FLAGS_NEGATIVE | FLAGS_HALFCARRY);
 }
 
 // 0x10
@@ -420,10 +404,6 @@ inline void rla(void) {
 // 0x18
 inline void jr_n(unsigned char operand) {
 	registers.pc += (signed char)operand;
-
-#if DEBUG
-	debugJump();
-#endif
 }
 
 // 0x19
@@ -462,10 +442,6 @@ inline void jr_nz_n(unsigned char operand) {
 	if(FLAGS_ISZERO) cpu.ticks += 8;
 	else {
 		registers.pc += (signed char)operand;
-
-#if DEBUG
-		debugJump();
-#endif
 		cpu.ticks += 12;
 	}
 }
@@ -530,9 +506,6 @@ inline void daa(void) {
 inline void jr_z_n(unsigned char operand) {
 	if(FLAGS_ISZERO) {
 		registers.pc += (signed char)operand;
-#if DEBUG
-		debugJump();
-#endif
 		cpu.ticks += 12;
 	}
 	else cpu.ticks += 8;
@@ -564,9 +537,6 @@ inline void jr_nc_n(char operand) {
 	if(FLAGS_ISCARRY) cpu.ticks += 8;
 	else {
 		registers.pc += operand;
-#if DEBUG
-		debugJump();
-#endif
 		cpu.ticks += 12;
 	}
 }
@@ -1000,9 +970,6 @@ inline void ret_nz(void) {
 	if(FLAGS_ISZERO) cpu.ticks += 8;
 	else {
 		registers.pc = readShortFromStack();
-#if DEBUG
-		debugJump();
-#endif
 		cpu.ticks += 20;
 	}
 }
@@ -1015,9 +982,6 @@ inline void jp_nz_nn(unsigned short operand) {
 	if(FLAGS_ISZERO) cpu.ticks += 12;
 	else {
 		registers.pc = operand;
-#if DEBUG
-		debugJump();
-#endif
 		cpu.ticks += 16;
 	}
 }
@@ -1025,9 +989,6 @@ inline void jp_nz_nn(unsigned short operand) {
 // 0xc3
 inline void jp_nn(unsigned short operand) {
 	registers.pc = operand;
-#if DEBUG
-	debugJump();
-#endif
 }
 
 // 0xc4
@@ -1036,9 +997,6 @@ inline void call_nz_nn(unsigned short operand) {
 	else {
 		writeShortToStack(registers.pc);
 		registers.pc = operand;
-#if DEBUG
-		debugJump();
-#endif
 		cpu.ticks += 24;
 	}
 }
@@ -1068,9 +1026,6 @@ inline void ret(void) { registers.pc = readShortFromStack(); }
 inline void jp_z_nn(unsigned short operand) {
 	if(FLAGS_ISZERO) {
 		registers.pc = operand;
-#if DEBUG
-		debugJump();
-#endif
 		cpu.ticks += 16;
 	}
 	else cpu.ticks += 12;
@@ -1154,9 +1109,6 @@ inline void ret_c(void) {
 inline void jp_c_nn(unsigned short operand) {
 	if(FLAGS_ISCARRY) {
 		registers.pc = operand;
-#if DEBUG
-		debugJump();
-#endif
 		cpu.ticks += 16;
 	}
 	else cpu.ticks += 12;
@@ -1231,9 +1183,6 @@ inline void add_sp_n(unsigned char operand) {
 // 0xe9
 inline void jp_hl(void) {
 	registers.pc = registers.hl;
-#if DEBUG
-	debugJump();
-#endif
 }
 
 // 0xea
@@ -1323,29 +1272,12 @@ void cpuStep() {
 		TIME_SCOPE();
 
 		for (int i = 0; i < CPU_BATCH; i++) {
-#if DEBUG
-			// General breakpoints
-			//if(registers.pc == 0x034c) { // incorrect load
-			//if(registers.pc == 0x0309) { // start of function which writes to ff80
-			//if(registers.pc == 0x2a02) { // closer to function call which writes to ff80
-			//if(registers.pc == 0x034c) { // function which writes to ffa6 timer
-
-			//if(registers.pc == 0x036c) { // loop
-			//if(registers.pc == 0x0040) { // vblank
-
-			//if(registers.pc == 0x29fa) { // input
-			//	realtimeDebugEnable = 1;
-			//}
-
-			if (realtimeDebugEnable) realtimeDebug();
-#endif
-
 			// perform inlined instruction op
 			switch (readByte(registers.pc++)) {
 				#define INSTRUCTION_0(name,numticks,func,id,code)   case id: DebugInstruction(name); func(); cpu.ticks += numticks; code break;
-				#define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name); { unsigned char operand = readByte(registers.pc++); func(operand); cpu.ticks += numticks; code } break;
-				#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name); { signed char operand = readByte(registers.pc++); func(operand); cpu.ticks += numticks; code } break;
-				#define INSTRUCTION_2(name,numticks,func,id,code)   case id: DebugInstruction(name); { unsigned short operand = readShort(registers.pc++); ++registers.pc; func(operand); cpu.ticks += numticks; code } break;
+				#define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name, readByte(registers.pc)); { unsigned char operand = readByte(registers.pc++); func(operand); cpu.ticks += numticks; code } break;
+				#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name, readByte(registers.pc)); { signed char operand = readByte(registers.pc++); func(operand); cpu.ticks += numticks; code } break;
+				#define INSTRUCTION_2(name,numticks,func,id,code)   case id: DebugInstruction(name, readShort(registers.pc)); { unsigned short operand = readShort(registers.pc++); ++registers.pc; func(operand); cpu.ticks += numticks; code } break;
 				#include "cpu_instructions.inl"
 				#undef INSTRUCTION_0
 				#undef INSTRUCTION_1

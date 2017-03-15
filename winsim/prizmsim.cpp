@@ -59,8 +59,9 @@ void *GetVRAMAddress(void) {
 
 // Actual OpenGL draw of CPU texture
 void DisplayGLUTScreen() {
-	// artificial "vsync"
-	Sleep(16);
+	// artificial "vsync", hold tab to fast forward
+	if ((GetAsyncKeyState(VK_TAB) & 0x8000) == 0)
+		Sleep(16);
 
 	GLenum i = glGetError();
 	glBindTexture(GL_TEXTURE_2D, screenTexture);
@@ -118,7 +119,7 @@ static int PrintTextHelper(HFONT Font, int height, int x, int y, const char* str
 
 	// blit each row (have to y flip)
 	for (int i = 0; i < rect.bottom; i++, y++) {
-		if (y >= 0 && y <= 216) {
+		if (y >= 0 && y <= 215) {
 			for (int j = 0; j < rect.right; j++) {
 				if (x + j < 384 && x + j >= 0) {
 					ScreenBuffer[y][x+j] = TO_16_FROM_32(rows[(384 * (215 - i) + j)]);

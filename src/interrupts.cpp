@@ -1,4 +1,6 @@
 #include "platform.h"
+#include "debug.h"
+
 #include "cpu.h"
 #include "memory.h"
 #include "registers.h"

@@ -3,6 +3,8 @@
 #if TARGET_PRIZM
 
 #include "platform.h"
+#include "debug.h"
+
 #include "memory.h"
 #include "gpu.h"
 #include "debug.h"

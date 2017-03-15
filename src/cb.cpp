@@ -4,11 +4,11 @@
 #endif
 
 #include "platform.h"
+#include "debug.h"
 
 #include "cpu.h"
 #include "registers.h"
 #include "memory.h"
-#include "debug.h"
 #include "main.h"
 
 #include "cb.h"
@@ -866,7 +866,7 @@ void res_1_h(void) { registers.h &= ~(1 << 1); }
 void res_1_l(void) { registers.l &= ~(1 << 1); }
 
 // 0x8e
-void res_1_hlp(void) { writeByte(registers.hl, registers.hl & ~(1 << 1)); }
+void res_1_hlp(void) { writeByte(registers.hl, readByte(registers.hl) & ~(1 << 1)); }
 
 // 0x8f
 void res_1_a(void) { registers.a &= ~(1 << 1); }
@@ -890,7 +890,7 @@ void res_2_h(void) { registers.h &= ~(1 << 2); }
 void res_2_l(void) { registers.l &= ~(1 << 2); }
 
 // 0x96
-void res_2_hlp(void) { writeByte(registers.hl, registers.hl & ~(1 << 2)); }
+void res_2_hlp(void) { writeByte(registers.hl, readByte(registers.hl) & ~(1 << 2)); }
 
 // 0x97
 void res_2_a(void) { registers.a &= ~(1 << 2); }
@@ -914,7 +914,7 @@ void res_3_h(void) { registers.h &= ~(1 << 3); }
 void res_3_l(void) { registers.l &= ~(1 << 3); }
 
 // 0x9e
-void res_3_hlp(void) { writeByte(registers.hl, registers.hl & ~(1 << 3)); }
+void res_3_hlp(void) { writeByte(registers.hl, readByte(registers.hl) & ~(1 << 3)); }
 
 // 0x9f
 void res_3_a(void) { registers.a &= ~(1 << 3); }
@@ -938,7 +938,7 @@ void res_4_h(void) { registers.h &= ~(1 << 4); }
 void res_4_l(void) { registers.l &= ~(1 << 4); }
 
 // 0xa6
-void res_4_hlp(void) { writeByte(registers.hl, registers.hl & ~(1 << 4)); }
+void res_4_hlp(void) { writeByte(registers.hl, readByte(registers.hl) & ~(1 << 4)); }
 
 // 0xa7
 void res_4_a(void) { registers.a &= ~(1 << 4); }
@@ -962,7 +962,7 @@ void res_5_h(void) { registers.h &= ~(1 << 5); }
 void res_5_l(void) { registers.l &= ~(1 << 5); }
 
 // 0xae
-void res_5_hlp(void) { writeByte(registers.hl, registers.hl & ~(1 << 5)); }
+void res_5_hlp(void) { writeByte(registers.hl, readByte(registers.hl) & ~(1 << 5)); }
 
 // 0xaf
 void res_5_a(void) { registers.a &= ~(1 << 5); }
@@ -986,7 +986,7 @@ void res_6_h(void) { registers.h &= ~(1 << 6); }
 void res_6_l(void) { registers.l &= ~(1 << 6); }
 
 // 0xb6
-void res_6_hlp(void) { writeByte(registers.hl, registers.hl & ~(1 << 6)); }
+void res_6_hlp(void) { writeByte(registers.hl, readByte(registers.hl) & ~(1 << 6)); }
 
 // 0xb7
 void res_6_a(void) { registers.a &= ~(1 << 6); }
