@@ -5,7 +5,7 @@
 #endif
 
 #include "gpu.h"
-#include "registers.h"
+#include "cpu.h"
 
 extern const unsigned char ioReset[0x100];
 
@@ -15,7 +15,6 @@ extern unsigned char vram[0x2000] ALIGN(256);
 extern unsigned char sram[0x2000] ALIGN(256);
 extern unsigned char wram[0x2000] ALIGN(256);
 extern unsigned char oam[0x100] ALIGN(256);
-extern unsigned char hram_io[0x100] ALIGN(256);
 
 // maps high byte to different spots in memory, guaranteed to be 0x100 aligned
 extern unsigned char* memoryMap[256] ALIGN(256);
@@ -42,8 +41,8 @@ inline unsigned short readShort(unsigned short address) {
 }
 
 inline unsigned short readShortFromStack(void) {
-	registers.sp += 2;
-	unsigned short value = readShort(registers.sp-2);
+	cpu.registers.sp += 2;
+	unsigned short value = readShort(cpu.registers.sp-2);
 	return value;
 }
 
@@ -61,6 +60,6 @@ inline void writeShort(unsigned short address, unsigned short value) {
 }
 
 inline void writeShortToStack(unsigned short value) {
-	registers.sp -= 2;
-	writeShort(registers.sp, value);
+	cpu.registers.sp -= 2;
+	writeShort(cpu.registers.sp, value);
 }

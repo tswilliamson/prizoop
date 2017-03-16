@@ -19,25 +19,24 @@ unsigned short colorPalette[4] = {
 
 void renderEmu() {
 
-	if (skippingFrame)
+	if (skippingFrame || (cpu.memory.LCDC_ctl & 0x80 == 0))
 		return;
 
 	TIME_SCOPE();
 
 	int mapOffset = (gpu.control & GPU_CONTROL_TILEMAP) ? 0x1c00 : 0x1800;
-	mapOffset += (((gpu.scanline + gpu.scrollY) & 255) >> 3) << 5;
+	mapOffset += (((cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 255) >> 3) << 5;
 
-	void* scanlineStart = &((unsigned short*)GetVRAMAddress())[LCD_WIDTH_PX * gpu.scanline];
-
+	void* scanlineStart = &((unsigned short*)GetVRAMAddress())[LCD_WIDTH_PX * cpu.memory.LY_lcdline];
 
 	// if bg enabled
 	{
 		int i;
-		int x = gpu.scrollX & 7;
-		int y = (gpu.scanline + gpu.scrollY) & 7;
+		int x = cpu.memory.SCX_bgscrollx & 7;
+		int y = (cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 7;
 
 		// finish/draw left tile
-		int lineOffset = (gpu.scrollX >> 3);
+		int lineOffset = (cpu.memory.SCX_bgscrollx >> 3);
 		unsigned short tile = (unsigned short)vram[mapOffset + lineOffset];
 		const unsigned char* tileRow = tiles->data[tile][y];
 
@@ -85,14 +84,14 @@ void renderEmu() {
 			if (sprite.x) {
 				int sy = sprite.y - 16;
 
-				if (sy <= gpu.scanline && (sy + 8) > gpu.scanline) {
+				if (sy <= cpu.memory.LY_lcdline && (sy + 8) > cpu.memory.LY_lcdline) {
 					int sx = sprite.x - 8;
 
 					int pixelOffset = sx;
 
 					unsigned char tileRow;
-					if (sprite.vFlip) tileRow = 7 - (gpu.scanline - sy);
-					else tileRow = gpu.scanline - sy;
+					if (sprite.vFlip) tileRow = 7 - (cpu.memory.LY_lcdline - sy);
+					else tileRow = cpu.memory.LY_lcdline - sy;
 
 					int x;
 					if (sprite.priority) {
@@ -195,7 +194,7 @@ void drawEmu() {
 		}
 	}
 
-	if (skippingFrame) {
+	if (skippingFrame || (cpu.memory.LCDC_ctl & 0x80 == 0)) {
 		return;
 	}
 

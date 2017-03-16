@@ -19,6 +19,9 @@
 #define BIG_E
 #endif
 
+// compile time assert, will throw negative subscript error
+#define CT_ASSERT(cond) static char check##__LINE__ [(cond) ? 1 : -1];
+
 #include "ScopeTimer.h"
 
 extern void ScreenPrint(char* buffer);

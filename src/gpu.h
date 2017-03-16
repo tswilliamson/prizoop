@@ -14,9 +14,6 @@
 
 struct gpu_type {
 	unsigned char control;
-	unsigned char scrollX;
-	unsigned char scrollY;
-	unsigned char scanline;
 	unsigned long tick;
 } extern gpu;
 

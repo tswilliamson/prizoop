@@ -112,7 +112,7 @@ inline void scanlineFlush1x1() {
 	DmaWaitNext();
 
 	Bdisp_WriteDDRegister3_bit7(1);
-	Bdisp_DefineDMARange(118, 277, 36 + gpu.scanline - SCANLINE_BUFFER + 1, 36 + gpu.scanline);
+	Bdisp_DefineDMARange(118, 277, 36 + cpu.memory.LY_lcdline - SCANLINE_BUFFER + 1, 36 + cpu.memory.LY_lcdline);
 	Bdisp_DDRegisterSelect(LCD_GRAM);
 
 	DmaDrawStrip(&scanGroup[curScanBuffer * scanBufferSize], scanBufferSize);
@@ -130,8 +130,8 @@ void renderScanline1x1(void) {
 
 	TIME_SCOPE();
 
-	int mapOffset = (gpu.control & GPU_CONTROL_TILEMAP) ? 0x1c00 : 0x1800;
-	mapOffset += (((gpu.scanline + gpu.scrollY) & 255) >> 3) << 5;
+	int mapOffset = (cpu.memory.LY_lcdline & GPU_CONTROL_TILEMAP) ? 0x1c00 : 0x1800;
+	mapOffset += (((cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 255) >> 3) << 5;
 
 	void* scanlineStart = &scanGroup[160 * curScan + curScanBuffer*scanBufferSize];
 
@@ -139,11 +139,11 @@ void renderScanline1x1(void) {
 	// if bg enabled
 	{
 		int i;
-		int x = gpu.scrollX & 7;
-		int y = (gpu.scanline + gpu.scrollY) & 7;
+		int x = cpu.memory.SCX_bgscrollx & 7;
+		int y = (cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 7;
 
 		// finish/draw left tile
-		int lineOffset = (gpu.scrollX >> 3);
+		int lineOffset = (cpu.memory.SCX_bgscrollx >> 3);
 		unsigned short tile = (unsigned short)vram[mapOffset + lineOffset];
 		const unsigned char* tileRow = tiles->data[tile][y];
 
@@ -191,14 +191,14 @@ void renderScanline1x1(void) {
 			if (sprite.x) {
 				int sy = sprite.y - 16;
 
-				if (sy <= gpu.scanline && (sy + 8) > gpu.scanline) {
+				if (sy <= cpu.memory.LY_lcdline && (sy + 8) > cpu.memory.LY_lcdline) {
 					int sx = sprite.x - 8;
 
 					int pixelOffset = sx;
 
 					unsigned char tileRow;
-					if (sprite.vFlip) tileRow = 7 - (gpu.scanline - sy);
-					else tileRow = gpu.scanline - sy;
+					if (sprite.vFlip) tileRow = 7 - (cpu.memory.LY_lcdline - sy);
+					else tileRow = cpu.memory.LY_lcdline - sy;
 
 					int x;
 					if (sprite.priority) {
@@ -290,8 +290,8 @@ inline void scanlineFlushFit() {
 
 #if SCANLINE_BUFFER == 2
 	// special case for stretching by drawing 2 lines at a time, 1 then 2, etc
-	int startLine = gpu.scanline * 3 / 2;
-	if (gpu.scanline & 1) {
+	int startLine = cpu.memory.LY_lcdline * 3 / 2;
+	if (cpu.memory.LY_lcdline & 1) {
 		Bdisp_DefineDMARange(38, 357, startLine, startLine + 1);
 	} else {
 		Bdisp_DefineDMARange(38, 357, startLine, startLine);
@@ -308,7 +308,7 @@ inline void scanlineFlushFit() {
 
 	return;
 #else
-	int startLine = (gpu.scanline - SCANLINE_BUFFER + 1) * 3 / 2;
+	int startLine = (cpu.memory.LY_lcdline - SCANLINE_BUFFER + 1) * 3 / 2;
 	Bdisp_DefineDMARange(38, 357, startLine, startLine + SCANLINE_BUFFER * 3 / 2 - 1);
 #endif
 
@@ -335,7 +335,7 @@ void renderScanlineFit(void) {
 	};
 
 	int mapOffset = (gpu.control & GPU_CONTROL_TILEMAP) ? 0x1c00 : 0x1800;
-	mapOffset += (((gpu.scanline + gpu.scrollY) & 255) >> 3) << 5;
+	mapOffset += (((cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 255) >> 3) << 5;
 
 	void* scanlineStart =
 #if !USEMEMCPY
@@ -351,11 +351,11 @@ repeatForStretch:
 	// if bg enabled
 	{
 		int i;
-		int x = gpu.scrollX & 7;
-		int y = (gpu.scanline + gpu.scrollY) & 7;
+		int x = cpu.memory.SCX_bgscrollx & 7;
+		int y = (cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 7;
 
 		// finish/draw left tile
-		int lineOffset = (gpu.scrollX >> 3);
+		int lineOffset = (cpu.memory.SCX_bgscrollx >> 3);
 		unsigned short tile = (unsigned short)vram[mapOffset + lineOffset];
 		const unsigned char* tileRow = tiles->data[tile][y];
 
@@ -403,14 +403,14 @@ repeatForStretch:
 			if (sprite.x) {
 				int sy = sprite.y - 16;
 
-				if (sy <= gpu.scanline && (sy + 8) > gpu.scanline) {
+				if (sy <= cpu.memory.LY_lcdline && (sy + 8) > cpu.memory.LY_lcdline) {
 					int sx = sprite.x - 8;
 
 					int pixelOffset = sx;
 
 					unsigned char tileRow;
-					if (sprite.vFlip) tileRow = 7 - (gpu.scanline - sy);
-					else tileRow = gpu.scanline - sy;
+					if (sprite.vFlip) tileRow = 7 - (cpu.memory.LY_lcdline - sy);
+					else tileRow = cpu.memory.LY_lcdline - sy;
 
 					int x;
 					if (sprite.priority) {

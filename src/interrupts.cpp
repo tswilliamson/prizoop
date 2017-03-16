@@ -1,7 +1,6 @@
 #include "platform.h"
 #include "cpu.h"
 #include "memory.h"
-#include "registers.h"
 #include "display.h"
 #include "keys.h"
 #include "main.h"
@@ -47,45 +46,45 @@ void interruptStep(void) {
 
 void vblank(void) {
 	interrupt.master = 0;
-	writeShortToStack(registers.pc);
-	registers.pc = 0x40;
+	writeShortToStack(cpu.registers.pc);
+	cpu.registers.pc = 0x40;
 	
 	cpu.ticks += 12;
 }
 
 void lcdStat(void) {
 	interrupt.master = 0;
-	writeShortToStack(registers.pc);
-	registers.pc = 0x48;
+	writeShortToStack(cpu.registers.pc);
+	cpu.registers.pc = 0x48;
 	
 	cpu.ticks += 12;
 }
 
 void timer(void) {
 	interrupt.master = 0;
-	writeShortToStack(registers.pc);
-	registers.pc = 0x50;
+	writeShortToStack(cpu.registers.pc);
+	cpu.registers.pc = 0x50;
 	
 	cpu.ticks += 12;
 }
 
 void serial(void) {
 	interrupt.master = 0;
-	writeShortToStack(registers.pc);
-	registers.pc = 0x58;
+	writeShortToStack(cpu.registers.pc);
+	cpu.registers.pc = 0x58;
 	
 	cpu.ticks += 12;
 }
 
 void joypad(void) {
 	interrupt.master = 0;
-	writeShortToStack(registers.pc);
-	registers.pc = 0x60;
+	writeShortToStack(cpu.registers.pc);
+	cpu.registers.pc = 0x60;
 	
 	cpu.ticks += 12;
 }
 
 void ret_i(void) {
 	interrupt.master = 1;
-	registers.pc = readShortFromStack();
+	cpu.registers.pc = readShortFromStack();
 }

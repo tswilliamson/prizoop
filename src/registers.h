@@ -65,6 +65,5 @@ struct registers_type {
 	
 	unsigned short sp;
 	unsigned short pc;
+	unsigned short __padding;			// 4 byte alignment padding
 };
-
-extern registers_type registers;
