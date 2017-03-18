@@ -1275,7 +1275,10 @@ inline void cp_n(unsigned char operand) {
 inline void rst_38(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc = 0x0038; }
 
 void cpuStep() {
-	if (cpu.stopped || cpu.halted) return;
+	if (cpu.stopped || cpu.halted) {
+		cpu.clocks += 12;
+		return;
+	}
 
 	{
 		TIME_SCOPE();
