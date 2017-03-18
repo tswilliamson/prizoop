@@ -430,779 +430,779 @@ inline void set(unsigned char bit, unsigned char& value) {
 }
 
 // 0x00
-void rlc_b(void) { registers.b = rlc(registers.b); }
+void rlc_b(void) { cpu.registers.b = rlc(cpu.registers.b); }
 
 // 0x01
-void rlc_c(void) { registers.c = rlc(registers.c); }
+void rlc_c(void) { cpu.registers.c = rlc(cpu.registers.c); }
 
 // 0x02
-void rlc_d(void) { registers.d = rlc(registers.d); }
+void rlc_d(void) { cpu.registers.d = rlc(cpu.registers.d); }
 
 // 0x03
-void rlc_e(void) { registers.e = rlc(registers.e); }
+void rlc_e(void) { cpu.registers.e = rlc(cpu.registers.e); }
 
 // 0x04
-void rlc_h(void) { registers.h = rlc(registers.h); }
+void rlc_h(void) { cpu.registers.h = rlc(cpu.registers.h); }
 
 // 0x05
-void rlc_l(void) { registers.l = rlc(registers.l); }
+void rlc_l(void) { cpu.registers.l = rlc(cpu.registers.l); }
 
 // 0x06
-void rlc_hlp(void) { writeByte(registers.hl, rlc(readByte(registers.hl))); }
+void rlc_hlp(void) { writeByte(cpu.registers.hl, rlc(readByte(cpu.registers.hl))); }
 
 // 0x07
-void rlc_a(void) { registers.a = rlc(registers.a); }
+void rlc_a(void) { cpu.registers.a = rlc(cpu.registers.a); }
 
 // 0x08
-void rrc_b(void) { registers.b = rrc(registers.b); }
+void rrc_b(void) { cpu.registers.b = rrc(cpu.registers.b); }
 
 // 0x09
-void rrc_c(void) { registers.c = rrc(registers.c); }
+void rrc_c(void) { cpu.registers.c = rrc(cpu.registers.c); }
 
 // 0x0a
-void rrc_d(void) { registers.d = rrc(registers.d); }
+void rrc_d(void) { cpu.registers.d = rrc(cpu.registers.d); }
 
 // 0x0b
-void rrc_e(void) { registers.e = rrc(registers.e); }
+void rrc_e(void) { cpu.registers.e = rrc(cpu.registers.e); }
 
 // 0x0c
-void rrc_h(void) { registers.h = rrc(registers.h); }
+void rrc_h(void) { cpu.registers.h = rrc(cpu.registers.h); }
 
 // 0x0d
-void rrc_l(void) { registers.l = rrc(registers.l); }
+void rrc_l(void) { cpu.registers.l = rrc(cpu.registers.l); }
 
 // 0x0e
-void rrc_hlp(void) { writeByte(registers.hl, rrc(readByte(registers.hl))); }
+void rrc_hlp(void) { writeByte(cpu.registers.hl, rrc(readByte(cpu.registers.hl))); }
 
 // 0x0f
-void rrc_a(void) { registers.a = rrc(registers.a); }
+void rrc_a(void) { cpu.registers.a = rrc(cpu.registers.a); }
 
 // 0x10
-void rl_b(void) { registers.b = rl(registers.b); }
+void rl_b(void) { cpu.registers.b = rl(cpu.registers.b); }
 
 // 0x11
-void rl_c(void) { registers.c = rl(registers.c); }
+void rl_c(void) { cpu.registers.c = rl(cpu.registers.c); }
 
 // 0x12
-void rl_d(void) { registers.d = rl(registers.d); }
+void rl_d(void) { cpu.registers.d = rl(cpu.registers.d); }
 
 // 0x13
-void rl_e(void) { registers.e = rl(registers.e); }
+void rl_e(void) { cpu.registers.e = rl(cpu.registers.e); }
 
 // 0x14
-void rl_h(void) { registers.h = rl(registers.h); }
+void rl_h(void) { cpu.registers.h = rl(cpu.registers.h); }
 
 // 0x15
-void rl_l(void) { registers.l = rl(registers.l); }
+void rl_l(void) { cpu.registers.l = rl(cpu.registers.l); }
 
 // 0x16
-void rl_hlp(void) { writeByte(registers.hl, rl(readByte(registers.hl))); }
+void rl_hlp(void) { writeByte(cpu.registers.hl, rl(readByte(cpu.registers.hl))); }
 
 // 0x17
-void rl_a(void) { registers.a = rl(registers.a); }
+void rl_a(void) { cpu.registers.a = rl(cpu.registers.a); }
 
 // 0x18
-void rr_b(void) { registers.b = rr(registers.b); }
+void rr_b(void) { cpu.registers.b = rr(cpu.registers.b); }
 
 // 0x19
-void rr_c(void) { registers.c = rr(registers.c); }
+void rr_c(void) { cpu.registers.c = rr(cpu.registers.c); }
 
 // 0x1a
-void rr_d(void) { registers.d = rr(registers.d); }
+void rr_d(void) { cpu.registers.d = rr(cpu.registers.d); }
 
 // 0x1b
-void rr_e(void) { registers.e = rr(registers.e); }
+void rr_e(void) { cpu.registers.e = rr(cpu.registers.e); }
 
 // 0x1c
-void rr_h(void) { registers.h = rr(registers.h); }
+void rr_h(void) { cpu.registers.h = rr(cpu.registers.h); }
 
 // 0x1d
-void rr_l(void) { registers.l = rr(registers.l); }
+void rr_l(void) { cpu.registers.l = rr(cpu.registers.l); }
 
 // 0x1e
-void rr_hlp(void) { writeByte(registers.hl, rr(readByte(registers.hl))); }
+void rr_hlp(void) { writeByte(cpu.registers.hl, rr(readByte(cpu.registers.hl))); }
 
 // 0x1f
-void rr_a(void) { registers.a = rr(registers.a); }
+void rr_a(void) { cpu.registers.a = rr(cpu.registers.a); }
 
 // 0x20
-void sla_b(void) { registers.b = sla(registers.b); }
+void sla_b(void) { cpu.registers.b = sla(cpu.registers.b); }
 
 // 0x21
-void sla_c(void) { registers.c = sla(registers.c); }
+void sla_c(void) { cpu.registers.c = sla(cpu.registers.c); }
 
 // 0x22
-void sla_d(void) { registers.d = sla(registers.d); }
+void sla_d(void) { cpu.registers.d = sla(cpu.registers.d); }
 
 // 0x23
-void sla_e(void) { registers.e = sla(registers.e); }
+void sla_e(void) { cpu.registers.e = sla(cpu.registers.e); }
 
 // 0x24
-void sla_h(void) { registers.h = sla(registers.h); }
+void sla_h(void) { cpu.registers.h = sla(cpu.registers.h); }
 
 // 0x25
-void sla_l(void) { registers.l = sla(registers.l); }
+void sla_l(void) { cpu.registers.l = sla(cpu.registers.l); }
 
 // 0x26
-void sla_hlp(void) { writeByte(registers.hl, sla(readByte(registers.hl))); }
+void sla_hlp(void) { writeByte(cpu.registers.hl, sla(readByte(cpu.registers.hl))); }
 
 // 0x27
-void sla_a(void) { registers.a = sla(registers.a); }
+void sla_a(void) { cpu.registers.a = sla(cpu.registers.a); }
 
 // 0x28
-void sra_b(void) { registers.b = sra(registers.b); }
+void sra_b(void) { cpu.registers.b = sra(cpu.registers.b); }
 
 // 0x29
-void sra_c(void) { registers.c = sra(registers.c); }
+void sra_c(void) { cpu.registers.c = sra(cpu.registers.c); }
 
 // 0x2a
-void sra_d(void) { registers.d = sra(registers.d); }
+void sra_d(void) { cpu.registers.d = sra(cpu.registers.d); }
 
 // 0x2b
-void sra_e(void) { registers.e = sra(registers.e); }
+void sra_e(void) { cpu.registers.e = sra(cpu.registers.e); }
 
 // 0x2c
-void sra_h(void) { registers.h = sra(registers.h); }
+void sra_h(void) { cpu.registers.h = sra(cpu.registers.h); }
 
 // 0x2d
-void sra_l(void) { registers.l = sra(registers.l); }
+void sra_l(void) { cpu.registers.l = sra(cpu.registers.l); }
 
 // 0x2e
-void sra_hlp(void) { writeByte(registers.hl, sra(readByte(registers.hl))); }
+void sra_hlp(void) { writeByte(cpu.registers.hl, sra(readByte(cpu.registers.hl))); }
 
 // 0x2f
-void sra_a(void) { registers.a = sra(registers.a); }
+void sra_a(void) { cpu.registers.a = sra(cpu.registers.a); }
 
 // 0x30
-void swap_b(void) { registers.b = swap(registers.b); }
+void swap_b(void) { cpu.registers.b = swap(cpu.registers.b); }
 
 // 0x31
-void swap_c(void) { registers.c = swap(registers.c); }
+void swap_c(void) { cpu.registers.c = swap(cpu.registers.c); }
 
 // 0x32
-void swap_d(void) { registers.d = swap(registers.d); }
+void swap_d(void) { cpu.registers.d = swap(cpu.registers.d); }
 
 // 0x33
-void swap_e(void) { registers.e = swap(registers.e); }
+void swap_e(void) { cpu.registers.e = swap(cpu.registers.e); }
 
 // 0x34
-void swap_h(void) { registers.h = swap(registers.h); }
+void swap_h(void) { cpu.registers.h = swap(cpu.registers.h); }
 
 // 0x35
-void swap_l(void) { registers.l = swap(registers.l); }
+void swap_l(void) { cpu.registers.l = swap(cpu.registers.l); }
 
 // 0x36
-void swap_hlp(void) { writeByte(registers.hl, swap(readByte(registers.hl))); }
+void swap_hlp(void) { writeByte(cpu.registers.hl, swap(readByte(cpu.registers.hl))); }
 
 // 0x37
-void swap_a(void) { registers.a = swap(registers.a); }
+void swap_a(void) { cpu.registers.a = swap(cpu.registers.a); }
 
 // 0x38
-void srl_b(void) { registers.b = srl(registers.b); }
+void srl_b(void) { cpu.registers.b = srl(cpu.registers.b); }
 
 // 0x39
-void srl_c(void) { registers.c = srl(registers.c); }
+void srl_c(void) { cpu.registers.c = srl(cpu.registers.c); }
 
 // 0x3a
-void srl_d(void) { registers.d = srl(registers.d); }
+void srl_d(void) { cpu.registers.d = srl(cpu.registers.d); }
 
 // 0x3b
-void srl_e(void) { registers.e = srl(registers.e); }
+void srl_e(void) { cpu.registers.e = srl(cpu.registers.e); }
 
 // 0x3c
-void srl_h(void) { registers.h = srl(registers.h); }
+void srl_h(void) { cpu.registers.h = srl(cpu.registers.h); }
 
 // 0x3d
-void srl_l(void) { registers.l = srl(registers.l); }
+void srl_l(void) { cpu.registers.l = srl(cpu.registers.l); }
 
 // 0x3e
-void srl_hlp(void) { writeByte(registers.hl, srl(readByte(registers.hl))); }
+void srl_hlp(void) { writeByte(cpu.registers.hl, srl(readByte(cpu.registers.hl))); }
 
 // 0x3f
 void srl_a(void) {
-	if(registers.a & 0x01) FLAGS_SET(FLAGS_CARRY);
+	if(cpu.registers.a & 0x01) FLAGS_SET(FLAGS_CARRY);
 	else FLAGS_CLEAR(FLAGS_CARRY);
 	
-	registers.a >>= 1;
+	cpu.registers.a >>= 1;
 	
-	if(registers.a) FLAGS_CLEAR(FLAGS_ZERO);
+	if(cpu.registers.a) FLAGS_CLEAR(FLAGS_ZERO);
 	else FLAGS_SET(FLAGS_ZERO);
 	
 	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
 }
 
 // 0x40
-void bit_0_b(void) { bit(1 << 0, registers.b); }
+void bit_0_b(void) { bit(1 << 0, cpu.registers.b); }
 
 // 0x41
-void bit_0_c(void) { bit(1 << 0, registers.c); }
+void bit_0_c(void) { bit(1 << 0, cpu.registers.c); }
 
 // 0x42
-void bit_0_d(void) { bit(1 << 0, registers.d); }
+void bit_0_d(void) { bit(1 << 0, cpu.registers.d); }
 
 // 0x43
-void bit_0_e(void) { bit(1 << 0, registers.e); }
+void bit_0_e(void) { bit(1 << 0, cpu.registers.e); }
 
 // 0x44
-void bit_0_h(void) { bit(1 << 0, registers.h); }
+void bit_0_h(void) { bit(1 << 0, cpu.registers.h); }
 
 // 0x45
-void bit_0_l(void) { bit(1 << 0, registers.l); }
+void bit_0_l(void) { bit(1 << 0, cpu.registers.l); }
 
 // 0x46
-void bit_0_hlp(void) { bit(1 << 0, readByte(registers.hl)); }
+void bit_0_hlp(void) { bit(1 << 0, readByte(cpu.registers.hl)); }
 
 // 0x47
-void bit_0_a(void) { bit(1 << 0, registers.a); }
+void bit_0_a(void) { bit(1 << 0, cpu.registers.a); }
 
 // 0x48
-void bit_1_b(void) { bit(1 << 1, registers.b); }
+void bit_1_b(void) { bit(1 << 1, cpu.registers.b); }
 
 // 0x49
-void bit_1_c(void) { bit(1 << 1, registers.c); }
+void bit_1_c(void) { bit(1 << 1, cpu.registers.c); }
 
 // 0x4a
-void bit_1_d(void) { bit(1 << 1, registers.d); }
+void bit_1_d(void) { bit(1 << 1, cpu.registers.d); }
 
 // 0x4b
-void bit_1_e(void) { bit(1 << 1, registers.e); }
+void bit_1_e(void) { bit(1 << 1, cpu.registers.e); }
 
 // 0x4c
-void bit_1_h(void) { bit(1 << 1, registers.h); }
+void bit_1_h(void) { bit(1 << 1, cpu.registers.h); }
 
 // 0x4d
-void bit_1_l(void) { bit(1 << 1, registers.l); }
+void bit_1_l(void) { bit(1 << 1, cpu.registers.l); }
 
 // 0x4e
-void bit_1_hlp(void) { bit(1 << 1, readByte(registers.hl)); }
+void bit_1_hlp(void) { bit(1 << 1, readByte(cpu.registers.hl)); }
 
 // 0x4f
-void bit_1_a(void) { bit(1 << 1, registers.a); }
+void bit_1_a(void) { bit(1 << 1, cpu.registers.a); }
 
 // 0x50
-void bit_2_b(void) { bit(1 << 2, registers.b); }
+void bit_2_b(void) { bit(1 << 2, cpu.registers.b); }
 
 // 0x51
-void bit_2_c(void) { bit(1 << 2, registers.c); }
+void bit_2_c(void) { bit(1 << 2, cpu.registers.c); }
 
 // 0x52
-void bit_2_d(void) { bit(1 << 2, registers.d); }
+void bit_2_d(void) { bit(1 << 2, cpu.registers.d); }
 
 // 0x53
-void bit_2_e(void) { bit(1 << 2, registers.e); }
+void bit_2_e(void) { bit(1 << 2, cpu.registers.e); }
 
 // 0x54
-void bit_2_h(void) { bit(1 << 2, registers.h); }
+void bit_2_h(void) { bit(1 << 2, cpu.registers.h); }
 
 // 0x55
-void bit_2_l(void) { bit(1 << 2, registers.l); }
+void bit_2_l(void) { bit(1 << 2, cpu.registers.l); }
 
 // 0x56
-void bit_2_hlp(void) { bit(1 << 2, readByte(registers.hl)); }
+void bit_2_hlp(void) { bit(1 << 2, readByte(cpu.registers.hl)); }
 
 // 0x57
-void bit_2_a(void) { bit(1 << 2, registers.a); }
+void bit_2_a(void) { bit(1 << 2, cpu.registers.a); }
 
 // 0x58
-void bit_3_b(void) { bit(1 << 3, registers.b); }
+void bit_3_b(void) { bit(1 << 3, cpu.registers.b); }
 
 // 0x59
-void bit_3_c(void) { bit(1 << 3, registers.c); }
+void bit_3_c(void) { bit(1 << 3, cpu.registers.c); }
 
 // 0x5a
-void bit_3_d(void) { bit(1 << 3, registers.d); }
+void bit_3_d(void) { bit(1 << 3, cpu.registers.d); }
 
 // 0x5b
-void bit_3_e(void) { bit(1 << 3, registers.e); }
+void bit_3_e(void) { bit(1 << 3, cpu.registers.e); }
 
 // 0x5c
-void bit_3_h(void) { bit(1 << 3, registers.h); }
+void bit_3_h(void) { bit(1 << 3, cpu.registers.h); }
 
 // 0x5d
-void bit_3_l(void) { bit(1 << 3, registers.l); }
+void bit_3_l(void) { bit(1 << 3, cpu.registers.l); }
 
 // 0x5e
-void bit_3_hlp(void) { bit(1 << 3, readByte(registers.hl)); }
+void bit_3_hlp(void) { bit(1 << 3, readByte(cpu.registers.hl)); }
 
 // 0x5f
-void bit_3_a(void) { bit(1 << 3, registers.a); }
+void bit_3_a(void) { bit(1 << 3, cpu.registers.a); }
 
 // 0x60
-void bit_4_b(void) { bit(1 << 4, registers.b); }
+void bit_4_b(void) { bit(1 << 4, cpu.registers.b); }
 
 // 0x61
-void bit_4_c(void) { bit(1 << 4, registers.c); }
+void bit_4_c(void) { bit(1 << 4, cpu.registers.c); }
 
 // 0x62
-void bit_4_d(void) { bit(1 << 4, registers.d); }
+void bit_4_d(void) { bit(1 << 4, cpu.registers.d); }
 
 // 0x63
-void bit_4_e(void) { bit(1 << 4, registers.e); }
+void bit_4_e(void) { bit(1 << 4, cpu.registers.e); }
 
 // 0x64
-void bit_4_h(void) { bit(1 << 4, registers.h); }
+void bit_4_h(void) { bit(1 << 4, cpu.registers.h); }
 
 // 0x65
-void bit_4_l(void) { bit(1 << 4, registers.l); }
+void bit_4_l(void) { bit(1 << 4, cpu.registers.l); }
 
 // 0x66
-void bit_4_hlp(void) { bit(1 << 4, readByte(registers.hl)); }
+void bit_4_hlp(void) { bit(1 << 4, readByte(cpu.registers.hl)); }
 
 // 0x67
-void bit_4_a(void) { bit(1 << 4, registers.a); }
+void bit_4_a(void) { bit(1 << 4, cpu.registers.a); }
 
 // 0x68
-void bit_5_b(void) { bit(1 << 5, registers.b); }
+void bit_5_b(void) { bit(1 << 5, cpu.registers.b); }
 
 // 0x69
-void bit_5_c(void) { bit(1 << 5, registers.c); }
+void bit_5_c(void) { bit(1 << 5, cpu.registers.c); }
 
 // 0x6a
-void bit_5_d(void) { bit(1 << 5, registers.d); }
+void bit_5_d(void) { bit(1 << 5, cpu.registers.d); }
 
 // 0x6b
-void bit_5_e(void) { bit(1 << 5, registers.e); }
+void bit_5_e(void) { bit(1 << 5, cpu.registers.e); }
 
 // 0x6c
-void bit_5_h(void) { bit(1 << 5, registers.h); }
+void bit_5_h(void) { bit(1 << 5, cpu.registers.h); }
 
 // 0x6d
-void bit_5_l(void) { bit(1 << 5, registers.l); }
+void bit_5_l(void) { bit(1 << 5, cpu.registers.l); }
 
 // 0x6e
-void bit_5_hlp(void) { bit(1 << 5, readByte(registers.hl)); }
+void bit_5_hlp(void) { bit(1 << 5, readByte(cpu.registers.hl)); }
 
 // 0x6f
-void bit_5_a(void) { bit(1 << 5, registers.a); }
+void bit_5_a(void) { bit(1 << 5, cpu.registers.a); }
 
 // 0x70
-void bit_6_b(void) { bit(1 << 6, registers.b); }
+void bit_6_b(void) { bit(1 << 6, cpu.registers.b); }
 
 // 0x71
-void bit_6_c(void) { bit(1 << 6, registers.c); }
+void bit_6_c(void) { bit(1 << 6, cpu.registers.c); }
 
 // 0x72
-void bit_6_d(void) { bit(1 << 6, registers.d); }
+void bit_6_d(void) { bit(1 << 6, cpu.registers.d); }
 
 // 0x73
-void bit_6_e(void) { bit(1 << 6, registers.e); }
+void bit_6_e(void) { bit(1 << 6, cpu.registers.e); }
 
 // 0x74
-void bit_6_h(void) { bit(1 << 6, registers.h); }
+void bit_6_h(void) { bit(1 << 6, cpu.registers.h); }
 
 // 0x75
-void bit_6_l(void) { bit(1 << 6, registers.l); }
+void bit_6_l(void) { bit(1 << 6, cpu.registers.l); }
 
 // 0x76
-void bit_6_hlp(void) { bit(1 << 6, readByte(registers.hl)); }
+void bit_6_hlp(void) { bit(1 << 6, readByte(cpu.registers.hl)); }
 
 // 0x77
-void bit_6_a(void) { bit(1 << 6, registers.a); }
+void bit_6_a(void) { bit(1 << 6, cpu.registers.a); }
 
 // 0x78
-void bit_7_b(void) { bit(1 << 7, registers.b); }
+void bit_7_b(void) { bit(1 << 7, cpu.registers.b); }
 
 // 0x79
-void bit_7_c(void) { bit(1 << 7, registers.c); }
+void bit_7_c(void) { bit(1 << 7, cpu.registers.c); }
 
 // 0x7a
-void bit_7_d(void) { bit(1 << 7, registers.d); }
+void bit_7_d(void) { bit(1 << 7, cpu.registers.d); }
 
 // 0x7b
-void bit_7_e(void) { bit(1 << 7, registers.e); }
+void bit_7_e(void) { bit(1 << 7, cpu.registers.e); }
 
 // 0x7c
-void bit_7_h(void) { bit(1 << 7, registers.h); }
+void bit_7_h(void) { bit(1 << 7, cpu.registers.h); }
 
 // 0x7d
-void bit_7_l(void) { bit(1 << 7, registers.l); }
+void bit_7_l(void) { bit(1 << 7, cpu.registers.l); }
 
 // 0x7e
-void bit_7_hlp(void) { bit(1 << 7, readByte(registers.hl)); }
+void bit_7_hlp(void) { bit(1 << 7, readByte(cpu.registers.hl)); }
 
 // 0x7f
-void bit_7_a(void) { bit(1 << 7, registers.a); }
+void bit_7_a(void) { bit(1 << 7, cpu.registers.a); }
 
 // 0x80
-void res_0_b(void) { registers.b &= ~(1 << 0); }
+void res_0_b(void) { cpu.registers.b &= ~(1 << 0); }
 
 // 0x81
-void res_0_c(void) { registers.c &= ~(1 << 0); }
+void res_0_c(void) { cpu.registers.c &= ~(1 << 0); }
 
 // 0x82
-void res_0_d(void) { registers.d &= ~(1 << 0); }
+void res_0_d(void) { cpu.registers.d &= ~(1 << 0); }
 
 // 0x83
-void res_0_e(void) { registers.e &= ~(1 << 0); }
+void res_0_e(void) { cpu.registers.e &= ~(1 << 0); }
 
 // 0x84
-void res_0_h(void) { registers.h &= ~(1 << 0); }
+void res_0_h(void) { cpu.registers.h &= ~(1 << 0); }
 
 // 0x85
-void res_0_l(void) { registers.l &= ~(1 << 0); }
+void res_0_l(void) { cpu.registers.l &= ~(1 << 0); }
 
 // 0x86
-void res_0_hlp(void) { writeByte(registers.hl, readByte(registers.hl) & ~(1 << 0)); }
+void res_0_hlp(void) { writeByte(cpu.registers.hl, readByte(cpu.registers.hl) & ~(1 << 0)); }
 
 // 0x87
-void res_0_a(void) { registers.a &= ~(1 << 0); }
+void res_0_a(void) { cpu.registers.a &= ~(1 << 0); }
 
 // 0x88
-void res_1_b(void) { registers.b &= ~(1 << 1); }
+void res_1_b(void) { cpu.registers.b &= ~(1 << 1); }
 
 // 0x89
-void res_1_c(void) { registers.c &= ~(1 << 1); }
+void res_1_c(void) { cpu.registers.c &= ~(1 << 1); }
 
 // 0x8a
-void res_1_d(void) { registers.d &= ~(1 << 1); }
+void res_1_d(void) { cpu.registers.d &= ~(1 << 1); }
 
 // 0x8b
-void res_1_e(void) { registers.e &= ~(1 << 1); }
+void res_1_e(void) { cpu.registers.e &= ~(1 << 1); }
 
 // 0x8c
-void res_1_h(void) { registers.h &= ~(1 << 1); }
+void res_1_h(void) { cpu.registers.h &= ~(1 << 1); }
 
 // 0x8d
-void res_1_l(void) { registers.l &= ~(1 << 1); }
+void res_1_l(void) { cpu.registers.l &= ~(1 << 1); }
 
 // 0x8e
-void res_1_hlp(void) { writeByte(registers.hl, readByte(registers.hl) & ~(1 << 1)); }
+void res_1_hlp(void) { writeByte(cpu.registers.hl, readByte(cpu.registers.hl) & ~(1 << 1)); }
 
 // 0x8f
-void res_1_a(void) { registers.a &= ~(1 << 1); }
+void res_1_a(void) { cpu.registers.a &= ~(1 << 1); }
 
 // 0x90
-void res_2_b(void) { registers.b &= ~(1 << 2); }
+void res_2_b(void) { cpu.registers.b &= ~(1 << 2); }
 
 // 0x91
-void res_2_c(void) { registers.c &= ~(1 << 2); }
+void res_2_c(void) { cpu.registers.c &= ~(1 << 2); }
 
 // 0x92
-void res_2_d(void) { registers.d &= ~(1 << 2); }
+void res_2_d(void) { cpu.registers.d &= ~(1 << 2); }
 
 // 0x93
-void res_2_e(void) { registers.e &= ~(1 << 2); }
+void res_2_e(void) { cpu.registers.e &= ~(1 << 2); }
 
 // 0x94
-void res_2_h(void) { registers.h &= ~(1 << 2); }
+void res_2_h(void) { cpu.registers.h &= ~(1 << 2); }
 
 // 0x95
-void res_2_l(void) { registers.l &= ~(1 << 2); }
+void res_2_l(void) { cpu.registers.l &= ~(1 << 2); }
 
 // 0x96
-void res_2_hlp(void) { writeByte(registers.hl, readByte(registers.hl) & ~(1 << 2)); }
+void res_2_hlp(void) { writeByte(cpu.registers.hl, readByte(cpu.registers.hl) & ~(1 << 2)); }
 
 // 0x97
-void res_2_a(void) { registers.a &= ~(1 << 2); }
+void res_2_a(void) { cpu.registers.a &= ~(1 << 2); }
 
 // 0x98
-void res_3_b(void) { registers.b &= ~(1 << 3); }
+void res_3_b(void) { cpu.registers.b &= ~(1 << 3); }
 
 // 0x99
-void res_3_c(void) { registers.c &= ~(1 << 3); }
+void res_3_c(void) { cpu.registers.c &= ~(1 << 3); }
 
 // 0x9a
-void res_3_d(void) { registers.d &= ~(1 << 3); }
+void res_3_d(void) { cpu.registers.d &= ~(1 << 3); }
 
 // 0x9b
-void res_3_e(void) { registers.e &= ~(1 << 3); }
+void res_3_e(void) { cpu.registers.e &= ~(1 << 3); }
 
 // 0x9c
-void res_3_h(void) { registers.h &= ~(1 << 3); }
+void res_3_h(void) { cpu.registers.h &= ~(1 << 3); }
 
 // 0x9d
-void res_3_l(void) { registers.l &= ~(1 << 3); }
+void res_3_l(void) { cpu.registers.l &= ~(1 << 3); }
 
 // 0x9e
-void res_3_hlp(void) { writeByte(registers.hl, readByte(registers.hl) & ~(1 << 3)); }
+void res_3_hlp(void) { writeByte(cpu.registers.hl, readByte(cpu.registers.hl) & ~(1 << 3)); }
 
 // 0x9f
-void res_3_a(void) { registers.a &= ~(1 << 3); }
+void res_3_a(void) { cpu.registers.a &= ~(1 << 3); }
 
 // 0xa0
-void res_4_b(void) { registers.b &= ~(1 << 4); }
+void res_4_b(void) { cpu.registers.b &= ~(1 << 4); }
 
 // 0xa1
-void res_4_c(void) { registers.c &= ~(1 << 4); }
+void res_4_c(void) { cpu.registers.c &= ~(1 << 4); }
 
 // 0xa2
-void res_4_d(void) { registers.d &= ~(1 << 4); }
+void res_4_d(void) { cpu.registers.d &= ~(1 << 4); }
 
 // 0xa3
-void res_4_e(void) { registers.e &= ~(1 << 4); }
+void res_4_e(void) { cpu.registers.e &= ~(1 << 4); }
 
 // 0xa4
-void res_4_h(void) { registers.h &= ~(1 << 4); }
+void res_4_h(void) { cpu.registers.h &= ~(1 << 4); }
 
 // 0xa5
-void res_4_l(void) { registers.l &= ~(1 << 4); }
+void res_4_l(void) { cpu.registers.l &= ~(1 << 4); }
 
 // 0xa6
-void res_4_hlp(void) { writeByte(registers.hl, readByte(registers.hl) & ~(1 << 4)); }
+void res_4_hlp(void) { writeByte(cpu.registers.hl, readByte(cpu.registers.hl) & ~(1 << 4)); }
 
 // 0xa7
-void res_4_a(void) { registers.a &= ~(1 << 4); }
+void res_4_a(void) { cpu.registers.a &= ~(1 << 4); }
 
 // 0xa8
-void res_5_b(void) { registers.b &= ~(1 << 5); }
+void res_5_b(void) { cpu.registers.b &= ~(1 << 5); }
 
 // 0xa9
-void res_5_c(void) { registers.c &= ~(1 << 5); }
+void res_5_c(void) { cpu.registers.c &= ~(1 << 5); }
 
 // 0xaa
-void res_5_d(void) { registers.d &= ~(1 << 5); }
+void res_5_d(void) { cpu.registers.d &= ~(1 << 5); }
 
 // 0xab
-void res_5_e(void) { registers.e &= ~(1 << 5); }
+void res_5_e(void) { cpu.registers.e &= ~(1 << 5); }
 
 // 0xac
-void res_5_h(void) { registers.h &= ~(1 << 5); }
+void res_5_h(void) { cpu.registers.h &= ~(1 << 5); }
 
 // 0xad
-void res_5_l(void) { registers.l &= ~(1 << 5); }
+void res_5_l(void) { cpu.registers.l &= ~(1 << 5); }
 
 // 0xae
-void res_5_hlp(void) { writeByte(registers.hl, readByte(registers.hl) & ~(1 << 5)); }
+void res_5_hlp(void) { writeByte(cpu.registers.hl, readByte(cpu.registers.hl) & ~(1 << 5)); }
 
 // 0xaf
-void res_5_a(void) { registers.a &= ~(1 << 5); }
+void res_5_a(void) { cpu.registers.a &= ~(1 << 5); }
 
 // 0xb0
-void res_6_b(void) { registers.b &= ~(1 << 6); }
+void res_6_b(void) { cpu.registers.b &= ~(1 << 6); }
 
 // 0xb1
-void res_6_c(void) { registers.c &= ~(1 << 6); }
+void res_6_c(void) { cpu.registers.c &= ~(1 << 6); }
 
 // 0xb2
-void res_6_d(void) { registers.d &= ~(1 << 6); }
+void res_6_d(void) { cpu.registers.d &= ~(1 << 6); }
 
 // 0xb3
-void res_6_e(void) { registers.e &= ~(1 << 6); }
+void res_6_e(void) { cpu.registers.e &= ~(1 << 6); }
 
 // 0xb4
-void res_6_h(void) { registers.h &= ~(1 << 6); }
+void res_6_h(void) { cpu.registers.h &= ~(1 << 6); }
 
 // 0xb5
-void res_6_l(void) { registers.l &= ~(1 << 6); }
+void res_6_l(void) { cpu.registers.l &= ~(1 << 6); }
 
 // 0xb6
-void res_6_hlp(void) { writeByte(registers.hl, readByte(registers.hl) & ~(1 << 6)); }
+void res_6_hlp(void) { writeByte(cpu.registers.hl, readByte(cpu.registers.hl) & ~(1 << 6)); }
 
 // 0xb7
-void res_6_a(void) { registers.a &= ~(1 << 6); }
+void res_6_a(void) { cpu.registers.a &= ~(1 << 6); }
 
 // 0xb8
-void res_7_b(void) { registers.b &= ~(1 << 7); }
+void res_7_b(void) { cpu.registers.b &= ~(1 << 7); }
 
 // 0xb9
-void res_7_c(void) { registers.c &= ~(1 << 7); }
+void res_7_c(void) { cpu.registers.c &= ~(1 << 7); }
 
 // 0xba
-void res_7_d(void) { registers.d &= ~(1 << 7); }
+void res_7_d(void) { cpu.registers.d &= ~(1 << 7); }
 
 // 0xbb
-void res_7_e(void) { registers.e &= ~(1 << 7); }
+void res_7_e(void) { cpu.registers.e &= ~(1 << 7); }
 
 // 0xbc
-void res_7_h(void) { registers.h &= ~(1 << 7); }
+void res_7_h(void) { cpu.registers.h &= ~(1 << 7); }
 
 // 0xbd
-void res_7_l(void) { registers.l &= ~(1 << 7); }
+void res_7_l(void) { cpu.registers.l &= ~(1 << 7); }
 
 // 0xbe
-void res_7_hlp(void) { writeByte(registers.hl, readByte(registers.hl) & ~(1 << 7)); }
+void res_7_hlp(void) { writeByte(cpu.registers.hl, readByte(cpu.registers.hl) & ~(1 << 7)); }
 
 // 0xbf
-void res_7_a(void) { registers.a &= ~(1 << 7); }
+void res_7_a(void) { cpu.registers.a &= ~(1 << 7); }
 
 // 0xc0
-void set_0_b(void) { set(1 << 0, registers.b); }
+void set_0_b(void) { set(1 << 0, cpu.registers.b); }
 
 // 0xc1
-void set_0_c(void) { set(1 << 0, registers.c); }
+void set_0_c(void) { set(1 << 0, cpu.registers.c); }
 
 // 0xc2
-void set_0_d(void) { set(1 << 0, registers.d); }
+void set_0_d(void) { set(1 << 0, cpu.registers.d); }
 
 // 0xc3
-void set_0_e(void) { set(1 << 0, registers.e); }
+void set_0_e(void) { set(1 << 0, cpu.registers.e); }
 
 // 0xc4
-void set_0_h(void) { set(1 << 0, registers.h); }
+void set_0_h(void) { set(1 << 0, cpu.registers.h); }
 
 // 0xc5
-void set_0_l(void) { set(1 << 0, registers.l); }
+void set_0_l(void) { set(1 << 0, cpu.registers.l); }
 
 // 0xc6
-void set_0_hlp(void) { writeByte(registers.hl, (1 << 0) | readByte(registers.hl)); }
+void set_0_hlp(void) { writeByte(cpu.registers.hl, (1 << 0) | readByte(cpu.registers.hl)); }
 
 // 0xc7
-void set_0_a(void) { set(1 << 0, registers.a); }
+void set_0_a(void) { set(1 << 0, cpu.registers.a); }
 
 // 0xc8
-void set_1_b(void) { set(1 << 1, registers.b); }
+void set_1_b(void) { set(1 << 1, cpu.registers.b); }
 
 // 0xc9
-void set_1_c(void) { set(1 << 1, registers.c); }
+void set_1_c(void) { set(1 << 1, cpu.registers.c); }
 
 // 0xca
-void set_1_d(void) { set(1 << 1, registers.d); }
+void set_1_d(void) { set(1 << 1, cpu.registers.d); }
 
 // 0xcb
-void set_1_e(void) { set(1 << 1, registers.e); }
+void set_1_e(void) { set(1 << 1, cpu.registers.e); }
 
 // 0xcc
-void set_1_h(void) { set(1 << 1, registers.h); }
+void set_1_h(void) { set(1 << 1, cpu.registers.h); }
 
 // 0xcd
-void set_1_l(void) { set(1 << 1, registers.l); }
+void set_1_l(void) { set(1 << 1, cpu.registers.l); }
 
 // 0xce
-void set_1_hlp(void) { writeByte(registers.hl, (1 << 1) | readByte(registers.hl)); }
+void set_1_hlp(void) { writeByte(cpu.registers.hl, (1 << 1) | readByte(cpu.registers.hl)); }
 
 // 0xcf
-void set_1_a(void) { set(1 << 1, registers.a); }
+void set_1_a(void) { set(1 << 1, cpu.registers.a); }
 
 // 0xd0
-void set_2_b(void) { set(1 << 2, registers.b); }
+void set_2_b(void) { set(1 << 2, cpu.registers.b); }
 
 // 0xd1
-void set_2_c(void) { set(1 << 2, registers.c); }
+void set_2_c(void) { set(1 << 2, cpu.registers.c); }
 
 // 0xd2
-void set_2_d(void) { set(1 << 2, registers.d); }
+void set_2_d(void) { set(1 << 2, cpu.registers.d); }
 
 // 0xd3
-void set_2_e(void) { set(1 << 2, registers.e); }
+void set_2_e(void) { set(1 << 2, cpu.registers.e); }
 
 // 0xd4
-void set_2_h(void) { set(1 << 2, registers.h); }
+void set_2_h(void) { set(1 << 2, cpu.registers.h); }
 
 // 0xd5
-void set_2_l(void) { set(1 << 2, registers.l); }
+void set_2_l(void) { set(1 << 2, cpu.registers.l); }
 
 // 0xd6
-void set_2_hlp(void) { writeByte(registers.hl, (1 << 2) | readByte(registers.hl)); }
+void set_2_hlp(void) { writeByte(cpu.registers.hl, (1 << 2) | readByte(cpu.registers.hl)); }
 
 // 0xd7
-void set_2_a(void) { set(1 << 2, registers.a); }
+void set_2_a(void) { set(1 << 2, cpu.registers.a); }
 
 // 0xd8
-void set_3_b(void) { set(1 << 3, registers.b); }
+void set_3_b(void) { set(1 << 3, cpu.registers.b); }
 
 // 0xd9
-void set_3_c(void) { set(1 << 3, registers.c); }
+void set_3_c(void) { set(1 << 3, cpu.registers.c); }
 
 // 0xda
-void set_3_d(void) { set(1 << 3, registers.d); }
+void set_3_d(void) { set(1 << 3, cpu.registers.d); }
 
 // 0xdb
-void set_3_e(void) { set(1 << 3, registers.e); }
+void set_3_e(void) { set(1 << 3, cpu.registers.e); }
 
 // 0xdc
-void set_3_h(void) { set(1 << 3, registers.h); }
+void set_3_h(void) { set(1 << 3, cpu.registers.h); }
 
 // 0xdd
-void set_3_l(void) { set(1 << 3, registers.l); }
+void set_3_l(void) { set(1 << 3, cpu.registers.l); }
 
 // 0xde
-void set_3_hlp(void) { writeByte(registers.hl, (1 << 3) | readByte(registers.hl)); }
+void set_3_hlp(void) { writeByte(cpu.registers.hl, (1 << 3) | readByte(cpu.registers.hl)); }
 
 // 0xdf
-void set_3_a(void) { set(1 << 3, registers.a); }
+void set_3_a(void) { set(1 << 3, cpu.registers.a); }
 
 // 0xe0
-void set_4_b(void) { set(1 << 4, registers.b); }
+void set_4_b(void) { set(1 << 4, cpu.registers.b); }
 
 // 0xe1
-void set_4_c(void) { set(1 << 4, registers.c); }
+void set_4_c(void) { set(1 << 4, cpu.registers.c); }
 
 // 0xe2
-void set_4_d(void) { set(1 << 4, registers.d); }
+void set_4_d(void) { set(1 << 4, cpu.registers.d); }
 
 // 0xe3
-void set_4_e(void) { set(1 << 4, registers.e); }
+void set_4_e(void) { set(1 << 4, cpu.registers.e); }
 
 // 0xe4
-void set_4_h(void) { set(1 << 4, registers.h); }
+void set_4_h(void) { set(1 << 4, cpu.registers.h); }
 
 // 0xe5
-void set_4_l(void) { set(1 << 4, registers.l); }
+void set_4_l(void) { set(1 << 4, cpu.registers.l); }
 
 // 0xe6
-void set_4_hlp(void) { writeByte(registers.hl, (1 << 4) | readByte(registers.hl)); }
+void set_4_hlp(void) { writeByte(cpu.registers.hl, (1 << 4) | readByte(cpu.registers.hl)); }
 
 // 0xe7
-void set_4_a(void) { set(1 << 4, registers.a); }
+void set_4_a(void) { set(1 << 4, cpu.registers.a); }
 
 // 0xe8
-void set_5_b(void) { set(1 << 5, registers.b); }
+void set_5_b(void) { set(1 << 5, cpu.registers.b); }
 
 // 0xe9
-void set_5_c(void) { set(1 << 5, registers.c); }
+void set_5_c(void) { set(1 << 5, cpu.registers.c); }
 
 // 0xea
-void set_5_d(void) { set(1 << 5, registers.d); }
+void set_5_d(void) { set(1 << 5, cpu.registers.d); }
 
 // 0xeb
-void set_5_e(void) { set(1 << 5, registers.e); }
+void set_5_e(void) { set(1 << 5, cpu.registers.e); }
 
 // 0xec
-void set_5_h(void) { set(1 << 5, registers.h); }
+void set_5_h(void) { set(1 << 5, cpu.registers.h); }
 
 // 0xed
-void set_5_l(void) { set(1 << 5, registers.l); }
+void set_5_l(void) { set(1 << 5, cpu.registers.l); }
 
 // 0xee
-void set_5_hlp(void) { writeByte(registers.hl, (1 << 5) | readByte(registers.hl)); }
+void set_5_hlp(void) { writeByte(cpu.registers.hl, (1 << 5) | readByte(cpu.registers.hl)); }
 
 // 0xef
-void set_5_a(void) { set(1 << 5, registers.a); }
+void set_5_a(void) { set(1 << 5, cpu.registers.a); }
 
 // 0xf0
-void set_6_b(void) { set(1 << 6, registers.b); }
+void set_6_b(void) { set(1 << 6, cpu.registers.b); }
 
 // 0xf1
-void set_6_c(void) { set(1 << 6, registers.c); }
+void set_6_c(void) { set(1 << 6, cpu.registers.c); }
 
 // 0xf2
-void set_6_d(void) { set(1 << 6, registers.d); }
+void set_6_d(void) { set(1 << 6, cpu.registers.d); }
 
 // 0xf3
-void set_6_e(void) { set(1 << 6, registers.e); }
+void set_6_e(void) { set(1 << 6, cpu.registers.e); }
 
 // 0xf4
-void set_6_h(void) { set(1 << 6, registers.h); }
+void set_6_h(void) { set(1 << 6, cpu.registers.h); }
 
 // 0xf5
-void set_6_l(void) { set(1 << 6, registers.l); }
+void set_6_l(void) { set(1 << 6, cpu.registers.l); }
 
 // 0xf6
-void set_6_hlp(void) { writeByte(registers.hl, (1 << 6) | readByte(registers.hl)); }
+void set_6_hlp(void) { writeByte(cpu.registers.hl, (1 << 6) | readByte(cpu.registers.hl)); }
 
 // 0xf7
-void set_6_a(void) { set(1 << 6, registers.a); }
+void set_6_a(void) { set(1 << 6, cpu.registers.a); }
 
 // 0xf8
-void set_7_b(void) { set(1 << 7, registers.b); }
+void set_7_b(void) { set(1 << 7, cpu.registers.b); }
 
 // 0xf9
-void set_7_c(void) { set(1 << 7, registers.c); }
+void set_7_c(void) { set(1 << 7, cpu.registers.c); }
 
 // 0xfa
-void set_7_d(void) { set(1 << 7, registers.d); }
+void set_7_d(void) { set(1 << 7, cpu.registers.d); }
 
 // 0xfb
-void set_7_e(void) { set(1 << 7, registers.e); }
+void set_7_e(void) { set(1 << 7, cpu.registers.e); }
 
 // 0xfc
-void set_7_h(void) { set(1 << 7, registers.h); }
+void set_7_h(void) { set(1 << 7, cpu.registers.h); }
 
 // 0xfd
-void set_7_l(void) { set(1 << 7, registers.l); }
+void set_7_l(void) { set(1 << 7, cpu.registers.l); }
 
 // 0xfe
-void set_7_hlp(void) { writeByte(registers.hl, (1 << 7) | readByte(registers.hl)); }
+void set_7_hlp(void) { writeByte(cpu.registers.hl, (1 << 7) | readByte(cpu.registers.hl)); }
 
 // 0xff
-void set_7_a(void) { set(1 << 7, registers.a); }
+void set_7_a(void) { set(1 << 7, cpu.registers.a); }

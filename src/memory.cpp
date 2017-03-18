@@ -2,7 +2,6 @@
 	#include <stdio.h>
 #endif
 
-#include "registers.h"
 #include "cpu.h"
 #include "gpu.h"
 #include "interrupts.h"
@@ -35,16 +34,13 @@ const unsigned char ioReset[0x100] = {
 //		0x04 : rand / cycle divisor
 //		0x0f : interrupt flags (TODO, shouldn't need)
 //		0x40 : gpu control
-//		0x42 : gpu scrollY (TODO, shouldn't need)
-//		0x43 : gpu scrollX (TODO, shouldn't need)
 //		0x44 : gpu scanline
 //		0xff : interrupt enable (TODO, shouldn't need)
 
 // Special write bytes (bit 1):
 //		0x0f : interrupt flags (TODO, shouldn't need)
 //		0x40 : gpu control
-//		0x42 : gpu scrollY (TODO, shouldn't need)
-//		0x43 : gpu.scrollX (TODO, shouldn't need)
+//		0x44 : gpu scanline (read only)
 //		0x46 : sprite DMA register (TODO, check clock cycles on this)
 //		0x47 : backgroundPalette (TODO, shouldn't need)
 //		0x48 : spritePalette 0 (TODO, shouldn't need)
@@ -60,7 +56,7 @@ const unsigned char specialMap[256] ALIGN(256) =
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 
-	0x03, 0x00, 0x03, 0x03,  0x01, 0x00, 0x02, 0x02,  0x02, 0x02, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
+	0x03, 0x00, 0x00, 0x00,  0x03, 0x00, 0x02, 0x02,  0x02, 0x02, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
@@ -78,12 +74,12 @@ const unsigned char specialMap[256] ALIGN(256) =
 
 // forced alignment allows us to simply bitwise or in the memory map
 unsigned char cart[0x8000] ALIGN(256) = { 0 };
-unsigned char wram[0x2000] ALIGN(256) = { 0 };
-unsigned char oam[0x100] ALIGN(256) = { 0 };
-unsigned char hram_io[0x100] ALIGN(256) = { 0 };
-unsigned char* memoryMap[256] ALIGN(256) = { 0 };
 unsigned char vram[0x2000] ALIGN(256) = { 0 };
 unsigned char sram[0x2000] ALIGN(256) = { 0 };
+unsigned char wram[0x2000] ALIGN(256) = { 0 };
+unsigned char oam[0x100] ALIGN(256) = { 0 };
+
+unsigned char* memoryMap[256] ALIGN(256) = { 0 };
 
 unsigned int randseed;
 
@@ -100,11 +96,12 @@ void SetupMemoryMaps() {
 	for (int i = 0xc0; i <= 0xdf; i++) {
 		memoryMap[i] = &wram[(i - 0xc0) << 8];
 	}
+	// echo area
 	for (int i = 0xe0; i <= 0xfd; i++) {
 		memoryMap[i] = &wram[(i - 0xe0) << 8];
 	}
 	memoryMap[0xfe] = oam;
-	memoryMap[0xff] = hram_io;
+	memoryMap[0xff] = cpu.memory.all;	// on chip memory
 
 	// randomize seed
 	randseed = RTC_GetTicks();
@@ -126,13 +123,13 @@ unsigned char readByteSpecial(unsigned short address) {
 		case 0x00:
 		{
 			// keyboard read
-			if (!(hram_io[0x00] & 0x20)) {
+			if (!(cpu.memory.P1_joypad & 0x20)) {
 				return (unsigned char)(0xc0 | keys.keys1 | 0x10);
 			}
-			else if (!(hram_io[0x00] & 0x10)) {
+			else if (!(cpu.memory.P1_joypad & 0x10)) {
 				return (unsigned char)(0xc0 | keys.keys2 | 0x20);
 			}
-			else if (!(hram_io[0x00] & 0x30)) return 0xff;
+			else if (!(cpu.memory.P1_joypad & 0x30)) return 0xff;
 			else return 0;
 		}
 		case 0x04:
@@ -140,12 +137,9 @@ unsigned char readByteSpecial(unsigned short address) {
 			return my_rand();
 		case 0x0f: return interrupt.flags;
 		case 0x40: return gpu.control;
-		case 0x42: return gpu.scrollY;
-		case 0x43: return gpu.scrollX;
-		case 0x44: return gpu.scanline; // read only
 		case 0xff: return interrupt.enable;
 		default:
-			return hram_io[byte];
+			return cpu.memory.all[byte];
 	}
 }
 
@@ -155,8 +149,7 @@ void writeByteSpecial(unsigned short address, unsigned char value) {
 	switch (byte) {
 		case 0x0f: interrupt.flags = value; break;
 		case 0x40: gpu.control = value; break;
-		case 0x42: gpu.scrollY = value; break;
-		case 0x43: gpu.scrollX = value; break;
+		case 0x44: // read only; break;
 		case 0x46:
 			copy(0xfe00, value << 8, 160); // OAM DMA
 			break;

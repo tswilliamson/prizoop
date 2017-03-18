@@ -44,7 +44,7 @@ void gpuStep(void) {
 			if(gpu.tick >= 204) {
 				hblank();
 				
-				if(gpu.scanline == 144) {
+				if(cpu.memory.LY_lcdline == 144) {
 					if (drawFramebuffer) {
 						drawFramebuffer();
 					}
@@ -62,10 +62,10 @@ void gpuStep(void) {
 		
 		case GPU_MODE_VBLANK:
 			if(gpu.tick >= 456) {
-				gpu.scanline++;
+				cpu.memory.LY_lcdline++;
 				
-				if(gpu.scanline > 153) {
-					gpu.scanline = 0;
+				if(cpu.memory.LY_lcdline > 153) {
+					cpu.memory.LY_lcdline = 0;
 					gpuMode = GPU_MODE_OAM;
 				}
 				
@@ -99,7 +99,7 @@ void gpuStep(void) {
 }
 
 void hblank(void) {
-	gpu.scanline++;
+	cpu.memory.LY_lcdline++;
 }
 
 void updateTile(unsigned short address, unsigned char value) {

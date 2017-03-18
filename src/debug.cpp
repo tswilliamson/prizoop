@@ -35,12 +35,12 @@ unsigned char realtimeDebugEnable = 0;
 void LogRegisters(void) {
 	OutputLog("Registers:\n");
 	OutputLog(BORDER);
-	OutputLog("AF: 0x%04x\n", registers.af);
-	OutputLog("BC: 0x%04x\n", registers.bc);
-	OutputLog("DE: 0x%04x\n", registers.de);
-	OutputLog("HL: 0x%04x\n", registers.hl);
-	OutputLog("SP: 0x%04x\n", registers.sp);
-	OutputLog("PC: 0x%04x\n", registers.pc);
+	OutputLog("AF: 0x%04x\n", cpu.registers.af);
+	OutputLog("BC: 0x%04x\n", cpu.registers.bc);
+	OutputLog("DE: 0x%04x\n", cpu.registers.de);
+	OutputLog("HL: 0x%04x\n", cpu.registers.hl);
+	OutputLog("SP: 0x%04x\n", cpu.registers.sp);
+	OutputLog("PC: 0x%04x\n", cpu.registers.pc);
 	OutputLog("IME: 0x%02x IE: 0x%02x IF: 0x%02x\n", interrupt.master, interrupt.enable, interrupt.flags);
 }
 
