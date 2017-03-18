@@ -41,7 +41,7 @@ void LogRegisters(void) {
 	OutputLog("HL: 0x%04x\n", cpu.registers.hl);
 	OutputLog("SP: 0x%04x\n", cpu.registers.sp);
 	OutputLog("PC: 0x%04x\n", cpu.registers.pc);
-	OutputLog("IME: 0x%02x IE: 0x%02x IF: 0x%02x\n", interrupt.master, interrupt.enable, interrupt.flags);
+	OutputLog("IME: 0x%02x IE: 0x%02x IF: 0x%02x\n", cpu.IME, cpu.memory.IE_intenable, cpu.memory.IF_intflag);
 }
 
 #if DEBUG_TRACKINSTRUCTIONS

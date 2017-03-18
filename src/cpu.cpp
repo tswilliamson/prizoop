@@ -66,9 +66,7 @@ void reset(void) {
 	cpu.registers.sp = 0xfffe;
 	cpu.registers.pc = 0x100;
 	
-	interrupt.master = 1;
-	interrupt.enable = 0;
-	interrupt.flags = 0;
+	cpu.IME = 1;
 	
 	keys.k1.a = 1;
 	keys.k1.b = 1;
@@ -751,7 +749,7 @@ inline void ld_hlp_l(void) { writeByte(cpu.registers.hl, cpu.registers.l); }
 
 // 0x76
 inline void halt(void) {
-	if(interrupt.master) {
+	if (cpu.IME) {
 		cpu.halted = 1;
 	}
 	else cpu.registers.pc++;
@@ -1111,7 +1109,10 @@ inline void ret_c(void) {
 }
 
 // 0xd9
-// interrupts.c
+inline void ret_i(void) {
+	cpu.IME = 1;
+	cpu.registers.pc = readShortFromStack();
+}
 
 // 0xda
 inline void jp_c_nn(unsigned short operand) {
@@ -1212,7 +1213,7 @@ inline void pop_af(void) { cpu.registers.af = readShortFromStack(); cpu.register
 inline void ld_a_ff_c(void) { cpu.registers.a = readByte(0xff00 + cpu.registers.c); }
 
 // 0xf3
-inline void di_inst(void) { interrupt.master = 0; }
+inline void di_inst(void) { cpu.IME = 0; }
 
 // 0xf5
 inline void push_af(void) { writeShortToStack(cpu.registers.af); }
@@ -1254,7 +1255,7 @@ inline void ld_sp_hl(void) { cpu.registers.sp = cpu.registers.hl; }
 inline void ld_a_nnp(unsigned short operand) { cpu.registers.a = readByte(operand); }
 
 // 0xfb
-inline void ei(void) { interrupt.master = 1; }
+inline void ei(void) { cpu.IME = 1; }
 
 // 0xfe
 inline void cp_n(unsigned char operand) {

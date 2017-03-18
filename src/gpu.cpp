@@ -42,7 +42,7 @@ void gpuStep(void) {
 					if (drawFramebuffer) {
 						drawFramebuffer();
 					}
-					if(interrupt.enable & INTERRUPTS_VBLANK) interrupt.flags |= INTERRUPTS_VBLANK;
+					cpu.memory.IF_intflag |= INTERRUPTS_VBLANK;
 					
 					SET_LCDC_MODE(GPU_MODE_VBLANK);
 				}

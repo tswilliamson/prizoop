@@ -6,18 +6,13 @@
 #define INTERRUPTS_SERIAL	(1 << 3)
 #define INTERRUPTS_JOYPAD	(1 << 4)
 
-struct interrupt {
-	unsigned char master;
-	unsigned char enable;
-	unsigned char flags;
-} extern interrupt;
-
 void interruptStep(void);
 
-void vblank(void);
-void lcdStat(void);
-void timer(void);
-void serial(void);
-void joypad(void);
+// program counter position for each interrupt when triggered
+#define INT_VBLANK_PC		0x0040
+#define INT_STAT_PC			0x0048
+#define INT_TIMER_PC		0x0050
+#define INT_SERIAL_PC		0x0058
+#define INT_JOYPAD_PC		0x0060
 
 void ret_i(void);
