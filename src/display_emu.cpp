@@ -9,144 +9,36 @@
 #include "keys.h"
 
 bool skippingFrame = false;
+bool stretch = false;
 int framecounter = 0;
 int frameSkip = 0;
 
-unsigned short colorPalette[4] = {
+extern unsigned short colorPalette[4] = {
 	COLOR_WHITE,
 	COLOR_LIGHTCYAN,
 	COLOR_CYAN,
 	COLOR_DARKCYAN,
 };
 
-void renderEmu() {
+#include "gpu_scanline.inl"
 
+void renderEmu() {
 	if (skippingFrame || (cpu.memory.LCDC_ctl & 0x80 == 0))
 		return;
 
 	TIME_SCOPE();
 
-	int mapOffset = (cpu.memory.LCDC_ctl & GPU_CONTROL_TILEMAP) ? 0x1c00 : 0x1800;
-	mapOffset += (((cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 255) >> 3) << 5;
+	// stretch across screen?
+	if (stretch) {
+		unsigned short* scanlineStart = &((unsigned short*)GetVRAMAddress())[32 + LCD_WIDTH_PX * ((cpu.memory.LY_lcdline * 3) / 2)];
+		RenderScanline<unsigned int>(scanlineStart);
 
-	void* scanlineStart = &((unsigned short*)GetVRAMAddress())[LCD_WIDTH_PX * cpu.memory.LY_lcdline];
-
-	// if bg enabled
-	{
-		int i;
-		int x = cpu.memory.SCX_bgscrollx & 7;
-		int y = (cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 7;
-
-		// finish/draw left tile
-		int lineOffset = (cpu.memory.SCX_bgscrollx >> 3);
-		unsigned short tile = (unsigned short)vram[mapOffset + lineOffset];
-		const unsigned char* tileRow = tiles->data[tile][y];
-
-		unsigned short* scanline = (unsigned short*)scanlineStart;
-
-		const unsigned short palette[4] = {
-			colorPalette[backgroundPalette[0]],
-			colorPalette[backgroundPalette[1]],
-			colorPalette[backgroundPalette[2]],
-			colorPalette[backgroundPalette[3]]
-		};
-
-		for (i = 0; i < 160; i++) {
-			// stretch crashing here for some reason
-			scanline[i] = palette[tileRow[x]];
-
-			x++;
-			if (x == 8) {
-				x = 0;
-				lineOffset = (lineOffset + 1) & 31;
-				tile = vram[mapOffset + lineOffset];
-				tileRow = tiles->data[tile][y];
-			}
+		if (cpu.memory.LY_lcdline & 1) {
+			RenderScanline<unsigned int>(scanlineStart + LCD_WIDTH_PX);
 		}
-	}
-
-	unsigned short* scanline = (unsigned short*)scanlineStart;
-
-	// if sprites enabled
-	{
-		const unsigned short palette[8] = {
-			colorPalette[spritePalette[0][0]],
-			colorPalette[spritePalette[0][1]],
-			colorPalette[spritePalette[0][2]],
-			colorPalette[spritePalette[0][3]],
-			colorPalette[spritePalette[1][0]],
-			colorPalette[spritePalette[1][1]],
-			colorPalette[spritePalette[1][2]],
-			colorPalette[spritePalette[1][3]],
-		};
-
-		for (int i = 0; i < 40; i++) {
-			const sprite& sprite = ((struct sprite *)oam)[i];
-
-			if (sprite.x) {
-				int sy = sprite.y - 16;
-
-				if (sy <= cpu.memory.LY_lcdline && (sy + 8) > cpu.memory.LY_lcdline) {
-					int sx = sprite.x - 8;
-
-					int pixelOffset = sx;
-
-					unsigned char tileRow;
-					if (sprite.vFlip) tileRow = 7 - (cpu.memory.LY_lcdline - sy);
-					else tileRow = cpu.memory.LY_lcdline - sy;
-
-					int x;
-					if (sprite.priority) {
-						if (sprite.hFlip) {
-							for (x = 7; x >= 0; x--, pixelOffset++) {
-								if (pixelOffset >= 0 && pixelOffset < 160 && scanline[pixelOffset] == palette[0]) {
-									unsigned char colour = tiles->data[sprite.tile][tileRow][x];
-
-									if (colour) {
-										scanline[pixelOffset] = palette[sprite.palette * 4 + colour];
-									}
-								}
-							}
-						}
-						else {
-							for (x = 0; x < 8; x++, pixelOffset++) {
-								if (pixelOffset >= 0 && pixelOffset < 160 && scanline[pixelOffset] == palette[0]) {
-									unsigned char colour = tiles->data[sprite.tile][tileRow][x];
-
-									if (colour) {
-										scanline[pixelOffset] = palette[sprite.palette * 4 + colour];
-									}
-								}
-							}
-						}
-					}
-					else {
-						if (sprite.hFlip) {
-							for (x = 7; x >= 0; x--, pixelOffset++) {
-								if (pixelOffset >= 0 && pixelOffset < 160) {
-									unsigned char colour = tiles->data[sprite.tile][tileRow][x];
-
-									if (colour) {
-										scanline[pixelOffset] = palette[sprite.palette * 4 + colour];
-									}
-								}
-							}
-						}
-						else {
-							for (x = 0; x < 8; x++, pixelOffset++) {
-								if (pixelOffset >= 0 && pixelOffset < 160) {
-									unsigned char colour = tiles->data[sprite.tile][tileRow][x];
-
-									if (colour) {
-										scanline[pixelOffset] = palette[sprite.palette * 4 + colour];
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+	} else {
+		void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * cpu.memory.LY_lcdline];
+		RenderScanline<unsigned short>(scanlineStart);
 	}
 }
 
@@ -227,6 +119,7 @@ void(*drawFramebuffer)(void) = drawEmu;
 
 void SetupDisplayDriver(bool withStretch, char withFrameskip) {
 	frameSkip = withFrameskip;
+	stretch = withStretch;
 }
 void SetupDisplayColors(unsigned short c0, unsigned short c1, unsigned short c2, unsigned short c3) {
 	colorPalette[0] = c0;

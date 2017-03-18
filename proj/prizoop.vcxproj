@@ -79,6 +79,7 @@
   <ItemGroup>
     <None Include="..\Makefile" />
     <None Include="..\src\cpu_instructions.inl" />
+    <None Include="..\src\gpu_scanline.inl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0A1E9BF8-05DD-4F73-81D8-18DA73DB5796}</ProjectGuid>

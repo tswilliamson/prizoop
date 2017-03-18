@@ -133,8 +133,4 @@ void updateTile(unsigned short address, unsigned char value) {
 		//((unsigned char (*)[8][8])tiles)[tile][y][x] = ((vram[address] & bitIndex) ? 1 : 0) + ((vram[address + 1] & bitIndex) ? 2 : 0);
 		tiles->data[tile][y][x] = ((vram[address] & bitIndex) ? 1 : 0) + ((vram[address + 1] & bitIndex) ? 2 : 0);
 	}
-	
-	#ifdef DS
-		dirtyTileset = 1;
-	#endif
 }

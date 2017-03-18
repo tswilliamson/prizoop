@@ -122,5 +122,8 @@
     <None Include="..\src\cpu_instructions.inl">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="..\src\gpu_scanline.inl">
+      <Filter>Header Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

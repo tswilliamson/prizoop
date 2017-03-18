@@ -11,10 +11,6 @@
 
 #include "rom.h"
 
-#ifdef DS3
-	Handle fileHandle;
-#endif
-
 const char *internal_romTypeString[256] = {0};
 
 void initializeRomTypes() {

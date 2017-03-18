@@ -36,7 +36,7 @@ struct cpu_type {
 						unsigned char OBP0_spritepal0;		// sprite palette 0, same as above except bit 0 is always transparent
 						unsigned char OBP1_spritepal1;		// sprite palette 1, same as above except bit 0 is always transparent
 						unsigned char WY_windowy;			// window y position, visibility requires 0 <= WY <= 143
-						unsigned char WY_windowx;			// window x position, offset by 7, visibility req 0 <= WX <= 166
+						unsigned char WX_windowx;			// window x position, offset by 7, visibility req 0 <= WX <= 166
 						unsigned char _unused4C7F[0x34];
 					};
 				};
