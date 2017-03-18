@@ -12,8 +12,19 @@
 #define GPU_CONTROL_WINDOWTILEMAP (1 << 6)
 #define GPU_CONTROL_DISPLAYENABLE (1 << 7)
 
+// gpu mode stored in bits 1-0 of STAT
+enum gpuMode {
+	GPU_MODE_HBLANK = 0,					// 00 : horizontal blank
+	GPU_MODE_VBLANK = 1,					// 01 : vertical blank
+	GPU_MODE_OAM = 2,						// 10 : OAM inaccessible
+	GPU_MODE_VRAM = 3,						// 11 : OAM and VRAM inaccessible
+};
+
+
+#define SET_LCDC_MODE(x) cpu.memory.STAT_lcdstatus = (cpu.memory.STAT_lcdstatus & 0xFC) | (x)
+#define GET_LCDC_MODE() (cpu.memory.STAT_lcdstatus & 0x03)
+
 struct gpu_type {
-	unsigned char control;
 	unsigned long tick;
 } extern gpu;
 

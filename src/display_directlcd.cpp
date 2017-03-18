@@ -132,7 +132,7 @@ void renderScanline1x1(void) {
 
 	TIME_SCOPE();
 
-	int mapOffset = (cpu.memory.LY_lcdline & GPU_CONTROL_TILEMAP) ? 0x1c00 : 0x1800;
+	int mapOffset = (cpu.memory.LCDC_ctl & GPU_CONTROL_TILEMAP) ? 0x1c00 : 0x1800;
 	mapOffset += (((cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 255) >> 3) << 5;
 
 	void* scanlineStart = &scanGroup[160 * curScan + curScanBuffer*scanBufferSize];
@@ -336,7 +336,7 @@ void renderScanlineFit(void) {
 		6, 7, 9, 10,
 	};
 
-	int mapOffset = (gpu.control & GPU_CONTROL_TILEMAP) ? 0x1c00 : 0x1800;
+	int mapOffset = (cpu.memory.LCDC_ctl & GPU_CONTROL_TILEMAP) ? 0x1c00 : 0x1800;
 	mapOffset += (((cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 255) >> 3) << 5;
 
 	void* scanlineStart =

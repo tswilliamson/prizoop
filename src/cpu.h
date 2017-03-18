@@ -50,7 +50,7 @@ struct cpu_type {
 	registers_type registers;
 
 	// misc cpu info
-	unsigned long ticks;
+	unsigned long clocks;		// according to clock frequency (4 MHz)
 	unsigned char halted;
 	unsigned char stopped;
 };

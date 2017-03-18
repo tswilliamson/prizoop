@@ -26,20 +26,14 @@ http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-Graphics
 */
 
 void gpuStep(void) {
-	enum gpuMode {
-		GPU_MODE_HBLANK = 0,
-		GPU_MODE_VBLANK = 1,
-		GPU_MODE_OAM = 2,
-		GPU_MODE_VRAM = 3,
-	} static gpuMode = GPU_MODE_HBLANK;
 	
 	static int lastTicks = 0;
 	
-	gpu.tick += cpu.ticks - lastTicks;
+	gpu.tick += cpu.clocks - lastTicks;
 	
-	lastTicks = cpu.ticks;
+	lastTicks = cpu.clocks;
 	
-	switch(gpuMode) {
+	switch(GET_LCDC_MODE()) {
 		case GPU_MODE_HBLANK:
 			if(gpu.tick >= 204) {
 				hblank();
@@ -50,10 +44,10 @@ void gpuStep(void) {
 					}
 					if(interrupt.enable & INTERRUPTS_VBLANK) interrupt.flags |= INTERRUPTS_VBLANK;
 					
-					gpuMode = GPU_MODE_VBLANK;
+					SET_LCDC_MODE(GPU_MODE_VBLANK);
 				}
 				
-				else gpuMode = GPU_MODE_OAM;
+				else SET_LCDC_MODE(GPU_MODE_OAM);
 				
 				gpu.tick -= 204;
 			}
@@ -66,7 +60,7 @@ void gpuStep(void) {
 				
 				if(cpu.memory.LY_lcdline > 153) {
 					cpu.memory.LY_lcdline = 0;
-					gpuMode = GPU_MODE_OAM;
+					SET_LCDC_MODE(GPU_MODE_OAM);
 				}
 				
 				gpu.tick -= 456;
@@ -76,7 +70,7 @@ void gpuStep(void) {
 		
 		case GPU_MODE_OAM:
 			if(gpu.tick >= 80) {
-				gpuMode = GPU_MODE_VRAM;
+				SET_LCDC_MODE(GPU_MODE_VRAM);
 				
 				gpu.tick -= 80;
 			}
@@ -85,7 +79,7 @@ void gpuStep(void) {
 		
 		case GPU_MODE_VRAM:
 			if(gpu.tick >= 172) {
-				gpuMode = GPU_MODE_HBLANK;
+				SET_LCDC_MODE(GPU_MODE_HBLANK);
 				
 				#ifndef DS
 					renderScanline();

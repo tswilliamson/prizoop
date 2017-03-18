@@ -51,7 +51,7 @@ void vblank(void) {
 	writeShortToStack(cpu.registers.pc);
 	cpu.registers.pc = 0x40;
 	
-	cpu.ticks += 12;
+	cpu.clocks += 20;
 }
 
 void lcdStat(void) {
@@ -59,7 +59,7 @@ void lcdStat(void) {
 	writeShortToStack(cpu.registers.pc);
 	cpu.registers.pc = 0x48;
 	
-	cpu.ticks += 12;
+	cpu.clocks += 20;
 }
 
 void timer(void) {
@@ -67,7 +67,7 @@ void timer(void) {
 	writeShortToStack(cpu.registers.pc);
 	cpu.registers.pc = 0x50;
 	
-	cpu.ticks += 12;
+	cpu.clocks += 20;
 }
 
 void serial(void) {
@@ -75,7 +75,7 @@ void serial(void) {
 	writeShortToStack(cpu.registers.pc);
 	cpu.registers.pc = 0x58;
 	
-	cpu.ticks += 12;
+	cpu.clocks += 20;
 }
 
 void joypad(void) {
@@ -83,7 +83,7 @@ void joypad(void) {
 	writeShortToStack(cpu.registers.pc);
 	cpu.registers.pc = 0x60;
 	
-	cpu.ticks += 12;
+	cpu.clocks += 20;
 }
 
 void ret_i(void) {

@@ -20,7 +20,11 @@
 #endif
 
 // compile time assert, will throw negative subscript error
-#define CT_ASSERT(cond) static char check##__LINE__ [(cond) ? 1 : -1];
+#ifdef __GNUC__
+#define CT_ASSERT(cond) typedef char __attribute__((error("assertion failure: '" #cond "' not true"))) badCompileTimeAssertion [(cond) ? 1 : -1];
+#else
+#define CT_ASSERT(cond) typedef char check##__LINE__ [(cond) ? 1 : -1];
+#endif
 
 #include "ScopeTimer.h"
 

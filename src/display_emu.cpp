@@ -26,7 +26,7 @@ void renderEmu() {
 
 	TIME_SCOPE();
 
-	int mapOffset = (gpu.control & GPU_CONTROL_TILEMAP) ? 0x1c00 : 0x1800;
+	int mapOffset = (cpu.memory.LCDC_ctl & GPU_CONTROL_TILEMAP) ? 0x1c00 : 0x1800;
 	mapOffset += (((cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 255) >> 3) << 5;
 
 	void* scanlineStart = &((unsigned short*)GetVRAMAddress())[LCD_WIDTH_PX * cpu.memory.LY_lcdline];

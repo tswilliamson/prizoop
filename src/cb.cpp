@@ -272,7 +272,7 @@ const struct extendedInstruction extendedInstructions[256] = {
 	{ "SET 7, A", set_7_a },      // 0xff
 };
 
-const unsigned char extendedInstructionTicks[256] = {
+const unsigned char extendedInstructionClocks[256] = {
 	8, 8, 8, 8, 8,  8, 16, 8,  8, 8, 8, 8, 8, 8, 16, 8, // 0x0_
 	8, 8, 8, 8, 8,  8, 16, 8,  8, 8, 8, 8, 8, 8, 16, 8, // 0x1_
 	8, 8, 8, 8, 8,  8, 16, 8,  8, 8, 8, 8, 8, 8, 16, 8, // 0x2_
@@ -294,7 +294,7 @@ const unsigned char extendedInstructionTicks[256] = {
 void cb_n(unsigned char instruction) {
 	extendedInstructions[instruction].execute();
 	
-	cpu.ticks += extendedInstructionTicks[instruction];
+	cpu.clocks += extendedInstructionClocks[instruction];
 }
 
 inline unsigned char rlc(unsigned char value) {

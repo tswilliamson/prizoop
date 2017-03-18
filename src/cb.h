@@ -6,7 +6,7 @@ struct extendedInstruction {
 	//unsigned char ticks;
 };
 
-extern const unsigned char extendedInstructionTicks[256];
+extern const unsigned char extendedInstructionClocks[256];
 
 void cb_n(unsigned char instruction);
 

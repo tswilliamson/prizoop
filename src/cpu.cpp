@@ -100,10 +100,9 @@ void reset(void) {
 	spritePalette[1][2] = 1;
 	spritePalette[1][3] = 0;
 	
-	gpu.control = 0;
 	gpu.tick = 0;
 	
-	cpu.ticks = 0;
+	cpu.clocks = 0;
 	cpu.stopped = 0;
 	cpu.halted = 0;
 	
@@ -448,10 +447,10 @@ inline void rra(void) {
 
 // 0x20
 inline void jr_nz_n(unsigned char operand) {
-	if(FLAGS_ISZERO) cpu.ticks += 8;
+	if(FLAGS_ISZERO) cpu.clocks += 8;
 	else {
 		cpu.registers.pc += (signed char)operand;
-		cpu.ticks += 12;
+		cpu.clocks += 12;
 	}
 }
 
@@ -515,9 +514,9 @@ inline void daa(void) {
 inline void jr_z_n(unsigned char operand) {
 	if(FLAGS_ISZERO) {
 		cpu.registers.pc += (signed char)operand;
-		cpu.ticks += 12;
+		cpu.clocks += 12;
 	}
-	else cpu.ticks += 8;
+	else cpu.clocks += 8;
 }
 
 // 0x29
@@ -543,10 +542,10 @@ inline void cpl(void) { cpu.registers.a = ~cpu.registers.a; FLAGS_SET(FLAGS_NEGA
 
 // 0x30
 inline void jr_nc_n(char operand) {
-	if(FLAGS_ISCARRY) cpu.ticks += 8;
+	if(FLAGS_ISCARRY) cpu.clocks += 8;
 	else {
 		cpu.registers.pc += operand;
-		cpu.ticks += 12;
+		cpu.clocks += 12;
 	}
 }
 
@@ -575,9 +574,9 @@ inline void scf(void) { FLAGS_SET(FLAGS_CARRY); FLAGS_CLEAR(FLAGS_NEGATIVE | FLA
 inline void jr_c_n(char operand) {
 	if(FLAGS_ISCARRY) {
 		cpu.registers.pc += operand;
-		cpu.ticks += 12;
+		cpu.clocks += 12;
 	}
-	else cpu.ticks += 8;
+	else cpu.clocks += 8;
 }
 
 // 0x39
@@ -976,10 +975,10 @@ inline void cp_a(void) { cp(cpu.registers.a); }
 
 // 0xc0
 inline void ret_nz(void) {
-	if(FLAGS_ISZERO) cpu.ticks += 8;
+	if(FLAGS_ISZERO) cpu.clocks += 8;
 	else {
 		cpu.registers.pc = readShortFromStack();
-		cpu.ticks += 20;
+		cpu.clocks += 20;
 	}
 }
 
@@ -988,10 +987,10 @@ inline void pop_bc(void) { cpu.registers.bc = readShortFromStack(); }
 
 // 0xc2
 inline void jp_nz_nn(unsigned short operand) {
-	if(FLAGS_ISZERO) cpu.ticks += 12;
+	if(FLAGS_ISZERO) cpu.clocks += 12;
 	else {
 		cpu.registers.pc = operand;
-		cpu.ticks += 16;
+		cpu.clocks += 16;
 	}
 }
 
@@ -1002,11 +1001,11 @@ inline void jp_nn(unsigned short operand) {
 
 // 0xc4
 inline void call_nz_nn(unsigned short operand) {
-	if(FLAGS_ISZERO) cpu.ticks += 12;
+	if(FLAGS_ISZERO) cpu.clocks += 12;
 	else {
 		writeShortToStack(cpu.registers.pc);
 		cpu.registers.pc = operand;
-		cpu.ticks += 24;
+		cpu.clocks += 24;
 	}
 }
 
@@ -1023,9 +1022,9 @@ inline void rst_0(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc 
 inline void ret_z(void) {
 	if(FLAGS_ISZERO) {
 		cpu.registers.pc = readShortFromStack();
-		cpu.ticks += 20;
+		cpu.clocks += 20;
 	}
-	else cpu.ticks += 8;
+	else cpu.clocks += 8;
 }
 
 // 0xc9
@@ -1035,9 +1034,9 @@ inline void ret(void) { cpu.registers.pc = readShortFromStack(); }
 inline void jp_z_nn(unsigned short operand) {
 	if(FLAGS_ISZERO) {
 		cpu.registers.pc = operand;
-		cpu.ticks += 16;
+		cpu.clocks += 16;
 	}
-	else cpu.ticks += 12;
+	else cpu.clocks += 12;
 }
 
 // 0xcb
@@ -1048,9 +1047,9 @@ inline void call_z_nn(unsigned short operand) {
 	if(FLAGS_ISZERO) {
 		writeShortToStack(cpu.registers.pc);
 		cpu.registers.pc = operand;
-		cpu.ticks += 24;
+		cpu.clocks += 24;
 	}
-	else cpu.ticks += 12;
+	else cpu.clocks += 12;
 }
 
 // 0xcd
@@ -1064,10 +1063,10 @@ inline void rst_08(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc
 
 // 0xd0
 inline void ret_nc(void) {
-	if(FLAGS_ISCARRY) cpu.ticks += 8;
+	if(FLAGS_ISCARRY) cpu.clocks += 8;
 	else {
 		cpu.registers.pc = readShortFromStack();
-		cpu.ticks += 20;
+		cpu.clocks += 20;
 	}
 }
 
@@ -1078,9 +1077,9 @@ inline void pop_de(void) { cpu.registers.de = readShortFromStack(); }
 inline void jp_nc_nn(unsigned short operand) {
 	if(!FLAGS_ISCARRY) {
 		cpu.registers.pc = operand;
-		cpu.ticks += 16;
+		cpu.clocks += 16;
 	}
-	else cpu.ticks += 12;
+	else cpu.clocks += 12;
 }
 
 // 0xd4
@@ -1088,9 +1087,9 @@ inline void call_nc_nn(unsigned short operand) {
 	if(!FLAGS_ISCARRY) {
 		writeShortToStack(cpu.registers.pc);
 		cpu.registers.pc = operand;
-		cpu.ticks += 24;
+		cpu.clocks += 24;
 	}
-	else cpu.ticks += 12;
+	else cpu.clocks += 12;
 }
 
 // 0xd5
@@ -1106,9 +1105,9 @@ inline void rst_10(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc
 inline void ret_c(void) {
 	if(FLAGS_ISCARRY) {
 		cpu.registers.pc = readShortFromStack();
-		cpu.ticks += 20;
+		cpu.clocks += 20;
 	}
-	else cpu.ticks += 8;
+	else cpu.clocks += 8;
 }
 
 // 0xd9
@@ -1118,9 +1117,9 @@ inline void ret_c(void) {
 inline void jp_c_nn(unsigned short operand) {
 	if(FLAGS_ISCARRY) {
 		cpu.registers.pc = operand;
-		cpu.ticks += 16;
+		cpu.clocks += 16;
 	}
-	else cpu.ticks += 12;
+	else cpu.clocks += 12;
 }
 
 // 0xdc
@@ -1128,9 +1127,9 @@ inline void call_c_nn(unsigned short operand) {
 	if(FLAGS_ISCARRY) {
 		writeShortToStack(cpu.registers.pc);
 		cpu.registers.pc = operand;
-		cpu.ticks += 24;
+		cpu.clocks += 24;
 	}
-	else cpu.ticks += 12;
+	else cpu.clocks += 12;
 }
 
 // 0xde
@@ -1283,10 +1282,10 @@ void cpuStep() {
 		for (int i = 0; i < CPU_BATCH; i++) {
 			// perform inlined instruction op
 			switch (readByte(cpu.registers.pc++)) {
-				#define INSTRUCTION_0(name,numticks,func,id,code)   case id: DebugInstruction(name); func(); cpu.ticks += numticks; code break;
-				#define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name, readByte(cpu.registers.pc)); { unsigned char operand = readByte(cpu.registers.pc++); func(operand); cpu.ticks += numticks; code } break;
-				#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name, readByte(cpu.registers.pc)); { signed char operand = readByte(cpu.registers.pc++); func(operand); cpu.ticks += numticks; code } break;
-				#define INSTRUCTION_2(name,numticks,func,id,code)   case id: DebugInstruction(name, readShort(cpu.registers.pc)); { unsigned short operand = readShort(cpu.registers.pc++); ++cpu.registers.pc; func(operand); cpu.ticks += numticks; code } break;
+				#define INSTRUCTION_0(name,numticks,func,id,code)   case id: DebugInstruction(name); func(); cpu.clocks += numticks; code break;
+				#define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name, readByte(cpu.registers.pc)); { unsigned char operand = readByte(cpu.registers.pc++); func(operand); cpu.clocks += numticks; code } break;
+				#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name, readByte(cpu.registers.pc)); { signed char operand = readByte(cpu.registers.pc++); func(operand); cpu.clocks += numticks; code } break;
+				#define INSTRUCTION_2(name,numticks,func,id,code)   case id: DebugInstruction(name, readShort(cpu.registers.pc)); { unsigned short operand = readShort(cpu.registers.pc++); ++cpu.registers.pc; func(operand); cpu.clocks += numticks; code } break;
 				#include "cpu_instructions.inl"
 				#undef INSTRUCTION_0
 				#undef INSTRUCTION_1

@@ -136,6 +136,7 @@ int main(void) {
 	SetupMemoryMaps();
 	reset();
 
+	// a somewhat forcibly unrolled loop
 	while (shouldExit == false) {
 		{
 			TIME_SCOPE_NAMED("Main");
