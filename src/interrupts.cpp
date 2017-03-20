@@ -34,6 +34,14 @@ void interruptStep(void) {
 	// update timer in case it sends an interrupt
 	updateTimer();
 
+	// joypad interrupt?
+	if (cpu.memory.IE_intenable & INTERRUPTS_JOYPAD) {
+		unsigned char jPad = readByteSpecial(0xFF00);
+		if ((jPad & 0x0F) != 0x0F) {
+			cpu.memory.IF_intflag |= INTERRUPTS_JOYPAD;
+		}
+	}
+
 	unsigned char fire = cpu.memory.IE_intenable & cpu.memory.IF_intflag;
 	if ((cpu.IME || cpu.halted) && fire) {
 
