@@ -12,13 +12,16 @@
 extern const unsigned char ioReset[0x100];
 
 // various memory areas
-extern unsigned char cart[0x8000] ALIGN(256);
-extern unsigned char vram[0x2000] ALIGN(256);
-extern unsigned char sram[0x2000] ALIGN(256);
-extern unsigned char wram[0x2000] ALIGN(256);
-extern unsigned char oam[0x100] ALIGN(256);
+extern unsigned char cart[0x4000] ALIGN(256);			// cartridge permanent ROM area
+extern unsigned char vram[0x2000] ALIGN(256);			// video ram, on gameboy
+extern unsigned char sram[0x2000] ALIGN(256);			// cartridge RAM area, may be disabled
+extern unsigned char wram[0x2000] ALIGN(256);			// work RAM, on gameboy
+extern unsigned char oam[0x100] ALIGN(256);				// sprite memory, on gameboy
 
-// maps high byte to different spots in memory, guaranteed to be 0x100 aligned
+// disabled RAM/ROM area
+extern unsigned char disabledArea[0x100] ALIGN(256);
+
+// maps high byte to different spots in memory
 extern unsigned char* memoryMap[256] ALIGN(256);
 
 // Specific bits used for different special mapping purposes:
@@ -27,12 +30,15 @@ extern unsigned char* memoryMap[256] ALIGN(256);
 // Bit 2 : for most signicant memory byte, whether a write requires a tile update (TODO, use mem directly in display code)
 extern const unsigned char specialMap[256] ALIGN(256);
 
-void SetupMemoryMaps();
+void resetMemoryMaps();
 
 void copy(unsigned short destination, unsigned short source, size_t length);
 
 unsigned char readByteSpecial(unsigned short address);
 void writeByteSpecial(unsigned short address, unsigned char value);
+
+// called when a write attempt occurs for rom
+void mbcWrite(unsigned short address, unsigned char value);
 
 inline unsigned char readByte(unsigned short address) {
 	return ((address >> 8) == 0xff && (specialMap[address & 0xFF] & 0x01)) ? readByteSpecial(address) : memoryMap[address >> 8][address & 0xFF];
@@ -49,14 +55,29 @@ inline unsigned short readShortFromStack(void) {
 }
 
 inline void writeByte(unsigned short address, unsigned char value) {
-	((address >> 8) == 0xff && (specialMap[address & 0xFF] & 0x02)) ?
-		writeByteSpecial(address, value) : (void) (memoryMap[address >> 8][address & 0xFF] = value);
+	// special write cases happen at upper 256 bytes
+	if ((address >> 8) == 0xff) {
+		if (specialMap[address & 0xFF] & 0x02)
+			writeByteSpecial(address, value);
+		else
+			cpu.memory.all[address & 0xFF] = value;
+	}
+	// rom "write" goes to memory bank controller instead
+	else if ((address & 0x8000) == 0) {
+		mbcWrite(address, value);
+	}
+	// tile update.. possibly removed soon
+	else if (specialMap[address >> 8] & 0x04) {
+		memoryMap[address >> 8][address & 0xFF] = value;
+		updateTile(address, value);
+	}
+	// else a normal byte write
+	else {
+		memoryMap[address >> 8][address & 0xFF] = value;
+	}
 
 	// for debugging, usually compiles out
 	DebugWrite(address);
-
-	// tile update.. possibly removed soon
-	if (specialMap[address >> 8] & 0x04) updateTile(address, value);
 }
 
 inline void writeShort(unsigned short address, unsigned short value) {

@@ -1,12 +1,14 @@
 #include "platform.h"
 
-#include "rom.h"
+#include "emulator.h"
+
 #include "cpu.h"
 #include "gpu.h"
 #include "interrupts.h"
 #include "debug.h"
 #include "keys.h"
 #include "memory.h"
+#include "rom.h"
 
 #if !TARGET_WINSIM
 #include "Prizm_SafeOverClock.h"
@@ -17,11 +19,13 @@
 bool shouldExit = false;
 bool overclocked = false;
 
-void clockdown() {
+void shutdown() {
 	if (overclocked) {
 		SetSafeClockSpeed(SCS_Normal);
 		overclocked = false;
 	}
+
+	unloadROM();
 
 	ScopeTimer::Shutdown();
 }
@@ -44,13 +48,19 @@ int main(void) {
 	Bdisp_AllClr_VRAM();
 	Bdisp_PutDisp_DD();
 
+	// allocate cached rom banks on the stack
+	ALLOCATE_ROM_BANKS();
+
+	// show emulator options screen
+
+
 	// figure out options
 	bool overclock = false;
 	bool scale = true;
 	char frameskip = 0;
 	int colorScheme = 0;
 	const colorconfig colorSchemes[] = {
-		{ "Cyan",		{ COLOR_WHITE, COLOR_LIGHTCYAN, COLOR_CYAN, COLOR_DARKCYAN } },
+		{ "Cyan",		{ COLOR_WHITE, COLOR_CYAN, COLOR_DARKCYAN, COLOR_BLACK } },
 		{ "B&W",		{ COLOR_WHITE, COLOR_LIGHTGRAY, COLOR_DARKGRAY, COLOR_BLACK } },
 		{ "Classic",	{ COLOR_LIGHTGREEN, COLOR_MEDIUMSEAGREEN, COLOR_DARKGREEN, COLOR_BLACK } },
 		{ "Red",		{ COLOR_WHITE, COLOR_YELLOW, COLOR_RED, COLOR_BLACK } },
@@ -114,7 +124,8 @@ int main(void) {
 		// just in case
 		SetSafeClockSpeed(SCS_Normal);
 	}
-	SetQuitHandler(clockdown);
+
+	SetQuitHandler(shutdown);
 
 	SetupDisplayDriver(scale, frameskip);
 	SetupDisplayColors(
@@ -127,14 +138,14 @@ int main(void) {
 	const char* filename = "\\\\fls0\\tetris.gb";
 	printf("Loading file \"%s\"...\n", filename);
 
+	resetMemoryMaps();
+	reset();
+
 	if (!loadROM(filename)) {
 		printf("Failed!\n");
 		GetKey(&key);
 		return 1;
 	}
-
-	SetupMemoryMaps();
-	reset();
 
 	// a somewhat forcibly unrolled loop
 	while (shouldExit == false) {

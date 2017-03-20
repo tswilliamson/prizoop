@@ -66,6 +66,12 @@
     <ClCompile Include="..\src\display_emu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\emulator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mbc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\cb.h">
@@ -115,6 +121,12 @@
     </ClInclude>
     <ClInclude Include="..\winsim\prizmsim.h">
       <Filter>winsim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\emulator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mbc.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

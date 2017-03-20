@@ -68,33 +68,51 @@ const unsigned char specialMap[256] ALIGN(256) =
 };
 
 // forced alignment allows us to simply bitwise or in the memory map
-unsigned char cart[0x8000] ALIGN(256) = { 0 };
+unsigned char cart[0x4000] ALIGN(256) = { 0 };
 unsigned char vram[0x2000] ALIGN(256) = { 0 };
 unsigned char sram[0x2000] ALIGN(256) = { 0 };
 unsigned char wram[0x2000] ALIGN(256) = { 0 };
 unsigned char oam[0x100] ALIGN(256) = { 0 };
 
+unsigned char disabledArea[0x100] ALIGN(256);
+
 unsigned char* memoryMap[256] ALIGN(256) = { 0 };
 
 unsigned int randseed;
 
-void SetupMemoryMaps() {
-	for (int i = 0x00; i <= 0x7f; i++) {
+void resetMemoryMaps() {
+	// disabled RAM/ROM area should return all '1's
+	memset(disabledArea, 0xFF, sizeof(disabledArea));
+
+	// permanent rom area
+	for (int i = 0x00; i <= 0x3f; i++) {
 		memoryMap[i] = &cart[i << 8];
 	}
+
+	// extra rom area starts out disabled
+	for (int i = 0x40; i <= 0x7f; i++) {
+		memoryMap[i] = &disabledArea[0];
+	}
+
 	for (int i = 0x80; i <= 0x9f; i++) {
 		memoryMap[i] = &vram[(i - 0x80) << 8];
 	}
+
+	// Sram starts out disabled
 	for (int i = 0xa0; i <= 0xbf; i++) {
-		memoryMap[i] = &sram[(i - 0xa0) << 8];
+		memoryMap[i] = &disabledArea[0];
 	}
+
+	// work ram available on cart
 	for (int i = 0xc0; i <= 0xdf; i++) {
 		memoryMap[i] = &wram[(i - 0xc0) << 8];
 	}
-	// echo area
+	// echo area of work ram
 	for (int i = 0xe0; i <= 0xfd; i++) {
 		memoryMap[i] = &wram[(i - 0xe0) << 8];
 	}
+
+	// on-chip/PPU memory
 	memoryMap[0xfe] = oam;
 	memoryMap[0xff] = cpu.memory.all;	// on chip memory
 
