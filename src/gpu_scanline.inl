@@ -22,7 +22,7 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 		int i;
 
 		// tile offset and palette shared for window
-		const int tileOffset = (cpu.memory.LCDC_ctl & GPU_CONTROL_TILESET) ? 0 : 256;
+		const int tileOffset = (cpu.memory.LCDC_ctl & LCDC_TILESET) ? 0 : 256;
 
 		const Type palette[4] = {
 			ToScanType((Type)colorPalette[backgroundPalette[0]]),
@@ -32,12 +32,12 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 		};
 
 		// draw background
-		if (cpu.memory.LCDC_ctl & GPU_CONTROL_BGENABLE)
+		if (cpu.memory.LCDC_ctl & LCDC_BGENABLE)
 		{
 			int x = cpu.memory.SCX_bgscrollx & 7;
 			int y = (cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 7;
 
-			int mapOffset = (cpu.memory.LCDC_ctl & GPU_CONTROL_BGTILEMAP) ? 0x1c00 : 0x1800;
+			int mapOffset = (cpu.memory.LCDC_ctl & LCDC_BGTILEMAP) ? 0x1c00 : 0x1800;
 			mapOffset += (((cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 255) >> 3) << 5;
 
 			// finish/draw left tile
@@ -64,14 +64,14 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 		}
 
 		// draw window
-		if (cpu.memory.LCDC_ctl & GPU_CONTROL_WINDOWENABLE)
+		if (cpu.memory.LCDC_ctl & LCDC_WINDOWENABLE)
 		{
 			int wx = cpu.memory.WX_windowx - 7;
 			int y = cpu.memory.LY_lcdline - cpu.memory.WY_windowy;
 
 			if (wx >= -7 && wx <= 159 && y >= 0) {
 				// select map offset row
-				int mapOffset = (cpu.memory.LCDC_ctl & GPU_CONTROL_WINDOWTILEMAP) ? 0x1c00 : 0x1800;
+				int mapOffset = (cpu.memory.LCDC_ctl & LCDC_WINDOWTILEMAP) ? 0x1c00 : 0x1800;
 				mapOffset += (y >> 3) << 5;
 
 				int lineOffset = 0;
@@ -117,7 +117,7 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 			ToScanType((Type) colorPalette[spritePalette[1][3]]),
 		};
 
-		if (cpu.memory.LCDC_ctl & GPU_CONTROL_SPRITEVDOUBLE) {
+		if (cpu.memory.LCDC_ctl & LCDC_SPRITEVDOUBLE) {
 			for (int i = 0; i < 40; i++) {
 				const sprite& sprite = ((struct sprite *)oam)[i];
 

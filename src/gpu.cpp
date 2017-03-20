@@ -1,7 +1,3 @@
-#ifndef PS4
-	#include <stddef.h>
-#endif
-
 #include "platform.h"
 #include "debug.h"
 
@@ -18,12 +14,6 @@ tilestype* tiles = NULL;
 
 unsigned char backgroundPalette[4];
 unsigned char spritePalette[2][4];
-
-/* References:
-http://www.codeslinger.co.uk/pages/projects/gameboy/lcd.html
-http://www.codeslinger.co.uk/pages/projects/gameboy/graphics.html
-http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-Graphics
-*/
 
 void gpuStep(void) {
 	
@@ -67,9 +57,19 @@ void gpuStep(void) {
 					cpu.memory.IF_intflag |= INTERRUPTS_VBLANK;
 					
 					SET_LCDC_MODE(GPU_MODE_VBLANK);
+
+					if (cpu.memory.STAT_lcdstatus & STAT_VBLANKCHECK) {
+						cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
+					}
 				}
 				
-				else SET_LCDC_MODE(GPU_MODE_OAM);
+				else {
+					SET_LCDC_MODE(GPU_MODE_OAM);
+
+					if (cpu.memory.STAT_lcdstatus & STAT_OAMCHECK) {
+						cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
+					}
+				}
 				
 				gpu.tick -= 204;
 			}
@@ -78,11 +78,15 @@ void gpuStep(void) {
 		
 		case GPU_MODE_VBLANK:
 			if(gpu.tick >= 456) {
-				cpu.memory.LY_lcdline++;
+				hblank();
 				
 				if(cpu.memory.LY_lcdline > 153) {
 					cpu.memory.LY_lcdline = 0;
 					SET_LCDC_MODE(GPU_MODE_OAM);
+
+					if (cpu.memory.STAT_lcdstatus & STAT_OAMCHECK) {
+						cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
+					}
 				}
 				
 				gpu.tick -= 456;
@@ -102,6 +106,10 @@ void gpuStep(void) {
 		case GPU_MODE_VRAM:
 			if(gpu.tick >= 172) {
 				SET_LCDC_MODE(GPU_MODE_HBLANK);
+
+				if (cpu.memory.STAT_lcdstatus & STAT_HBLANKCHECK) {
+					cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
+				}
 				
 				#ifndef DS
 					renderScanline();
@@ -116,6 +124,13 @@ void gpuStep(void) {
 
 void hblank(void) {
 	cpu.memory.LY_lcdline++;
+
+	if (cpu.memory.LY_lcdline == cpu.memory.LYC_lcdcompare) {
+		cpu.memory.STAT_lcdstatus |= STAT_LYCSIGNAL;
+		if (cpu.memory.STAT_lcdstatus & STAT_LYCCHECK) {
+			cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
+		}
+	}
 }
 
 void updateTile(unsigned short address, unsigned char value) {
