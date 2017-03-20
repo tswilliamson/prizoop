@@ -117,67 +117,140 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 			ToScanType((Type) colorPalette[spritePalette[1][3]]),
 		};
 
-		for (int i = 0; i < 40; i++) {
-			const sprite& sprite = ((struct sprite *)oam)[i];
+		if (cpu.memory.LCDC_ctl & GPU_CONTROL_SPRITEVDOUBLE) {
+			for (int i = 0; i < 40; i++) {
+				const sprite& sprite = ((struct sprite *)oam)[i];
 
-			if (sprite.x) {
-				int sy = sprite.y - 16;
+				if (sprite.x) {
+					int sy = sprite.y - 16;
 
-				if (sy <= cpu.memory.LY_lcdline && (sy + 8) > cpu.memory.LY_lcdline) {
-					int sx = sprite.x - 8;
+					if (sy <= cpu.memory.LY_lcdline && (sy + 16) > cpu.memory.LY_lcdline) {
+						int sx = sprite.x - 8;
 
-					int pixelOffset = sx;
+						int pixelOffset = sx;
 
-					unsigned char tileRow;
-					if (OAM_ATTR_YFLIP(sprite.attr)) tileRow = 7 - (cpu.memory.LY_lcdline - sy);
-					else tileRow = cpu.memory.LY_lcdline - sy;
+						unsigned char tileRow;
+						if (OAM_ATTR_YFLIP(sprite.attr)) tileRow = 15 - (cpu.memory.LY_lcdline - sy);
+						else tileRow = cpu.memory.LY_lcdline - sy;
 
-					unsigned char paletteBase = OAM_ATTR_PALETTE(sprite.attr) ? 4 : 0;
+						unsigned char paletteBase = OAM_ATTR_PALETTE(sprite.attr) ? 4 : 0;
 
-					int x;
-					if (OAM_ATTR_PRIORITY(sprite.attr)) {
-						if (OAM_ATTR_XFLIP(sprite.attr)) {
-							for (x = 7; x >= 0; x--, pixelOffset++) {
-								if (pixelOffset >= 0 && pixelOffset < 160 && scanline[pixelOffset] == palette[0]) {
-									unsigned char colour = tiles->data[sprite.tile][tileRow][x];
+						int tile = (tileRow < 8) ? (sprite.tile & 0xFE) : (sprite.tile | 0x01);
+						int x;
+						if (OAM_ATTR_PRIORITY(sprite.attr)) {
+							if (OAM_ATTR_XFLIP(sprite.attr)) {
+								for (x = 7; x >= 0; x--, pixelOffset++) {
+									if (pixelOffset >= 0 && pixelOffset < 160 && scanline[pixelOffset] == palette[0]) {
+										unsigned char colour = tiles->data[tile][tileRow & 0x07][x];
 
-									if (colour) {
-										scanline[pixelOffset] = palette[paletteBase + colour];
+										if (colour) {
+											scanline[pixelOffset] = palette[paletteBase + colour];
+										}
+									}
+								}
+							}
+							else {
+								for (x = 0; x < 8; x++, pixelOffset++) {
+									if (pixelOffset >= 0 && pixelOffset < 160 && scanline[pixelOffset] == palette[0]) {
+										unsigned char colour = tiles->data[tile][tileRow & 0x07][x];
+
+										if (colour) {
+											scanline[pixelOffset] = palette[paletteBase + colour];
+										}
 									}
 								}
 							}
 						}
 						else {
-							for (x = 0; x < 8; x++, pixelOffset++) {
-								if (pixelOffset >= 0 && pixelOffset < 160 && scanline[pixelOffset] == palette[0]) {
-									unsigned char colour = tiles->data[sprite.tile][tileRow][x];
+							if (OAM_ATTR_XFLIP(sprite.attr)) {
+								for (x = 7; x >= 0; x--, pixelOffset++) {
+									if (pixelOffset >= 0 && pixelOffset < 160) {
+										unsigned char colour = tiles->data[tile][tileRow & 0x07][x];
 
-									if (colour) {
-										scanline[pixelOffset] = palette[paletteBase + colour];
+										if (colour) {
+											scanline[pixelOffset] = palette[paletteBase + colour];
+										}
+									}
+								}
+							}
+							else {
+								for (x = 0; x < 8; x++, pixelOffset++) {
+									if (pixelOffset >= 0 && pixelOffset < 160) {
+										unsigned char colour = tiles->data[tile][tileRow & 0x07][x];
+
+										if (colour) {
+											scanline[pixelOffset] = palette[paletteBase + colour];
+										}
 									}
 								}
 							}
 						}
 					}
-					else {
-						if (OAM_ATTR_XFLIP(sprite.attr)) {
-							for (x = 7; x >= 0; x--, pixelOffset++) {
-								if (pixelOffset >= 0 && pixelOffset < 160) {
-									unsigned char colour = tiles->data[sprite.tile][tileRow][x];
+				}
+			}
+		} else {
+			for (int i = 0; i < 40; i++) {
+				const sprite& sprite = ((struct sprite *)oam)[i];
 
-									if (colour) {
-										scanline[pixelOffset] = palette[paletteBase + colour];
+				if (sprite.x) {
+					int sy = sprite.y - 16;
+
+					if (sy <= cpu.memory.LY_lcdline && (sy + 8) > cpu.memory.LY_lcdline) {
+						int sx = sprite.x - 8;
+
+						int pixelOffset = sx;
+
+						unsigned char tileRow;
+						if (OAM_ATTR_YFLIP(sprite.attr)) tileRow = 7 - (cpu.memory.LY_lcdline - sy);
+						else tileRow = cpu.memory.LY_lcdline - sy;
+
+						unsigned char paletteBase = OAM_ATTR_PALETTE(sprite.attr) ? 4 : 0;
+
+						int x;
+						if (OAM_ATTR_PRIORITY(sprite.attr)) {
+							if (OAM_ATTR_XFLIP(sprite.attr)) {
+								for (x = 7; x >= 0; x--, pixelOffset++) {
+									if (pixelOffset >= 0 && pixelOffset < 160 && scanline[pixelOffset] == palette[0]) {
+										unsigned char colour = tiles->data[sprite.tile][tileRow][x];
+
+										if (colour) {
+											scanline[pixelOffset] = palette[paletteBase + colour];
+										}
+									}
+								}
+							}
+							else {
+								for (x = 0; x < 8; x++, pixelOffset++) {
+									if (pixelOffset >= 0 && pixelOffset < 160 && scanline[pixelOffset] == palette[0]) {
+										unsigned char colour = tiles->data[sprite.tile][tileRow][x];
+
+										if (colour) {
+											scanline[pixelOffset] = palette[paletteBase + colour];
+										}
 									}
 								}
 							}
 						}
 						else {
-							for (x = 0; x < 8; x++, pixelOffset++) {
-								if (pixelOffset >= 0 && pixelOffset < 160) {
-									unsigned char colour = tiles->data[sprite.tile][tileRow][x];
+							if (OAM_ATTR_XFLIP(sprite.attr)) {
+								for (x = 7; x >= 0; x--, pixelOffset++) {
+									if (pixelOffset >= 0 && pixelOffset < 160) {
+										unsigned char colour = tiles->data[sprite.tile][tileRow][x];
 
-									if (colour) {
-										scanline[pixelOffset] = palette[paletteBase + colour];
+										if (colour) {
+											scanline[pixelOffset] = palette[paletteBase + colour];
+										}
+									}
+								}
+							}
+							else {
+								for (x = 0; x < 8; x++, pixelOffset++) {
+									if (pixelOffset >= 0 && pixelOffset < 160) {
+										unsigned char colour = tiles->data[sprite.tile][tileRow][x];
+
+										if (colour) {
+											scanline[pixelOffset] = palette[paletteBase + colour];
+										}
 									}
 								}
 							}

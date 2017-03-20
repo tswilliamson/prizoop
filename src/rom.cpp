@@ -61,7 +61,7 @@ unsigned char loadROM(const char *filename) {
 	printf("Num ROM Banks: %d\n", mbc.numRomBanks);
 		
 	// read permanent ROM Area in
-	int read = Bfile_ReadFile_OS(hFile, cart, min(length, 0x4000), 0);
+	int read = Bfile_ReadFile_OS(hFile, cart, /*min(length,*/ 0x4000/*)*/, 0);
 
 	GetKey(&key);
 

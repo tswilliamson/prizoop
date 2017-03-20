@@ -36,6 +36,7 @@ CFLAGS	= -O2 \
 		  -funroll-loops \
 		  -fno-trapping-math \
 		  -fno-trapv \
+		  -Wno-switch \
 		  $(MACHDEP) $(INCLUDE) $(DEFINES)
 CXXFLAGS	=	$(CFLAGS) \
 		  -fpermissive \
