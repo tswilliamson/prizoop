@@ -31,11 +31,15 @@ const unsigned char ioReset[0x100] = {
 
 // Special read bytes (bit 0):
 //		0x00 : keyboard
-//		0x04 : rand / cycle divisor
+//		0x04 : DIV, upper 8 bits of internal cpu counter
+//      0x05 : TIMA, needs to be updated before being read
 //		0x0f : interrupt flags (top 3 bits are always set when read)
 //		0x41 : STAT is alway 1 in the high bit
 
 // Special write bytes (bit 1):
+//		0x04 : DIV, any writes reset it
+//		0x05 : TIMA, writes to it need to adjust our internal timer also
+//		0x07 : TAC, writes to it MAY need to adjust our internal timer also
 //		0x44 : gpu scanline (read only)
 //		0x46 : sprite DMA register (TODO, check clock cycles on this)
 //		0x47 : backgroundPalette (TODO, shouldn't need)
@@ -46,7 +50,7 @@ const unsigned char ioReset[0x100] = {
 //		0x8000 - 0x97ff
 const unsigned char specialMap[256] ALIGN(256) =
 {
-	0x01, 0x00, 0x00, 0x00,  0x01, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x01,
+	0x01, 0x00, 0x00, 0x00,  0x03, 0x02, 0x00, 0x02,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x01,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
@@ -77,8 +81,6 @@ unsigned char oam[0x100] ALIGN(256) = { 0 };
 unsigned char disabledArea[0x100] ALIGN(256);
 
 unsigned char* memoryMap[256] ALIGN(256) = { 0 };
-
-unsigned int randseed;
 
 void resetMemoryMaps() {
 	// disabled RAM/ROM area should return all '1's
@@ -115,18 +117,11 @@ void resetMemoryMaps() {
 	// on-chip/PPU memory
 	memoryMap[0xfe] = oam;
 	memoryMap[0xff] = cpu.memory.all;	// on chip memory
-
-	// randomize seed
-	randseed = RTC_GetTicks();
 }
 
 void copy(unsigned short destination, unsigned short source, size_t length) {
 	unsigned int i;
 	for(i = 0; i < length; i++) writeByte(destination + i, readByte(source + i));
-}
-
-inline unsigned char my_rand() {
-	return ((randseed = randseed * 214013L + 2531011L) >> 16) & 0xFF;
 }
 
 // this only gets called on 0xFF** addresses
@@ -145,9 +140,14 @@ unsigned char readByteSpecial(unsigned short address) {
 			else if (!(cpu.memory.P1_joypad & 0x30)) return 0xff;
 			else return 0;
 		}
-		case 0x04:
-			// Should return a div timer, but a random number works just as well for Tetris
-			return my_rand();
+		case 0x04: {
+			updateDiv();
+			return (cpu.div & 0xFF00) >> 8;
+		}
+		case 0x05: {
+			updateTimer();
+			return cpu.memory.TIMA_timerctr;
+		}
 		case 0x0f: return cpu.memory.IF_intflag | 0xE0;	// top 3 bits are always set when reading interrupt flags
 		case 0x41: return cpu.memory.STAT_lcdstatus | 0x80;	// high bit always set in STAT
 		default:
@@ -159,7 +159,19 @@ unsigned char readByteSpecial(unsigned short address) {
 void writeByteSpecial(unsigned short address, unsigned char value) {
 	unsigned char byte = address & 0x00FF;
 	switch (byte) {
-		case 0x44: // read only; break;
+		case 0x04:
+			// always resets DIV when written to
+			cpu.div = 0;
+			cpu.divBase = cpu.clocks;
+			break;
+		case 0x05:
+			writeTIMA(value);
+			break;
+		case 0x07:
+			writeTAC(value);
+			break;
+		case 0x44: // read only
+			break;
 		case 0x46:
 			copy(0xfe00, value << 8, 160); // OAM DMA
 			break;

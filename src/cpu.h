@@ -54,6 +54,14 @@ struct cpu_type {
 	unsigned long clocks;		// according to clock frequency (4 MHz)
 	unsigned char halted;
 	unsigned char stopped;
+
+	// cpu div
+	unsigned long div;
+	unsigned long divBase;
+
+	// cpu timer
+	unsigned long timer;
+	unsigned long timerBase;
 };
 #pragma pack(pop)
 
@@ -80,3 +88,10 @@ extern cpu_type cpu ALIGN(256);
 
 void reset(void);
 void cpuStep(void);
+void updateDiv();
+
+void updateTimer();
+
+// special timer based write functionality based on timer state
+void writeTIMA(unsigned char value);
+void writeTAC(unsigned char value);

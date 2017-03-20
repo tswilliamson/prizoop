@@ -57,6 +57,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\src\timer.cpp" />
     <ClCompile Include="..\winsim\prizmsim.cpp" />
     <ClCompile Include="..\winsim\winmain.cpp" />
   </ItemGroup>

@@ -39,6 +39,7 @@ enum ramSizeType {
 	RAM_32KB = 0x03,			// 4 banks of 8 KB
 	RAM_128KB = 0x04,			// 16 banks of 8 KB
 	RAM_64KB = 0x05,			// 8 banks of 8 KB
+	RAM_MBC2 = 0xFF,			// special case for MBC2 (512 x 4 bit)
 };
 
 struct mbc_state {

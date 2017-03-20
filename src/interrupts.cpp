@@ -31,6 +31,9 @@ inline void issueInterrupt(unsigned char flagMask, unsigned short toPC) {
 }
 
 void interruptStep(void) {
+	// update timer in case it sends an interrupt
+	updateTimer();
+
 	unsigned char fire = cpu.memory.IE_intenable & cpu.memory.IF_intflag;
 	if ((cpu.IME || cpu.halted) && fire) {
 

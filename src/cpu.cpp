@@ -46,7 +46,7 @@ int iter = 0;
 */
 
 // number of cpu instructions to batch at once
-#define CPU_BATCH 24
+#define CPU_BATCH 12
 
 void reset(void) {
 	memset(sram, 0, sizeof(sram));
@@ -136,6 +136,14 @@ void reset(void) {
 	writeByte(0xFF4A, 0x00);
 	writeByte(0xFF4B, 0x00);
 	writeByte(0xFFFF, 0x00);
+
+	// initialize div timer
+	cpu.div = 0xABCC;
+	cpu.divBase = 0;
+
+	// initialize timer
+	cpu.timer = 0;
+	cpu.timerBase = 0;
 }
 
 inline void undefined(void) {
@@ -749,10 +757,7 @@ inline void ld_hlp_l(void) { writeByte(cpu.registers.hl, cpu.registers.l); }
 
 // 0x76
 inline void halt(void) {
-	if (cpu.IME) {
-		cpu.halted = 1;
-	}
-	else cpu.registers.pc++;
+	cpu.halted = 1;
 }
 
 // 0x77

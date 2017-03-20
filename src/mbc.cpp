@@ -54,6 +54,7 @@ const char* getRAMTypeString(ramSizeType type) {
 		case RAM_32KB: return "RAM_32KB";
 		case RAM_128KB: return "RAM_128KB";
 		case RAM_64KB: return "RAM_64KB";
+		case RAM_MBC2: return "RAM_MBC2";
 		default:  return "RAM_UNKNOWN";
 	}
 }
@@ -65,6 +66,7 @@ bool supportedRAM(ramSizeType type) {
 		case RAM_NONE: 
 		case RAM_2KB:
 		case RAM_8KB:
+		case RAM_MBC2:
 			return true;
 	}
 
@@ -77,6 +79,7 @@ unsigned char ramNibbleCount(ramSizeType type) {
 		case RAM_NONE: return 0;
 		case RAM_2KB: return 8;
 		case RAM_8KB: return 32;
+		case RAM_MBC2: return 2;
 	}
 
 	// unsupported
@@ -157,23 +160,30 @@ bool setupMBCType(mbcType type, unsigned char romSizeByte, unsigned char ramSize
 	mbc.romBank = 0;
 
 	switch (type) {
-	case ROM_PLAIN:
-		// sram is sometimes in use with these, just enable it:
-		mbc.ramType = RAM_8KB;
-		mbc.numRomBanks = 2;
-		selectRomBank(1);
-		enableSRAM();
-		return true;
-	case ROM_MBC1_RAM_BATT:
-		mbc.batteryBacked = 1;
-	case ROM_MBC1_RAM:
-		mbc.ramType = (ramSizeType)ramSizeByte;
-	case ROM_MBC1:
-		mbc.numRomBanks = numSwitchableBanksFromType(romSizeByte);
-		selectRomBank(1);
-		break;
-	default:
-		return false;
+		case ROM_PLAIN:
+			// sram is sometimes in use with these, just enable it:
+			mbc.ramType = RAM_8KB;
+			mbc.numRomBanks = 2;
+			selectRomBank(1);
+			enableSRAM();
+			return true;
+		case ROM_MBC1_RAM_BATT:
+			mbc.batteryBacked = 1;
+		case ROM_MBC1_RAM:
+			mbc.ramType = (ramSizeType)ramSizeByte;
+		case ROM_MBC1:
+			mbc.numRomBanks = numSwitchableBanksFromType(romSizeByte);
+			selectRomBank(1);
+			break;
+		case ROM_MBC2_BATTERY:
+			mbc.batteryBacked = 1;
+		case ROM_MBC2:
+			mbc.ramType = RAM_MBC2;
+			mbc.numRomBanks = numSwitchableBanksFromType(romSizeByte);
+			selectRomBank(1);
+			break;
+		default:
+			return false;
 	}
 
 	// support if we support the ram bank type
@@ -227,6 +237,29 @@ void mbcWrite(unsigned short address, unsigned char value) {
 				}
 				else {
 					disableSRAM();
+				}
+			}
+			return;
+		case ROM_MBC2_BATTERY:
+		case ROM_MBC2:
+			// RAM enable
+			if (upperNibble <= 0x01) {
+				if ((address & 0x0100) == 0) {
+					if ((value & 0x0F) == 0x0A) {
+						enableSRAM();
+					}
+					else {
+						disableSRAM();
+					}
+				}
+			} 
+			// ROM select
+			else if (upperNibble <= 0x03) {
+				if ((address & 0x0100) != 0) {
+					if ((value & 0x0F) != 1) {
+						// make lower 4 bits into existing rom bank selection
+						selectRomBank(value & 0x0F);
+					}
 				}
 			}
 			return;

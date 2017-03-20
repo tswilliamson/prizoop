@@ -23,7 +23,7 @@ void gpuStep(void) {
 	lastTicks = cpu.clocks;
 
 	// we can force a step to avoid just spinning wheels when halted:
-	if (cpu.halted && ((cpu.memory.IE_intenable & (INTERRUPTS_JOYPAD | INTERRUPTS_TIMER)) == 0)) {
+	if (cpu.halted && cpu.IME && ((cpu.memory.IE_intenable & (INTERRUPTS_JOYPAD | INTERRUPTS_TIMER)) == 0)) {
 		unsigned int needTicks = 0;
 		switch (GET_LCDC_MODE()) {
 			case GPU_MODE_HBLANK:
