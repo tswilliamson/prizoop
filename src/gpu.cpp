@@ -15,12 +15,42 @@ tilestype* tiles = NULL;
 unsigned char backgroundPalette[4];
 unsigned char spritePalette[2][4];
 
-void gpuStep(void) {
-	
-	static long lastTicks = 0;
-	
-	gpu.tick += cpu.clocks - lastTicks;
-	lastTicks = cpu.clocks;
+void(*gpuStep)(void) = NULL;
+
+bool invalidFrame = false;
+
+void stepLCDOff(void) {
+	if (gpu.tick < 70224) {
+		gpu.tick += cpu.clocks - gpu.tickBase;
+
+		if (gpu.tick > 70224) {
+			// draw empty framebuffer
+			for (int i = 0; i < 144; i++) {
+				renderBlankScanline();
+			}
+			drawFramebuffer();
+		}
+		else if (cpu.memory.LCDC_ctl & 0x80) {
+			//  LCD was re-enabled, but next screen will be blank
+			gpuStep = stepLCDOn;
+			invalidFrame = true;
+			gpu.tick = 0;
+		}
+	}
+
+	if (cpu.memory.LCDC_ctl & 0x80) {
+		//  LCD was re-enabled, but first 
+		gpuStep = stepLCDOn;
+		invalidFrame = true;
+		gpu.tick = 0;
+	}
+
+	gpu.tickBase = cpu.clocks;
+}
+
+void stepLCDOn(void) {
+	gpu.tick += cpu.clocks - gpu.tickBase;
+	gpu.tickBase = cpu.clocks;
 
 	// we can force a step to avoid just spinning wheels when halted:
 	if (cpu.halted && cpu.IME && ((cpu.memory.IE_intenable & (INTERRUPTS_JOYPAD | INTERRUPTS_TIMER)) == 0)) {
@@ -81,11 +111,18 @@ void gpuStep(void) {
 				hblank();
 				
 				if(cpu.memory.LY_lcdline > 153) {
+					// back to line 0, OAM mode
 					cpu.memory.LY_lcdline = 0;
 					SET_LCDC_MODE(GPU_MODE_OAM);
 
-					if (cpu.memory.STAT_lcdstatus & STAT_OAMCHECK) {
-						cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
+					// check if lcd was disabled:
+					if (cpu.memory.LCDC_ctl & 0x80) {
+						if (cpu.memory.STAT_lcdstatus & STAT_OAMCHECK) {
+							cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
+						}
+						invalidFrame = false;
+					} else {
+						gpuStep = stepLCDOff;
 					}
 				}
 				
@@ -111,10 +148,9 @@ void gpuStep(void) {
 					cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
 				}
 				
-				#ifndef DS
+				if (!invalidFrame)
 					renderScanline();
-				#endif
-				
+								
 				gpu.tick -= 172;
 			}
 			

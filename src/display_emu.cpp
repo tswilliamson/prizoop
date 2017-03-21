@@ -23,7 +23,7 @@ extern unsigned short colorPalette[4] = {
 #include "gpu_scanline.inl"
 
 void renderEmu() {
-	if (skippingFrame || (cpu.memory.LCDC_ctl & 0x80 == 0))
+	if (skippingFrame)
 		return;
 
 	TIME_SCOPE();
@@ -36,9 +36,28 @@ void renderEmu() {
 		if (cpu.memory.LY_lcdline & 1) {
 			RenderScanline<unsigned int>(scanlineStart + LCD_WIDTH_PX);
 		}
-	} else {
+	}
+	else {
 		void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * cpu.memory.LY_lcdline];
 		RenderScanline<unsigned short>(scanlineStart);
+	}
+}
+
+void renderBlankEmu() {
+	TIME_SCOPE();
+
+	// stretch across screen?
+	if (stretch) {
+		unsigned short* scanlineStart = &((unsigned short*)GetVRAMAddress())[32 + LCD_WIDTH_PX * ((cpu.memory.LY_lcdline * 3) / 2)];
+		memset(scanlineStart, 0xFF, 160 * 4);
+
+		if (cpu.memory.LY_lcdline & 1) {
+			memset(scanlineStart + LCD_WIDTH_PX, 0xFF, 160 * 4);
+		}
+	}
+	else {
+		void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * cpu.memory.LY_lcdline];
+		memset(scanlineStart, 0xFF, 160 * 2);
 	}
 }
 
@@ -88,7 +107,7 @@ void drawEmu() {
 		}
 	}
 
-	if (skippingFrame || (cpu.memory.LCDC_ctl & 0x80 == 0)) {
+	if (skippingFrame) {
 		return;
 	}
 
@@ -115,6 +134,7 @@ void refresh() {
 #endif
 
 void(*renderScanline)(void) = renderEmu;
+void(*renderBlankScanline)(void) = renderBlankEmu;
 void(*drawFramebuffer)(void) = drawEmu;
 
 void SetupDisplayDriver(bool withStretch, char withFrameskip) {

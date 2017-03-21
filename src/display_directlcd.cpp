@@ -20,10 +20,13 @@ static bool skippingFrame = false;			// whether the current frame is being skipp
 
 // default render callbacks to 0
 void(*renderScanline)(void) = 0;
+void(*renderBlankScanline)(void) = 0;
 void(*drawFramebuffer)(void) = 0;
 
 void renderScanline1x1(void);
+void renderBlankScanline1x1(void);
 void renderScanlineFit(void);
+void renderBlankScanlineFit(void);
 void drawFramebufferMain(void);
 
 unsigned short colorPalette[4] = {
@@ -40,6 +43,7 @@ void SetupDisplayDriver(bool withStretch, char withFrameskip) {
 
 	drawFramebuffer = drawFramebufferMain;
 	renderScanline = withStretch ? renderScanlineFit : renderScanline1x1;
+	renderBlankScanline = withStretch ? renderBlankScanlineFit : renderBlankScanline1x1;
 }
 
 void SetupDisplayColors(unsigned short c0, unsigned short c1, unsigned short c2, unsigned short c3) {
@@ -146,6 +150,27 @@ void renderScanline1x1(void) {
 	}
 }
 
+void renderBlankScanline1x1(void) {
+	const int scanBufferSize = SCANLINE_BUFFER * 160 * 2;
+
+	if (skippingFrame)
+		return;
+
+	TIME_SCOPE();
+
+	void* scanlineStart = &scanGroup[160 * curScan + curScanBuffer*scanBufferSize];
+
+	memset(scanlineStart, 0xFF, 160 * 2);
+
+	// blit every SCANLINE_BUFFER # lines
+	curScan++;
+	if (curScan == SCANLINE_BUFFER)
+	{
+		TIME_SCOPE_NAMED(Scanline_Flush);
+		scanlineFlush1x1();
+	}
+}
+
 inline void scanlineFlushFit() {
 	const int scanBufferSize = SCANLINE_BUFFER * 160 * 4 * 3 / 2;
 
@@ -236,6 +261,52 @@ void renderScanlineFit(void) {
 	if ((curScan & 1) == 1) {
 		scanlineStart = &scanGroup[320 * (scanBufferOffset[curScan] + 1) + curScanBuffer*scanBufferSize];
 		RenderScanline<unsigned int>(scanlineStart);
+	}
+#endif
+#endif
+
+	// blit every SCANLINE_BUFFER # lines
+	curScan++;
+	if (curScan == SCANLINE_BUFFER)
+	{
+		TIME_SCOPE_NAMED(Scanline_Flush);
+		scanlineFlushFit();
+	}
+}
+
+void renderBlankScanlineFit() {
+	const int scanBufferSize = SCANLINE_BUFFER * 160 * 4 * 3 / 2;
+
+	if (skippingFrame)
+		return;
+
+	TIME_SCOPE();
+
+	const int scanBufferOffset[8] = {
+		0, 1, 3, 4,
+		6, 7, 9, 10,
+	};
+
+
+	void* scanlineStart =
+#if !USEMEMCPY
+		&scanGroup[320 * scanBufferOffset[curScan] + curScanBuffer*scanBufferSize];
+#else
+		&scanGroup[320 * curScan + curScanBuffer*scanBufferSize];
+#endif
+
+	memset(scanlineStart, 0xFF, 160 * 4);
+
+#if !USEMEMCPY
+#if SCANLINE_BUFFER == 2
+	// special optimization doing 2 lines at a time, flush with each:
+	curScan++;
+	scanlineFlushFit();
+	return;
+#else
+	if ((curScan & 1) == 1) {
+		scanlineStart = &scanGroup[320 * (scanBufferOffset[curScan] + 1) + curScanBuffer*scanBufferSize];
+		memset(scanlineStart, 0xFF, 160 * 4);
 	}
 #endif
 #endif

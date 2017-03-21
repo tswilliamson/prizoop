@@ -97,8 +97,9 @@ void reset(void) {
 	spritePalette[1][1] = 2;
 	spritePalette[1][2] = 1;
 	spritePalette[1][3] = 0;
-	
+
 	gpu.tick = 0;
+	gpu.tickBase = 0;
 	
 	cpu.clocks = 0;
 	cpu.stopped = 0;
@@ -144,6 +145,9 @@ void reset(void) {
 	// initialize timer
 	cpu.timer = 0;
 	cpu.timerBase = 0;
+
+	// LCD starts out on
+	gpuStep = stepLCDOn;
 }
 
 inline void undefined(void) {

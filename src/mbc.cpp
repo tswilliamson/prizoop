@@ -256,7 +256,7 @@ void mbcWrite(unsigned short address, unsigned char value) {
 			// ROM select
 			else if (upperNibble <= 0x03) {
 				if ((address & 0x0100) != 0) {
-					if ((value & 0x0F) != 1) {
+					if ((value & 0x0F) != 0) {
 						// make lower 4 bits into existing rom bank selection
 						selectRomBank(value & 0x0F);
 					}

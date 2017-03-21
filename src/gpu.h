@@ -33,6 +33,7 @@ enum gpuMode {
 
 struct gpu_type {
 	unsigned long tick;
+	unsigned long tickBase;
 } extern gpu;
 
 
@@ -60,7 +61,11 @@ extern tilestype* tiles;
 extern unsigned char backgroundPalette[4];
 extern unsigned char spritePalette[2][4];
 
-void gpuStep(void);
+extern void(*gpuStep)(void);
+
+// different gpu steps based on LCD status
+extern void stepLCDOff(void);
+extern void stepLCDOn(void);
 
 void hblank(void);
 

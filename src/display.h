@@ -5,5 +5,6 @@ void SetupDisplayColors(unsigned short c0, unsigned short c1, unsigned short c2,
 
 void DmaWaitNext(void);
 
-extern void (*renderScanline)(void);
+extern void(*renderScanline)(void);
+extern void(*renderBlankScanline)(void);
 extern void (*drawFramebuffer)(void);
