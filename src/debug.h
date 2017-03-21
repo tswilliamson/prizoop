@@ -8,11 +8,23 @@
 #include <Windows.h>
 
 // debug mem writes to this address (Slow. in WinSim will spit out the last 50 instructions, their address, the contents of the registers and the 8 bytes before and after the given address)
-#define DEBUG_MEMACCESS 0
+#define DEBUG_MEMWRITE 0
+#define DEBUG_BREAKPOINT 0
 
-#if DEBUG_MEMACCESS
+#if DEBUG_MEMWRITE
+extern unsigned short debugWriteAddress;
+extern void HitMemAccess();
 #define DEBUG_TRACKINSTRUCTIONS 32
-#define DebugWrite(address) { if (address == DEBUG_MEMACCESS) { HitMemAccess(); } }
+#define DebugWrite(address) { if (debugWriteAddress && address == debugWriteAddress) { HitMemAccess(); } }
+#endif
+
+#if DEBUG_BREAKPOINT
+extern unsigned short debugBreakpoint;
+extern void HitBreakpoint();
+#ifndef DEBUG_TRACKINSTRUCTIONS
+#define DEBUG_TRACKINSTRUCTIONS 32
+#endif
+#define DebugPC(address) { if (debugBreakpoint && address == debugBreakpoint) { HitBreakpoint(); } }
 #endif
 
 #if DEBUG_TRACKINSTRUCTIONS
@@ -22,8 +34,7 @@ struct InstructionsHistory {
 };
 extern int instr_slot;
 extern InstructionsHistory instr_hist[DEBUG_TRACKINSTRUCTIONS];
-extern void HitMemAccess();
-#define DebugInstruction(...) { sprintf(instr_hist[instr_slot % DEBUG_TRACKINSTRUCTIONS].instr, __VA_ARGS__); instr_hist[(instr_slot++) % DEBUG_TRACKINSTRUCTIONS].regs = registers; }
+#define DebugInstruction(...) { sprintf(instr_hist[instr_slot % DEBUG_TRACKINSTRUCTIONS].instr, __VA_ARGS__); instr_hist[(instr_slot++) % DEBUG_TRACKINSTRUCTIONS].regs = cpu.registers; }
 #endif
 
 #define OutputLog(...) { char buffer[1024]; sprintf_s(buffer, 1024, __VA_ARGS__); OutputDebugString(buffer); }
@@ -52,4 +63,8 @@ extern void HitMemAccess();
 
 #ifndef DebugWrite
 #define DebugWrite(...) 
+#endif
+
+#ifndef DebugPC
+#define DebugPC(...) 
 #endif

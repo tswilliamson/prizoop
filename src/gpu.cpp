@@ -113,6 +113,14 @@ void stepLCDOn(void) {
 				if(cpu.memory.LY_lcdline > 153) {
 					// back to line 0, OAM mode
 					cpu.memory.LY_lcdline = 0;
+
+					if (0 == cpu.memory.LYC_lcdcompare) {
+						cpu.memory.STAT_lcdstatus |= STAT_LYCSIGNAL;
+						if (cpu.memory.STAT_lcdstatus & STAT_LYCCHECK) {
+							cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
+						}
+					}
+
 					SET_LCDC_MODE(GPU_MODE_OAM);
 
 					// check if lcd was disabled:

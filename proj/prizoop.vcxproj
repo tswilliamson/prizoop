@@ -164,6 +164,7 @@ rebuild.bat FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET_PRIZM=1 -DDEBUG=0"
 clean.bat FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET_PRIZM=1 -DDEBUG=0" CONFIG=$(Configuration)</NMakeCleanCommandLine>
     <NMakeOutput>$(ProjectDir)\..\$(ProjectName).g3a</NMakeOutput>
     <NMakeIncludeSearchPath>$(ProjectDir)\..\..\include</NMakeIncludeSearchPath>
+    <NMakePreprocessorDefinitions>TARGET_PRIZM</NMakePreprocessorDefinitions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DeviceRelease|Win32'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\include</IncludePath>

@@ -1,7 +1,7 @@
 #pragma once
 
 // requires 16k per bank, allocated on stack on the Prizm
-#define CACHE_ROM_BANK_SIZE 8
+#define CACHE_ROM_BANK_SIZE 12
 
 enum mbcType {
 	ROM_PLAIN = 0x00,

@@ -24,7 +24,7 @@ CT_ASSERT(sizeof(cpu.memory) == 0x100);
 int iter = 0;
 #define DebugInstruction(name) { char buffer[256]; sprintf(buffer, "(%d) 0x%04x : %s\n", iter++, cpu.registers.pc-1, name); OutputDebugString(buffer); }
 #else
-#define DebugInstruction(...) 
+// #define DebugInstruction(...) 
 #endif
 
 /*
@@ -1293,6 +1293,8 @@ void cpuStep() {
 		TIME_SCOPE();
 
 		for (int i = 0; i < CPU_BATCH; i++) {
+			DebugPC(cpu.registers.pc);
+
 			// perform inlined instruction op
 			switch (readByte(cpu.registers.pc++)) {
 				#define INSTRUCTION_0(name,numticks,func,id,code)   case id: DebugInstruction(name); func(); cpu.clocks += numticks; code break;

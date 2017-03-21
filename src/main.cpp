@@ -32,7 +32,7 @@ void shutdown() {
 
 struct colorconfig {
 	const char* name;
-	unsigned short col[4];
+	unsigned short col[8];
 };
 
 #if TARGET_WINSIM
@@ -60,11 +60,11 @@ int main(void) {
 	char frameskip = 0;
 	int colorScheme = 0;
 	const colorconfig colorSchemes[] = {
-		{ "Cyan",		{ COLOR_WHITE, COLOR_CYAN, COLOR_DARKCYAN, COLOR_BLACK } },
-		{ "B&W",		{ COLOR_WHITE, COLOR_LIGHTGRAY, COLOR_DARKGRAY, COLOR_BLACK } },
-		{ "Classic",	{ COLOR_LIGHTGREEN, COLOR_MEDIUMSEAGREEN, COLOR_DARKGREEN, COLOR_BLACK } },
-		{ "Red",		{ COLOR_WHITE, COLOR_YELLOW, COLOR_RED, COLOR_BLACK } },
-		{ "Lollipop",	{ COLOR_MINTCREAM, COLOR_LIGHTGREEN, COLOR_BLUE, COLOR_DARKRED } },
+		{ "Cyan",		{ COLOR_LIGHTCYAN, COLOR_CYAN, COLOR_DARKCYAN, COLOR_BLACK, COLOR_WHITE, COLOR_CYAN, COLOR_MEDIUMBLUE, COLOR_BLACK } },
+		{ "B&W",		{ COLOR_WHITE, COLOR_LIGHTGRAY, COLOR_DARKGRAY, COLOR_BLACK, COLOR_WHITE, COLOR_LIGHTGRAY, COLOR_SLATEGRAY, COLOR_BLACK } },
+		{ "Classic",	{ COLOR_LIGHTGREEN, COLOR_MEDIUMSEAGREEN, COLOR_DARKGREEN, COLOR_BLACK, COLOR_WHITE, COLOR_MEDIUMSEAGREEN, COLOR_DARKGREEN, COLOR_BLACK } },
+		{ "Red",		{ COLOR_WHITE, COLOR_YELLOW, COLOR_SANDYBROWN, COLOR_BROWN, COLOR_WHITE, COLOR_ORANGE, COLOR_RED, COLOR_BLACK } },
+		{ "Lollipop",	{ COLOR_LIGHTCYAN, COLOR_CYAN, COLOR_DARKCYAN, COLOR_BLACK, COLOR_WHITE, COLOR_YELLOW, COLOR_ORANGE, COLOR_DARKRED } },
 	};
 	do {
 		reset_printf();
@@ -132,10 +132,14 @@ int main(void) {
 		colorSchemes[colorScheme].col[0],
 		colorSchemes[colorScheme].col[1],
 		colorSchemes[colorScheme].col[2],
-		colorSchemes[colorScheme].col[3]
+		colorSchemes[colorScheme].col[3],
+		colorSchemes[colorScheme].col[4],
+		colorSchemes[colorScheme].col[5],
+		colorSchemes[colorScheme].col[6],
+		colorSchemes[colorScheme].col[7]
 	);
 
-	const char* filename = "\\\\fls0\\tetris.gb";
+	const char* filename = "\\\\fls0\\DKLand.gb";
 	printf("Loading file \"%s\"...\n", filename);
 
 	resetMemoryMaps();

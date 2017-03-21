@@ -10,6 +10,13 @@
 #include "cpu.h"
 #include "interrupts.h"
 
+#if DEBUG_MEMWRITE
+unsigned short debugWriteAddress = 0;
+#endif
+
+#if DEBUG_BREAKPOINT
+unsigned short debugBreakpoint = 0;
+#endif
 
 static int printY = 0;
 void reset_printf() {
@@ -67,26 +74,42 @@ void LogInstructionsHistory() {
 }
 #endif
 
-#if DEBUG_MEMACCESS
+#if DEBUG_MEMWRITE
 void HitMemAccess() {
-	OutputLog("Hit Mem Access! 0x%04x (val: 0x%02x)\n", DEBUG_MEMACCESS, readByte(DEBUG_MEMACCESS));
+	OutputLog("Hit Mem Access! 0x%04x (val: 0x%02x)\n", debugWriteAddress, readByte(debugWriteAddress));
 	OutputLog(BORDER);
 
 	// display memory around access
 	OutputLog("Memory around access:\n");
 	OutputLog(BORDER);
 	for (int i = -8; i <= 8; i++) {
-		OutputLog("%02x ", readByte(DEBUG_MEMACCESS + i));
+		OutputLog("%02x ", readByte(debugWriteAddress + i));
 	}
 	OutputLog("\n");
 	for (int i = -8; i <= 8; i++) {
 		if (i == 0) {
 			OutputLog("** ");
-		} else {
+		}
+		else {
 			OutputLog("   ");
 		}
 	}
 	OutputLog("\n");
+
+	// display register values:
+	LogRegisters();
+
+	// display recent instructions:
+	LogInstructionsHistory();
+
+	DebugBreak();
+}
+#endif
+
+#if DEBUG_BREAKPOINT
+void HitBreakpoint() {
+	OutputLog("Hit Breakpoint! 0x%04x\n", debugBreakpoint);
+	OutputLog(BORDER);
 
 	// display register values:
 	LogRegisters();
