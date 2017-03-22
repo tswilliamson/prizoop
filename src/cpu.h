@@ -62,6 +62,7 @@ struct cpu_type {
 	// cpu timer
 	unsigned long timer;
 	unsigned long timerBase;
+	unsigned long timerInterrupt;
 };
 #pragma pack(pop)
 

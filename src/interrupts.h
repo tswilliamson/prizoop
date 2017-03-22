@@ -6,6 +6,11 @@
 #define INTERRUPTS_SERIAL	(1 << 3)
 #define INTERRUPTS_JOYPAD	(1 << 4)
 
+// avoid calling interrupt step based on this check:
+inline bool interruptCheck() {
+	return (cpu.clocks >= cpu.timerInterrupt) || (cpu.memory.IE_intenable & cpu.memory.IF_intflag);
+}
+
 void interruptStep(void);
 
 // program counter position for each interrupt when triggered

@@ -31,15 +31,11 @@ inline void issueInterrupt(unsigned char flagMask, unsigned short toPC) {
 }
 
 void interruptStep(void) {
-	// update timer in case it sends an interrupt
-	updateTimer();
+	TIME_SCOPE();
 
-	// joypad interrupt?
-	if (cpu.memory.IE_intenable & INTERRUPTS_JOYPAD) {
-		unsigned char jPad = readByteSpecial(0xFF00);
-		if ((jPad & 0x0F) != 0x0F) {
-			cpu.memory.IF_intflag |= INTERRUPTS_JOYPAD;
-		}
+	// update timer in case it sends an interrupt
+	if (cpu.clocks >= cpu.timerInterrupt) {
+		updateTimer();
 	}
 
 	unsigned char fire = cpu.memory.IE_intenable & cpu.memory.IF_intflag;

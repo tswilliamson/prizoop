@@ -29,6 +29,12 @@ void updateTimer() {
 			newTimer = cpu.memory.TMA_timermodulo;
 		}
 		cpu.memory.TIMA_timerctr = newTimer;
+
+		// determine next interrupt hit for optimizations
+		cpu.timerInterrupt = cpu.clocks + ((0xff - newTimer + 1) << bits) - 80;
+	}
+	else {
+		cpu.timerInterrupt = 0xFFFFFFFF;
 	}
 	cpu.timerBase = cpu.clocks;
 }
@@ -39,6 +45,7 @@ void writeTIMA(unsigned char value) {
 	cpu.timer = (value << bits) | ((cpu.timer & 0xFFFFFFFF) >> (32 - bits));
 	cpu.timerBase = cpu.clocks;
 	cpu.memory.TIMA_timerctr = value;
+	updateTimer();
 }
 
 void writeTAC(unsigned char value) {

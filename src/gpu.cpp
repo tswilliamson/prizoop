@@ -49,11 +49,13 @@ void stepLCDOff(void) {
 }
 
 void stepLCDOn(void) {
+	TIME_SCOPE();
+
 	gpu.tick += cpu.clocks - gpu.tickBase;
 	gpu.tickBase = cpu.clocks;
 
 	// we can force a step to avoid just spinning wheels when halted:
-	if (cpu.halted && cpu.IME && ((cpu.memory.IE_intenable & (INTERRUPTS_JOYPAD | INTERRUPTS_TIMER)) == 0)) {
+	if (cpu.halted && cpu.IME) {
 		unsigned int needTicks = 0;
 		switch (GET_LCDC_MODE()) {
 			case GPU_MODE_HBLANK:
@@ -69,7 +71,8 @@ void stepLCDOn(void) {
 				needTicks = 172;
 				break;
 		}
-		if (gpu.tick < needTicks) {
+		// don't screw up the timer or overcompensate
+		if (gpu.tick < needTicks && cpu.timerInterrupt - cpu.clocks > (needTicks - gpu.tick)) {
 			cpu.clocks += needTicks - gpu.tick;
 			gpu.tick = needTicks;
 		}
@@ -85,7 +88,15 @@ void stepLCDOn(void) {
 						drawFramebuffer();
 					}
 					cpu.memory.IF_intflag |= INTERRUPTS_VBLANK;
-					
+
+					// joypad interrupt?
+					if (cpu.halted || cpu.stopped || cpu.memory.IE_intenable & INTERRUPTS_JOYPAD) {
+						unsigned char jPad = readByteSpecial(0xFF00);
+						if ((jPad & 0x0F) != 0x0F) {
+							cpu.memory.IF_intflag |= INTERRUPTS_JOYPAD;
+						}
+					}
+
 					SET_LCDC_MODE(GPU_MODE_VBLANK);
 
 					if (cpu.memory.STAT_lcdstatus & STAT_VBLANKCHECK) {
