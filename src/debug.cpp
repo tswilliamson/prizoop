@@ -1,7 +1,3 @@
-#ifndef PS4
-	#include <stdio.h>
-#endif
-
 #include "platform.h"
 #include "debug.h"
 
@@ -35,9 +31,17 @@ void ScreenPrint(char* buffer) {
 }
 
 #if DEBUG
-unsigned char realtimeDebugEnable = 0;
-
 #define BORDER "<><><><><><><><><><><><><><><><><><><><>\n"
+
+void failedAssert(const char* assertion) {
+	OutputLog("Failed assert:\n");
+	OutputLog(assertion);
+	OutputLog("\n");
+
+#if TARGET_WINSIM
+	DebugBreak();
+#endif
+}
 
 void LogRegisters(void) {
 	OutputLog("Registers:\n");

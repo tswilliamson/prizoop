@@ -153,7 +153,7 @@ void reset(void) {
 inline void undefined(void) {
 	cpu.registers.pc--;
 	
-	unsigned char instruction = readByte(cpu.registers.pc);
+	unsigned char instruction = readInstrByte(cpu.registers.pc);
 
 	#if TARGET_WINSIM
 		char d[100];
@@ -1296,11 +1296,11 @@ void cpuStep() {
 			DebugPC(cpu.registers.pc);
 
 			// perform inlined instruction op
-			switch (readByte(cpu.registers.pc++)) {
+			switch (readInstrByte(cpu.registers.pc++)) {
 				#define INSTRUCTION_0(name,numticks,func,id,code)   case id: DebugInstruction(name); func(); cpu.clocks += numticks; code break;
-				#define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name, readByte(cpu.registers.pc)); { unsigned char operand = readByte(cpu.registers.pc++); func(operand); cpu.clocks += numticks; code } break;
-				#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name, readByte(cpu.registers.pc)); { signed char operand = readByte(cpu.registers.pc++); func(operand); cpu.clocks += numticks; code } break;
-				#define INSTRUCTION_2(name,numticks,func,id,code)   case id: DebugInstruction(name, readShort(cpu.registers.pc)); { unsigned short operand = readShort(cpu.registers.pc++); ++cpu.registers.pc; func(operand); cpu.clocks += numticks; code } break;
+				#define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name, readInstrByte(cpu.registers.pc)); { unsigned char operand = readInstrByte(cpu.registers.pc++); func(operand); cpu.clocks += numticks; code } break;
+				#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name, readInstrByte(cpu.registers.pc)); { signed char operand = readInstrByte(cpu.registers.pc++); func(operand); cpu.clocks += numticks; code } break;
+				#define INSTRUCTION_2(name,numticks,func,id,code)   case id: DebugInstruction(name, readInstrShort(cpu.registers.pc)); { unsigned short operand = readInstrShort(cpu.registers.pc++); ++cpu.registers.pc; func(operand); cpu.clocks += numticks; code } break;
 				#include "cpu_instructions.inl"
 				#undef INSTRUCTION_0
 				#undef INSTRUCTION_1

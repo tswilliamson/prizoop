@@ -11,6 +11,9 @@
 #define DEBUG_MEMWRITE 0
 #define DEBUG_BREAKPOINT 0
 
+void failedAssert(const char* assertion);
+#define DebugAssert(x) { if (!(x)) failedAssert(#x); }
+
 #if DEBUG_MEMWRITE
 extern unsigned short debugWriteAddress;
 extern void HitMemAccess();
@@ -67,4 +70,8 @@ extern InstructionsHistory instr_hist[DEBUG_TRACKINSTRUCTIONS];
 
 #ifndef DebugPC
 #define DebugPC(...) 
+#endif
+
+#ifndef DebugAssert
+#define DebugAssert(...)
 #endif

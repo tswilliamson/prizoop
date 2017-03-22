@@ -49,9 +49,17 @@ inline unsigned short readShort(unsigned short address) {
 }
 
 inline unsigned short readShortFromStack(void) {
+	unsigned short value = readShort(cpu.registers.sp);
 	cpu.registers.sp += 2;
-	unsigned short value = readShort(cpu.registers.sp-2);
 	return value;
+}
+
+// branch avoidance. instructions will just have bad "reads" if somehow we are executing code off the on chip registers
+inline unsigned char readInstrByte(unsigned short address) {
+	return memoryMap[address >> 8][address & 0xFF];
+}
+inline unsigned short readInstrShort(unsigned short address) {
+	return readInstrByte(address) | (readInstrByte(address + 1) << 8);
 }
 
 inline void writeByte(unsigned short address, unsigned char value) {
