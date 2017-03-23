@@ -10,6 +10,9 @@ unsigned char cachedRomIndex[CACHE_ROM_BANK_SIZE];
 unsigned int lastCacheRequestIndex[CACHE_ROM_BANK_SIZE];
 int cacheIndex;
 
+// sram hash (for checking dirty state, need to save)
+unsigned int sramHash = 0;
+
 // the memory bus controller object
 mbc_state mbc;
 
@@ -263,5 +266,78 @@ void mbcWrite(unsigned short address, unsigned char value) {
 				}
 			}
 			return;
+	}
+}
+
+// SRAM saving / loading
+
+static unsigned int curSRAMHash(int size) {
+	DebugAssert(size <= 8192);
+
+	unsigned int ret = 0;
+	for (int i = 0; i < size; i++) {
+		ret = ((ret << 5) + (ret >> 27)) ^ sram[i];
+	}
+	return ret;
+}
+
+// attempts to load SRAM from the given file path, false on error
+bool tryLoadSRAM(const char* filepath) {
+	int sramSize = ramNibbleCount(mbc.ramType) * 256;
+
+	if (sramSize) {
+		unsigned short pFile[256];
+		Bfile_StrToName_ncpy(pFile, (const char*)filepath, strlen(filepath) + 2);
+
+		int hFile = Bfile_OpenFile_OS(pFile, READ, 0); // Get handle
+		if (hFile < 0) {
+			// not found
+			return false;
+		}
+
+		if (Bfile_ReadFile_OS(hFile, sram, sramSize, 0) == sramSize) {
+			sramHash = curSRAMHash(sramSize);
+			Bfile_CloseFile_OS(hFile);
+			return true;
+		}
+
+		Bfile_CloseFile_OS(hFile);
+
+		// didn't read correctly
+		return false;
+	}
+	else {
+		// no sram
+		return false;
+	}
+}
+
+// attempts to save SRAM for a game to the given file path
+void trySaveSRAM(const char* filepath) {
+	int sramSize = ramNibbleCount(mbc.ramType) * 256;
+	int curHash = curSRAMHash(sramSize);
+
+	if (curHash != sramHash) {
+		unsigned short pFile[256];
+		Bfile_StrToName_ncpy(pFile, (const char*)filepath, strlen(filepath) + 2);
+
+		int hFile = Bfile_OpenFile_OS(pFile, WRITE, 0); // Get handle
+		if (hFile < 0) {
+			// attempt to create
+			if (Bfile_CreateEntry_OS(pFile, CREATEMODE_FILE, (size_t*) &sramSize))
+				return;
+
+			hFile = Bfile_OpenFile_OS(pFile, WRITE, 0); // Get handle
+			if (hFile < 0) {
+				// create didn't work!
+				return;
+			}
+		}
+
+		Bfile_WriteFile_OS(hFile, sram, sramSize);
+		Bfile_CloseFile_OS(hFile);
+
+		// now in sync with file system
+		sramHash = curHash;
 	}
 }

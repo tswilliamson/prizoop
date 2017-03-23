@@ -83,8 +83,10 @@ void drawEmu() {
 	if (framecounter % 32 == 0) {
 		int ticks = RTC_GetTicks();
 		int tickdiff = ticks - lastticks;
-		curfps = 40960 / tickdiff;
-		lastticks = ticks;
+		if (tickdiff) {
+			curfps = 40960 / tickdiff;
+			lastticks = ticks;
+		}
 	}
 
 	if (curfps != fps) {

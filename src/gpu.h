@@ -2,6 +2,7 @@
 
 #include "platform.h"
 #include "display.h"
+#include "cpu.h"
 
 #define LCDC_BGENABLE (1 << 0)
 #define LCDC_SPRITEENABLE (1 << 1)
@@ -34,9 +35,12 @@ enum gpuMode {
 struct gpu_type {
 	unsigned long tick;
 	unsigned long tickBase;
+	unsigned long nextTick;
 } extern gpu;
 
-
+inline bool gpuCheck() {
+	return (cpu.clocks >= gpu.nextTick || (cpu.halted && cpu.IME));
+}
 
 struct sprite {
 	unsigned char y;

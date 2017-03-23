@@ -175,6 +175,21 @@ void stepLCDOn(void) {
 			
 			break;
 	}
+
+	switch (GET_LCDC_MODE()) {
+		case GPU_MODE_HBLANK:
+			gpu.nextTick = cpu.clocks + 204 - gpu.tick;
+			break;
+		case GPU_MODE_VBLANK:
+			gpu.nextTick = cpu.clocks + 456 - gpu.tick;
+			break;
+		case GPU_MODE_OAM:
+			gpu.nextTick = cpu.clocks + 80 - gpu.tick;
+			break;
+		case GPU_MODE_VRAM:
+			gpu.nextTick = cpu.clocks + 172 - gpu.tick;
+			break;
+	}
 }
 
 void hblank(void) {

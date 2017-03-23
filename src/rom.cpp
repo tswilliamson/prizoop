@@ -7,6 +7,9 @@
 
 #include "rom.h"
 
+static char curRomFile[64];
+static char curSaveFile[64];
+
 unsigned char loadROM(const char *filename) {
 	char name[17];
 	enum mbcType type;
@@ -17,9 +20,17 @@ unsigned char loadROM(const char *filename) {
 	
 	unsigned char header[0x180];
 
+	strcpy(curRomFile, "\\\\fls0\\");
+	strcat(curRomFile, filename);
+
+	strcpy(curSaveFile, "\\\\fls0\\");
+	strcat(curSaveFile, filename);
+	curSaveFile[strlen(curSaveFile) - 2] = 0;
+	strcat(curSaveFile, "SAV");
+
 	int hFile;
 	unsigned short pFile[256];
-	Bfile_StrToName_ncpy(pFile, (const char*)filename, strlen(filename)+2);
+	Bfile_StrToName_ncpy(pFile, (const char*)curRomFile, strlen(curRomFile)+2);
 	
 	hFile = Bfile_OpenFile_OS(pFile, READ, 0); // Get handle
 	if (hFile < 0) {
@@ -63,6 +74,18 @@ unsigned char loadROM(const char *filename) {
 	// read permanent ROM Area in
 	int read = Bfile_ReadFile_OS(hFile, cart, /*min(length,*/ 0x4000/*)*/, 0);
 
+	if (mbc.batteryBacked) {
+		if (tryLoadSRAM(curSaveFile)) {
+			printf("Save file loaded\n");
+		}
+		else {
+			printf("No save file in system\n");
+		}
+	} else {
+		printf("No save file, not battery backed\n");
+	}
+
+
 	GetKey(&key);
 
 	return 1;
@@ -72,5 +95,9 @@ void unloadROM(void) {
 	if (mbc.romFile) {
 		Bfile_CloseFile_OS(mbc.romFile);
 		mbc.romFile = 0;
+	}
+
+	if (mbc.batteryBacked) {
+		trySaveSRAM(curSaveFile);
 	}
 }

@@ -64,6 +64,12 @@ extern mbc_state mbc;
 // returns false if type is not supported
 bool setupMBCType(mbcType type, unsigned char romSizeByte, unsigned char ramSizeByte, int fileID);
 
+// attempts to load SRAM from the given file path, false on error
+bool tryLoadSRAM(const char* filepath);
+
+// attempts to save SRAM for a game to the given file path
+void trySaveSRAM(const char* filepath);
+
 // given a mbcType returns a string description
 const char* getMBCTypeString(mbcType type);
 

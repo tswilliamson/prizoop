@@ -186,15 +186,12 @@ int main(void) {
 	);
 
 	reset_printf();
-	char filename[64];
-	strcpy(filename, "\\\\fls0\\");
-	strcat(filename, files[rom].path); 
-	printf("Loading file \"%s\"...\n", filename);
+	printf("Loading file \"%s\"...\n", files[rom].path);
 
 	resetMemoryMaps();
 	reset();
 
-	if (!loadROM(filename)) {
+	if (!loadROM(files[rom].path)) {
 		printf("Failed!\n");
 		GetKey(&key);
 		return 1;
@@ -203,28 +200,29 @@ int main(void) {
 	// a somewhat forcibly unrolled loop
 	while (shouldExit == false) {
 		{
-			TIME_SCOPE_NAMED("Main");
 			cpuStep();
-			gpuStep();
+			/*
+			if (gpuCheck()) gpuStep();
 			if (interruptCheck()) interruptStep();
 			cpuStep();
-			gpuStep();
+			if (gpuCheck()) gpuStep();
 			if (interruptCheck()) interruptStep();
 			cpuStep();
-			gpuStep();
+			if (gpuCheck()) gpuStep();
 			if (interruptCheck()) interruptStep();
 			cpuStep();
-			gpuStep();
+			if (gpuCheck()) gpuStep();
 			if (interruptCheck()) interruptStep();
 			cpuStep();
-			gpuStep();
+			if (gpuCheck()) gpuStep();
 			if (interruptCheck()) interruptStep();
 			cpuStep();
-			gpuStep();
+			if (gpuCheck()) gpuStep();
 			if (interruptCheck()) interruptStep();
 			cpuStep();
-			gpuStep();
+			if (gpuCheck()) gpuStep();
 			if (interruptCheck()) interruptStep();
+			*/
 		}
 	}
 

@@ -198,4 +198,3 @@ void writeByteSpecial(unsigned short address, unsigned char value) {
 		}
 	}
 }
-

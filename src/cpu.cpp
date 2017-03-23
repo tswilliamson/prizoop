@@ -45,8 +45,11 @@ int iter = 0;
 	NO$GMB
 */
 
-// number of cpu instructions to batch at once
-#define CPU_BATCH 12
+// number of cpu instructions to batch between GPU/interrupt checks (higher = less accurate, faster emulation)
+#define CPU_BATCH 8
+
+// number of batches to do between system checks
+#define BATCHES 256
 
 void reset(void) {
 	memset(sram, 0, sizeof(sram));
@@ -1284,29 +1287,33 @@ inline void cp_n(unsigned char operand) {
 inline void rst_38(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc = 0x0038; }
 
 void cpuStep() {
-	if (cpu.stopped || cpu.halted) {
-		cpu.clocks += 12;
-		return;
-	}
-
 	{
 		TIME_SCOPE();
 
-		for (int i = 0; i < CPU_BATCH; i++) {
-			DebugPC(cpu.registers.pc);
+		for (int b = 0; b < BATCHES; b++) {
+			if (cpu.stopped || cpu.halted) {
+				cpu.clocks += 12;
+			} else {
+				for (int i = 0; i < CPU_BATCH; i++) {
+					DebugPC(cpu.registers.pc);
 
-			// perform inlined instruction op
-			switch (readInstrByte(cpu.registers.pc++)) {
-				#define INSTRUCTION_0(name,numticks,func,id,code)   case id: DebugInstruction(name); func(); cpu.clocks += numticks; code break;
-				#define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name, readInstrByte(cpu.registers.pc)); { unsigned char operand = readInstrByte(cpu.registers.pc++); func(operand); cpu.clocks += numticks; code } break;
-				#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name, readInstrByte(cpu.registers.pc)); { signed char operand = readInstrByte(cpu.registers.pc++); func(operand); cpu.clocks += numticks; code } break;
-				#define INSTRUCTION_2(name,numticks,func,id,code)   case id: DebugInstruction(name, readInstrShort(cpu.registers.pc)); { unsigned short operand = readInstrShort(cpu.registers.pc++); ++cpu.registers.pc; func(operand); cpu.clocks += numticks; code } break;
-				#include "cpu_instructions.inl"
-				#undef INSTRUCTION_0
-				#undef INSTRUCTION_1
-				#undef INSTRUCTION_1S
-				#undef INSTRUCTION_2
+					// perform inlined instruction op
+					switch (readInstrByte(cpu.registers.pc++)) {
+						#define INSTRUCTION_0(name,numticks,func,id,code)   case id: DebugInstruction(name); func(); cpu.clocks += numticks; code break;
+						#define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name, readInstrByte(cpu.registers.pc)); { unsigned char operand = readInstrByte(cpu.registers.pc++); func(operand); cpu.clocks += numticks; code } break;
+						#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name, readInstrByte(cpu.registers.pc)); { signed char operand = readInstrByte(cpu.registers.pc++); func(operand); cpu.clocks += numticks; code } break;
+						#define INSTRUCTION_2(name,numticks,func,id,code)   case id: DebugInstruction(name, readInstrShort(cpu.registers.pc)); { unsigned short operand = readInstrShort(cpu.registers.pc++); ++cpu.registers.pc; func(operand); cpu.clocks += numticks; code } break;
+						#include "cpu_instructions.inl"
+						#undef INSTRUCTION_0
+						#undef INSTRUCTION_1
+						#undef INSTRUCTION_1S
+						#undef INSTRUCTION_2
+					}
+				}
 			}
+
+			if (gpuCheck()) gpuStep();
+			if (interruptCheck()) interruptStep();
 		}
 	}
 }

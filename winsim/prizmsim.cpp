@@ -19,6 +19,13 @@ extern GLuint screenTexture;
 
 void(*_quitHandler)() = NULL;
 
+void _CallQuit() {
+	if (_quitHandler) {
+		_quitHandler();
+		_quitHandler = NULL;
+	}
+}
+
 void SetQuitHandler(void(*handler)()) {
 	_quitHandler = handler;
 }
@@ -59,9 +66,15 @@ void *GetVRAMAddress(void) {
 
 // Actual OpenGL draw of CPU texture
 void DisplayGLUTScreen() {
+	static long lastTicks = 0;
 	// artificial "vsync", hold tab to fast forward
-	if ((GetAsyncKeyState(VK_TAB) & 0x8000) == 0)
-		Sleep(16);
+	if ((GetAsyncKeyState(VK_TAB) & 0x8000) == 0) {
+		long curTicks;
+		while ((curTicks = GetTickCount()) - 8 < lastTicks) {
+			Sleep(0);;
+		}
+		lastTicks = curTicks;
+	}
 
 	GLenum i = glGetError();
 	glBindTexture(GL_TEXTURE_2D, screenTexture);
@@ -289,36 +302,82 @@ static void ResolvePaths() {
 	}
 }
 
-int Bfile_CloseFile_OS(int handle) {
-	CloseHandle((HANDLE)(size_t)handle);
-	return 0;
-}
-
-int Bfile_GetFileSize_OS(int handle) {
-	return GetFileSize((HANDLE)(size_t)handle, NULL);
-}
-
-int Bfile_OpenFile_OS(const unsigned short *filenameW, int mode, int null) {
+static bool ResolveROMPath(const unsigned short* prizmPath, char* intoPath) {
 	char filename[256];
-	char docFilename[512];
-	OFSTRUCT ofStruct;
-
-
-	WideCharToMultiByte(CP_ACP, 0, (LPWSTR)filenameW, -1, (LPSTR) filename, 256, NULL, NULL);
+	WideCharToMultiByte(CP_ACP, 0, (LPWSTR)prizmPath, -1, (LPSTR)filename, 256, NULL, NULL);
 
 	// must begin with filesystem path
-	if (strncmp(filename, "\\\\fls0\\", 7) != 0) {
-		return -5;
+	if (strncmp(filename, "\\\\fls0\\", 7)) {
+		return false;
 	}
 	memmove(&filename[0], &filename[7], 256 - 7);
 
 	// construct path to ROM in Windows docs
 	ResolvePaths();
-	strcpy(docFilename, romPath);
-	strcat(docFilename, filename);
+	strcpy(intoPath, romPath);
+	strcat(intoPath, filename);
 
-	// todo : support more than reading
-	return (int)OpenFile((LPCSTR)docFilename, &ofStruct, OF_READ);
+	return true;
+}
+
+int Bfile_OpenFile_OS(const unsigned short *filenameW, int mode, int null) {
+	char docFilename[512];
+	if (!ResolveROMPath(filenameW, docFilename)) {
+		return -5;
+	}
+
+	HFILE result;
+	OFSTRUCT ofStruct;
+	switch (mode) {
+		case READ:
+			result = OpenFile((LPCSTR)docFilename, &ofStruct, OF_READ);
+			break;
+		case WRITE:
+			// no create here, have to call Bfile_CreateEntry_OS to create first
+			result = OpenFile((LPCSTR)docFilename, &ofStruct, OF_WRITE);
+			break;
+		case READWRITE:
+			result = OpenFile((LPCSTR)docFilename, &ofStruct, OF_READ | OF_WRITE);
+			break;
+		default:
+			// remaining cases result in error
+			result = HFILE_ERROR;
+			break;
+	}
+	if (result == HFILE_ERROR)
+		return -1;
+	return (int) result;
+}
+
+int Bfile_CreateEntry_OS(const unsigned short*filename, int mode, size_t *size) {
+	char docFilename[512];
+	if (!ResolveROMPath(filename, docFilename)) {
+		return -5;
+	}
+
+	if (mode == CREATEMODE_FOLDER) {
+		if (CreateDirectory(docFilename, NULL)) {
+			return 0;
+		}
+		return -1;
+	}
+	else if (mode == CREATEMODE_FILE) {
+		OFSTRUCT ofStruct;
+		HFILE file = OpenFile(docFilename, &ofStruct, OF_CREATE | OF_WRITE);
+		if (file == HFILE_ERROR)
+			return -1;
+
+		int zero = 0;
+		DWORD written;
+		for (int i = 0; i < *size; i += 4) {
+			WriteFile((HANDLE) file, &zero, 4, &written, NULL);
+		}
+		CloseHandle((HANDLE) file);
+		return 0;
+	}
+
+	// unknown mode
+	return -1;
 }
 
 int Bfile_ReadFile_OS(int handle, void *buf, int size, int readpos) {
@@ -328,6 +387,24 @@ int Bfile_ReadFile_OS(int handle, void *buf, int size, int readpos) {
 	}
 	ReadFile((HANDLE)(size_t)handle, buf, size, &read, NULL);
 	return read;
+}
+
+int Bfile_WriteFile_OS(int handle, const void* buf, int size) {
+	DWORD written;
+	WriteFile((HANDLE)handle, buf, size, &written, NULL);
+	if (written == size) {
+		return SetFilePointer((HANDLE)handle, 0, NULL, FILE_CURRENT);
+	}
+	return -1;
+}
+
+int Bfile_GetFileSize_OS(int handle) {
+	return GetFileSize((HANDLE)(size_t)handle, NULL);
+}
+
+int Bfile_CloseFile_OS(int handle) {
+	CloseHandle((HANDLE)(size_t)handle);
+	return 0;
 }
 
 struct simFindData {
@@ -345,24 +422,14 @@ struct simFindData {
 };
 
 int Bfile_FindFirst(const char *pathAsWide, int *FindHandle, char *foundfile, void *fileinfo) {
-	char path[256];
 	char docPath[512];
 	OFSTRUCT ofStruct;
 
 	*FindHandle = 0;
 
-	WideCharToMultiByte(CP_ACP, 0, (LPWSTR)pathAsWide, -1, (LPSTR)path, 256, NULL, NULL);
-
-	// must begin with filesystem path
-	if (strncmp(path, "\\\\fls0\\", 7) != 0) {
+	if (!ResolveROMPath((unsigned short*) pathAsWide, docPath)) {
 		return -5;
 	}
-	memmove(&path[0], &path[7], 256 - 7);
-
-	// construct path to ROM in Windows docs
-	ResolvePaths();
-	strcpy(docPath, romPath);
-	strcat(docPath, path);
 
 	simFindData* data = new simFindData;
 	data->winHandle = FindFirstFile(docPath, &data->winData);
