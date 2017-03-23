@@ -269,6 +269,26 @@ int GetKey_SimFast(int keycode) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // File IO
 
+static char romPath[256] = { 0 };
+static char ramPath[256] = { 0 };
+
+static void ResolvePaths() {
+	if (romPath[0] == 0) {
+		PWSTR path;
+		if (SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &path) == S_OK) {
+			WideCharToMultiByte(CP_ACP, 0, (LPWSTR)path, -1, (LPSTR)romPath, 256, NULL, NULL);
+
+			strcpy(ramPath, romPath);
+
+			// prizm rom files go in My Documents / Prizm / ROM
+			strcat(romPath, "\\Prizm\\ROM\\");
+
+			// prizm ram files go in My Documents / Prizm / RAM
+			strcat(ramPath, "\\Prizm\\RAM\\");
+		}
+	}
+}
+
 int Bfile_CloseFile_OS(int handle) {
 	CloseHandle((HANDLE)(size_t)handle);
 	return 0;
@@ -283,24 +303,22 @@ int Bfile_OpenFile_OS(const unsigned short *filenameW, int mode, int null) {
 	char docFilename[512];
 	OFSTRUCT ofStruct;
 
-	WideCharToMultiByte(CP_ACP, 0, (LPWSTR)filenameW, -1, (LPSTR)filename, 256, NULL, NULL);
-	if (strncmp(filename, "\\\\fls0\\", 7) == 0) {
-		memmove(&filename[0], &filename[7], 256 - 7);
-	}
 
-	// prizm rom files go in My Documents / Prizm / ROM
-	PWSTR path;
-	if (SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &path) == S_OK) {
-		WideCharToMultiByte(CP_ACP, 0, (LPWSTR)path, -1, (LPSTR)docFilename, 512, NULL, NULL);
-		strcat(docFilename, "\\Prizm\\ROM\\");
-		strcat(docFilename, filename);
+	WideCharToMultiByte(CP_ACP, 0, (LPWSTR)filenameW, -1, (LPSTR) filename, 256, NULL, NULL);
 
-		// todo : support more than reading
-		return (int)OpenFile((LPCSTR)docFilename, &ofStruct, OF_READ);
+	// must begin with filesystem path
+	if (strncmp(filename, "\\\\fls0\\", 7) != 0) {
+		return -5;
 	}
-	else {
-		return 0;
-	}
+	memmove(&filename[0], &filename[7], 256 - 7);
+
+	// construct path to ROM in Windows docs
+	ResolvePaths();
+	strcpy(docFilename, romPath);
+	strcat(docFilename, filename);
+
+	// todo : support more than reading
+	return (int)OpenFile((LPCSTR)docFilename, &ofStruct, OF_READ);
 }
 
 int Bfile_ReadFile_OS(int handle, void *buf, int size, int readpos) {
@@ -310,6 +328,81 @@ int Bfile_ReadFile_OS(int handle, void *buf, int size, int readpos) {
 	}
 	ReadFile((HANDLE)(size_t)handle, buf, size, &read, NULL);
 	return read;
+}
+
+struct simFindData {
+	unsigned short id, type;
+	unsigned long fsize, dsize;
+	unsigned int property;
+	unsigned long address;
+	HANDLE winHandle;
+	WIN32_FIND_DATA winData;
+
+	void Fill() {
+		fsize = winData.nFileSizeLow;
+		dsize = winData.nFileSizeLow;
+	}
+};
+
+int Bfile_FindFirst(const char *pathAsWide, int *FindHandle, char *foundfile, void *fileinfo) {
+	char path[256];
+	char docPath[512];
+	OFSTRUCT ofStruct;
+
+	*FindHandle = 0;
+
+	WideCharToMultiByte(CP_ACP, 0, (LPWSTR)pathAsWide, -1, (LPSTR)path, 256, NULL, NULL);
+
+	// must begin with filesystem path
+	if (strncmp(path, "\\\\fls0\\", 7) != 0) {
+		return -5;
+	}
+	memmove(&path[0], &path[7], 256 - 7);
+
+	// construct path to ROM in Windows docs
+	ResolvePaths();
+	strcpy(docPath, romPath);
+	strcat(docPath, path);
+
+	simFindData* data = new simFindData;
+	data->winHandle = FindFirstFile(docPath, &data->winData);
+
+	if (data->winHandle == INVALID_HANDLE_VALUE) {
+		delete data;
+		return -1;
+	}
+	else {
+		data->Fill();
+		MultiByteToWideChar(CP_ACP, 0, (LPSTR)data->winData.cFileName, -1, (LPWSTR) foundfile, 256);
+		if (fileinfo) memcpy(fileinfo, data, 20);
+		*FindHandle = (int) data;
+		return 0;
+	}
+}
+
+int Bfile_FindNext(int FindHandle, char *foundfile, char *fileinfo) {
+	simFindData* data = (simFindData*)FindHandle;
+	if (data) {
+		BOOL ret = FindNextFile(data->winHandle, &data->winData);
+		if (ret) {
+			data->Fill();
+			MultiByteToWideChar(CP_ACP, 0, (LPSTR)data->winData.cFileName, -1, (LPWSTR)foundfile, 256);
+			if (fileinfo) memcpy(fileinfo, data, 20);
+			return 0;
+		} else {
+			return -16;
+		}
+	}
+	return -1;
+}
+
+int Bfile_FindClose(int FindHandle) {
+	simFindData* data = (simFindData*)FindHandle;
+	if (data) {
+		FindClose(data->winHandle);
+		delete data;
+	}
+	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

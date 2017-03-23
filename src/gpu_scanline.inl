@@ -117,6 +117,8 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 			ToScanType((Type) colorPaletteSprite[spritePalette[1][3]]),
 		};
 
+		Type bgColor = ToScanType((Type)colorPaletteBG[backgroundPalette[0]]);
+
 		if (cpu.memory.LCDC_ctl & LCDC_SPRITEVDOUBLE) {
 			for (int i = 0; i < 40; i++) {
 				const sprite& sprite = ((struct sprite *)oam)[i];
@@ -140,7 +142,7 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 						if (OAM_ATTR_PRIORITY(sprite.attr)) {
 							if (OAM_ATTR_XFLIP(sprite.attr)) {
 								for (x = 7; x >= 0; x--, pixelOffset++) {
-									if (pixelOffset >= 0 && pixelOffset < 160 && scanline[pixelOffset] == palette[0]) {
+									if (pixelOffset >= 0 && pixelOffset < 160 && scanline[pixelOffset] == bgColor) {
 										unsigned char colour = tiles->data[tile][tileRow & 0x07][x];
 
 										if (colour) {
@@ -151,7 +153,7 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 							}
 							else {
 								for (x = 0; x < 8; x++, pixelOffset++) {
-									if (pixelOffset >= 0 && pixelOffset < 160 && scanline[pixelOffset] == palette[0]) {
+									if (pixelOffset >= 0 && pixelOffset < 160 && scanline[pixelOffset] == bgColor) {
 										unsigned char colour = tiles->data[tile][tileRow & 0x07][x];
 
 										if (colour) {
@@ -210,7 +212,7 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 						if (OAM_ATTR_PRIORITY(sprite.attr)) {
 							if (OAM_ATTR_XFLIP(sprite.attr)) {
 								for (x = 7; x >= 0; x--, pixelOffset++) {
-									if (pixelOffset >= 0 && pixelOffset < 160 && scanline[pixelOffset] == palette[0]) {
+									if (pixelOffset >= 0 && pixelOffset < 160 && scanline[pixelOffset] == bgColor) {
 										unsigned char colour = tiles->data[sprite.tile][tileRow][x];
 
 										if (colour) {
@@ -221,7 +223,7 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 							}
 							else {
 								for (x = 0; x < 8; x++, pixelOffset++) {
-									if (pixelOffset >= 0 && pixelOffset < 160 && scanline[pixelOffset] == palette[0]) {
+									if (pixelOffset >= 0 && pixelOffset < 160 && scanline[pixelOffset] == bgColor) {
 										unsigned char colour = tiles->data[sprite.tile][tileRow][x];
 
 										if (colour) {
