@@ -341,12 +341,12 @@ void drawFramebufferMain(void) {
 	static int fps = 0;
 	int curfps = fps;
 
-	static int lastticks = 0;
+	static unsigned int rtc_lastticks = 0;
 	if (framecounter % 32 == 0) {
 		int ticks = RTC_GetTicks();
-		int tickdiff = ticks - lastticks;
+		int tickdiff = ticks - rtc_lastticks;
 		curfps = 40960 / tickdiff;
-		lastticks = ticks;
+		rtc_lastticks = ticks;
 	}
 
 	if (curfps != fps) {

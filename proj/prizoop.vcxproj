@@ -35,7 +35,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\cb.cpp" />
     <ClCompile Include="..\src\cpu.cpp" />
     <ClCompile Include="..\src\debug.cpp" />
     <ClCompile Include="..\src\display_directlcd.cpp" />
@@ -62,7 +61,6 @@
     <ClCompile Include="..\winsim\winmain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\cb.h" />
     <ClInclude Include="..\src\cpu.h" />
     <ClInclude Include="..\src\debug.h" />
     <ClInclude Include="..\src\display.h" />
@@ -83,6 +81,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile" />
+    <None Include="..\src\cb_impl.inl" />
+    <None Include="..\src\cb_instructions.inl" />
     <None Include="..\src\cpu_instructions.inl" />
     <None Include="..\src\gpu_scanline.inl" />
   </ItemGroup>
@@ -187,7 +187,7 @@ rebuild.bat FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET_PRIZM=1 -DDEBUG=1"
 clean.bat FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET_PRIZM=1 -DDEBUG=1" CONFIG=$(Configuration)</NMakeCleanCommandLine>
     <NMakeOutput>$(ProjectDir)\..\$(ProjectName).g3a</NMakeOutput>
     <NMakeIncludeSearchPath>$(ProjectDir)\..\..\include</NMakeIncludeSearchPath>
-    <NMakePreprocessorDefinitions>TARGET_PRIZM</NMakePreprocessorDefinitions>
+    <NMakePreprocessorDefinitions>TARGET_PRIZM;DEBUG=1</NMakePreprocessorDefinitions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DeviceDebug|Win32'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\include</IncludePath>

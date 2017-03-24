@@ -21,9 +21,6 @@
     <ClCompile Include="..\src\ScopeTimer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cb.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cpu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -77,9 +74,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\cb.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cpu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -138,6 +132,12 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\src\gpu_scanline.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\src\cb_instructions.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\src\cb_impl.inl">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

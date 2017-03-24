@@ -26,6 +26,14 @@
 #define CT_ASSERT(cond) typedef char check##__LINE__ [(cond) ? 1 : -1];
 #endif
 
+#ifndef max
+#define max(a,b)            (((a) > (b)) ? (a) : (b))
+#endif
+
+#ifndef min
+#define min(a,b)            (((a) < (b)) ? (a) : (b))
+#endif
+
 #include "ScopeTimer.h"
 
 extern void ScreenPrint(char* buffer);

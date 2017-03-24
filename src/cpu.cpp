@@ -7,7 +7,6 @@
 #include "interrupts.h"
 #include "keys.h"
 #include "gpu.h"
-#include "cb.h"
 #include "display.h"
 #include "main.h"
 
@@ -45,8 +44,11 @@ int iter = 0;
 	NO$GMB
 */
 
-// number of cpu instructions to batch between GPU/interrupt checks (higher = less accurate, faster emulation)
-#define CPU_BATCH 8
+// max number of cpu instructions to batch between GPU/interrupt checks (higher = less accurate, faster emulation)
+#define MAX_CPU_BATCH 12
+
+// min number of cpu instructions to batch between GPU/interrupt checks (higher = less accurate, faster emulation)
+#define MIN_CPU_BATCH 4
 
 // number of batches to do between system checks
 #define BATCHES 256
@@ -1286,6 +1288,16 @@ inline void cp_n(unsigned char operand) {
 //0xff
 inline void rst_38(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc = 0x0038; }
 
+// extended instruction set
+#include "cb_impl.inl"
+inline void cb_n(unsigned char instruction) {
+	switch (instruction) {
+		#define CB_INSTRUCTION(name,numticks,func,id,code) case id: DebugInstruction(name); func(); cpu.clocks += numticks; code break;
+		#include "cb_instructions.inl"
+		#undef CB_INSTRUCTION
+	}
+}
+
 void cpuStep() {
 	{
 		TIME_SCOPE();
@@ -1294,11 +1306,22 @@ void cpuStep() {
 			if (cpu.stopped || cpu.halted) {
 				cpu.clocks += 12;
 			} else {
-				for (int i = 0; i < CPU_BATCH; i++) {
+				// 8 clocks per instruction is about the average from empirical testing
+				int numInstr = min(max(gpu.nextTick - cpu.clocks, (MIN_CPU_BATCH * 8)) / 8, MAX_CPU_BATCH);
+
+				if (cpu.memory.TAC_timerctl & 0x04) {
+					numInstr = min(max(cpu.timerInterrupt - cpu.clocks, (MIN_CPU_BATCH * 8)) / 8, numInstr);
+				}
+
+				for (int i = 0; i < numInstr; i++) {
 					DebugPC(cpu.registers.pc);
+
+					static int count = 0;
+					count++;
 
 					// perform inlined instruction op
 					switch (readInstrByte(cpu.registers.pc++)) {
+						// main instruction set
 						#define INSTRUCTION_0(name,numticks,func,id,code)   case id: DebugInstruction(name); func(); cpu.clocks += numticks; code break;
 						#define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name, readInstrByte(cpu.registers.pc)); { unsigned char operand = readInstrByte(cpu.registers.pc++); func(operand); cpu.clocks += numticks; code } break;
 						#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name, readInstrByte(cpu.registers.pc)); { signed char operand = readInstrByte(cpu.registers.pc++); func(operand); cpu.clocks += numticks; code } break;
@@ -1308,6 +1331,10 @@ void cpuStep() {
 						#undef INSTRUCTION_1
 						#undef INSTRUCTION_1S
 						#undef INSTRUCTION_2
+						// handle extended instruction set call
+						case 0xcb: 
+							cb_n(readInstrByte(cpu.registers.pc++));
+							break;
 					}
 				}
 			}

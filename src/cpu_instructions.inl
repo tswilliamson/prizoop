@@ -209,7 +209,7 @@
  INSTRUCTION_0( "RET Z", 					0,   ret_z			,	0xc8, {}			)
  INSTRUCTION_0( "RET", 						4,   ret			,	0xc9, {}			)
  INSTRUCTION_2( "JP Z, 0x%04X", 			0,   jp_z_nn		,	0xca, {}			)
- INSTRUCTION_1( "CB %02X", 					0,   cb_n			,	0xcb, {}			)
+ // INSTRUCTION_1( "CB %02X", 					0,   cb_n			,	0xcb, {}			)
  INSTRUCTION_2( "CALL Z, 0x%04X", 			0,   call_z_nn		,	0xcc, {}			)
  INSTRUCTION_2( "CALL 0x%04X", 				12,  call_nn		,	0xcd, {}			)
  INSTRUCTION_1( "ADC 0x%02X", 				8,   adc_n			,	0xce, {}			)

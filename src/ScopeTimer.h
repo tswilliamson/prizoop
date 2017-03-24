@@ -1,6 +1,6 @@
 #pragma once
 
-#if (DEBUG && !TARGET_WINSIM)
+#if !TARGET_WINSIM
 
 #include "tmu.h"
 
@@ -15,7 +15,6 @@ struct ScopeTimer {
 
 	ScopeTimer(const char* withFunctionName, int withLine);
 
-
 	inline void AddTime(unsigned short cycles) {
 		cycleCount += cycles;
 		numCounts++;
@@ -29,14 +28,14 @@ struct ScopeTimer {
 };
 
 struct TimedInstance {
-	int start;
+	unsigned int start;
 	ScopeTimer* myTimer;
 
 	inline TimedInstance(ScopeTimer* withTimer) : start(REG_TMU_TCNT_2), myTimer(withTimer) {
 	}
 
 	inline ~TimedInstance() {
-		int elapsed = start - REG_TMU_TCNT_2;
+		int elapsed = (int)(start - REG_TMU_TCNT_2);
 		if (elapsed >= 0) {
 			myTimer->AddTime(elapsed);
 		}
@@ -51,6 +50,9 @@ struct ScopeTimer {
 	static void DisplayTimes() {}
 	static void Shutdown() {}
 };
+#endif
+
+#ifndef TIME_SCOPE
 #define TIME_SCOPE() 
 #define TIME_SCOPE_NAMED(Name) 
 #endif
