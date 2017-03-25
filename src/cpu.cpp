@@ -158,7 +158,7 @@ void reset(void) {
 inline void undefined(void) {
 	cpu.registers.pc--;
 	
-	unsigned char instruction = readInstrByte(cpu.registers.pc);
+	unsigned char instruction = readByte(cpu.registers.pc);
 
 	#if TARGET_WINSIM
 		char d[100];
@@ -1311,13 +1311,14 @@ void cpuStep() {
 				for (int i = 0; i < numInstr; i++) {
 					DebugPC(cpu.registers.pc);
 
+					unsigned char* pc = getInstrByte(cpu.registers.pc);
 					// perform inlined instruction op
-					switch (readInstrByte(cpu.registers.pc++)) {
+					switch (pc[0]) {
 						// main instruction set
-						#define INSTRUCTION_0(name,numticks,func,id,code)   case id: DebugInstruction(name); func(); cpu.clocks += numticks; code break;
-						#define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name, readInstrByte(cpu.registers.pc)); { unsigned char operand = readInstrByte(cpu.registers.pc++); func(operand); cpu.clocks += numticks; code } break;
-						#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name, readInstrByte(cpu.registers.pc)); { signed char operand = readInstrByte(cpu.registers.pc++); func(operand); cpu.clocks += numticks; code } break;
-						#define INSTRUCTION_2(name,numticks,func,id,code)   case id: DebugInstruction(name, readInstrShort(cpu.registers.pc)); { unsigned short operand = readInstrShort(cpu.registers.pc++); ++cpu.registers.pc; func(operand); cpu.clocks += numticks; code } break;
+						#define INSTRUCTION_0(name,numticks,func,id,code)   case id: DebugInstruction(name); cpu.registers.pc += 1; func(); cpu.clocks += numticks; code break;
+						#define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name, pc[1]); { cpu.registers.pc += 2; func(pc[1]); cpu.clocks += numticks; code } break;
+						#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name, pc[1]); { cpu.registers.pc += 2; func((signed char) pc[1]); cpu.clocks += numticks; code } break;
+						#define INSTRUCTION_2(name,numticks,func,id,code)   case id: DebugInstruction(name, pc[1] | (pc[2] << 8)); { cpu.registers.pc += 3; func(pc[1] | (pc[2] << 8)); cpu.clocks += numticks; code } break;
 						#include "cpu_instructions.inl"
 						#undef INSTRUCTION_0
 						#undef INSTRUCTION_1
@@ -1325,7 +1326,8 @@ void cpuStep() {
 						#undef INSTRUCTION_2
 						// handle extended instruction set call
 						case 0xcb: 
-							cb_n(readInstrByte(cpu.registers.pc++));
+							cpu.registers.pc += 2;
+							cb_n(pc[1]);
 							break;
 					}
 				}
