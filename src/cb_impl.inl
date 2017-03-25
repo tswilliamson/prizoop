@@ -4,13 +4,11 @@
 inline unsigned char rlc(unsigned char value) {
 	value = (value << 1) | (value >> 7);
 
-	if (value & 0x01) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
-
-	if (value) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
+	cpu.registers.f =
+		((value == 0) << FLAGS_Z_BIT) |										// ZERO
+		0 |																	// NEGATIVE
+		0 |																	// HALF-CARRY
+		((value & 0x01) << FLAGS_C_BIT);									// CARRY
 
 	return value;
 }
@@ -18,13 +16,11 @@ inline unsigned char rlc(unsigned char value) {
 inline unsigned char rrc(unsigned char value) {
 	value = (value >> 1) | ((value << 7) & 0x80);
 
-	if (value & 0x80) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
-
-	if (value) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
+	cpu.registers.f =
+		((value == 0) << FLAGS_Z_BIT) |										// ZERO
+		0 |																	// NEGATIVE
+		0 |																	// HALF-CARRY
+		((value & 0x80) >> (7 - FLAGS_C_BIT));								// CARRY
 
 	return value;
 }
@@ -33,18 +29,19 @@ inline unsigned char rl(unsigned char value) {
 	if (value & 0x80) {
 		value <<= 1;
 		if (FLAGS_ISCARRY) value |= 0x01;
-		FLAGS_SET(FLAGS_CARRY);
+		FLAGS_SET(FLAGS_C);
 	}
 	else {
 		value <<= 1;
 		if (FLAGS_ISCARRY) value |= 0x01;
-		FLAGS_CLEAR(FLAGS_CARRY);
+		FLAGS_CLEAR(FLAGS_C);
 	}
 
-	if (value) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
+	cpu.registers.f =
+		((value == 0) << FLAGS_Z_BIT) |										// ZERO
+		0 |																	// NEGATIVE
+		0 |																	// HALF-CARRY
+		(FLAGS_ISCARRY);													// CARRY
 
 	return value;
 }
@@ -53,46 +50,43 @@ inline unsigned char rr(unsigned char value) {
 	if (value & 0x01) {
 		value >>= 1;
 		if (FLAGS_ISCARRY) value |= 0x80;
-		FLAGS_SET(FLAGS_CARRY);
+		FLAGS_SET(FLAGS_C);
 	}
 	else {
 		value >>= 1;
 		if (FLAGS_ISCARRY) value |= 0x80;
-		FLAGS_CLEAR(FLAGS_CARRY);
+		FLAGS_CLEAR(FLAGS_C);
 	}
 
-	if (value) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
+	cpu.registers.f =
+		((value == 0) << FLAGS_Z_BIT) |										// ZERO
+		0 |																	// NEGATIVE
+		0 |																	// HALF-CARRY
+		(FLAGS_ISCARRY);													// CARRY
 
 	return value;
 }
 
 inline unsigned char sla(unsigned char value) {
-	if (value & 0x80) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
+	cpu.registers.f =
+		(((value & 0x7F) == 0) << FLAGS_Z_BIT) |							// ZERO
+		0 |																	// NEGATIVE
+		0 |																	// HALF-CARRY
+		((value & 0x80) >> (7 - FLAGS_C_BIT));								// CARRY
 
 	value <<= 1;
-
-	if (value) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
 
 	return value;
 }
 
 inline unsigned char sra(unsigned char value) {
-	if (value & 0x01) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
+	cpu.registers.f =
+		(((value & 0xFE) == 0) << FLAGS_Z_BIT) |							// ZERO
+		0 |																	// NEGATIVE
+		0 |																	// HALF-CARRY
+		((value & 0x01) << FLAGS_C_BIT);									// CARRY
 
 	value = (value & 0x80) | (value >> 1);
-
-	if (value) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
 
 	return value;
 }
@@ -100,34 +94,35 @@ inline unsigned char sra(unsigned char value) {
 inline unsigned char swap(unsigned char value) {
 	value = ((value & 0xf) << 4) | ((value & 0xf0) >> 4);
 
-	if (value) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY | FLAGS_CARRY);
+	cpu.registers.f =
+		((value == 0) << FLAGS_Z_BIT) |										// ZERO
+		0 |																	// NEGATIVE
+		0 |																	// HALF-CARRY
+		0;																	// CARRY
 
 	return value;
 }
 
 static unsigned char srl(unsigned char value) {
-	if (value & 0x01) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
+	cpu.registers.f =
+		(((value & 0xFE) == 0) << FLAGS_Z_BIT) |							// ZERO
+		0 |																	// NEGATIVE
+		0 |																	// HALF-CARRY
+		((value & 0x01) << FLAGS_C_BIT);									// CARRY
 
 	value >>= 1;
-
-	if (value) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
 
 	return value;
 }
 
 inline void bit(unsigned char bit, unsigned char value) {
-	if (value & bit) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
+	// carry uneffected
+	cpu.registers.f =
+		(((value & bit) == 0) << FLAGS_Z_BIT) |								// ZERO
+		0 |																	// NEGATIVE
+		(FLAGS_HC) |														// HALF-CARRY
+		(FLAGS_ISCARRY);													// CARRY
 
-	FLAGS_CLEAR(FLAGS_NEGATIVE);
-	FLAGS_SET(FLAGS_HALFCARRY);
 }
 
 inline void set(unsigned char bit, unsigned char& value) {
@@ -325,15 +320,13 @@ inline void srl_hlp(void) { writeByte(cpu.registers.hl, srl(readByte(cpu.registe
 
 // 0x3f
 inline void srl_a(void) {
-	if (cpu.registers.a & 0x01) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
+	cpu.registers.f =
+		(((cpu.registers.a & 0xFE) == 0) << FLAGS_Z_BIT) |										// ZERO
+		0 |																						// NEGATIVE
+		0 |																						// HALF-CARRY
+		((cpu.registers.a & 0x01) << FLAGS_C_BIT);												// CARRY
 
 	cpu.registers.a >>= 1;
-
-	if (cpu.registers.a) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
 }
 
 // 0x40

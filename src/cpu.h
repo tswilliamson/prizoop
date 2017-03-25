@@ -68,24 +68,23 @@ struct cpu_type {
 
 extern cpu_type cpu ALIGN(256);
 
-#define FLAGS_ZERO (1 << 7)
-#define FLAGS_ZERO_BIT 7
-#define FLAGS_NEGATIVE (1 << 6)
-#define FLAGS_NEGATIVE_BIT 6
-#define FLAGS_HALFCARRY (1 << 5)
-#define FLAGS_HALFCARRY_BIT 5
-#define FLAGS_CARRY (1 << 4)
-#define FLAGS_CARRY_BIT 4
+#define FLAGS_Z (1 << 7)
+#define FLAGS_Z_BIT 7
+#define FLAGS_N (1 << 6)
+#define FLAGS_N_BIT 6
+#define FLAGS_HC (1 << 5)
+#define FLAGS_HC_BIT 5
+#define FLAGS_C (1 << 4)
+#define FLAGS_C_BIT 4
 
-#define FLAGS_ISZERO (cpu.registers.f & FLAGS_ZERO)
-#define FLAGS_ISNEGATIVE (cpu.registers.f & FLAGS_NEGATIVE)
-#define FLAGS_ISCARRY (cpu.registers.f & FLAGS_CARRY)
-#define FLAGS_ISHALFCARRY (cpu.registers.f & FLAGS_HALFCARRY)
+#define FLAGS_ISZERO (cpu.registers.f & FLAGS_Z)
+#define FLAGS_ISNEGATIVE (cpu.registers.f & FLAGS_N)
+#define FLAGS_ISCARRY (cpu.registers.f & FLAGS_C)
+#define FLAGS_ISHALFCARRY (cpu.registers.f & FLAGS_HC)
 
 #define FLAGS_ISSET(x) (cpu.registers.f & (x))
 #define FLAGS_SET(x) (cpu.registers.f |= (x))
 #define FLAGS_CLEAR(x) (cpu.registers.f &= ~(x))
-#define FLAGS_COND(bit, cond) (cpu.registers.f = (cpu.registers.f & ~(1 << bit)) | (cond << bit))
 
 void reset(void);
 void cpuStep(void);

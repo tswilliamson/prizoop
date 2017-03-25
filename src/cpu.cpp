@@ -51,7 +51,7 @@ int iter = 0;
 #define MIN_CPU_BATCH 4
 
 // number of batches to do between system checks
-#define BATCHES 256
+#define BATCHES 1024
 
 void reset(void) {
 	memset(sram, 0, sizeof(sram));
@@ -179,29 +179,27 @@ inline void undefined(void) {
 }
 
 static unsigned char inc(unsigned char value) {
-	if((value & 0x0f) == 0x0f) FLAGS_SET(FLAGS_HALFCARRY);
-	else FLAGS_CLEAR(FLAGS_HALFCARRY);
-	
 	value++;
-	
-	if(value) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-	
-	FLAGS_CLEAR(FLAGS_NEGATIVE);
+		
+	// carry is ignored!
+	cpu.registers.f =
+		((value == 0) << FLAGS_Z_BIT) |															// ZERO
+		0 |																						// NEGATIVE
+		(((value & 0x0f) == 0) << FLAGS_HC_BIT) |												// HALF-CARRY
+		(FLAGS_ISCARRY);																		// CARRY
 	
 	return value;
 }
 
 static unsigned char dec(unsigned char value) {
-	if(value & 0x0f) FLAGS_CLEAR(FLAGS_HALFCARRY);
-	else FLAGS_SET(FLAGS_HALFCARRY);
-	
 	value--;
-	
-	if(value) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-	
-	FLAGS_SET(FLAGS_NEGATIVE);
+
+	// carry is ignored!
+	cpu.registers.f =
+		((value == 0) << FLAGS_Z_BIT) |															// ZERO
+		FLAGS_N |																				// NEGATIVE
+		(((value & 0x0f) == 0x0f) << FLAGS_HC_BIT) |											// HALF-CARRY
+		(FLAGS_ISCARRY);																		// CARRY
 	
 	return value;
 }
@@ -209,119 +207,99 @@ static unsigned char dec(unsigned char value) {
 static inline void add(unsigned char *destination, unsigned char value) {
 	unsigned int result = *destination + value;
 	
-	if(result & 0xff00) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
-
-	if (((*destination & 0x0f) + (value & 0x0f)) > 0x0f) FLAGS_SET(FLAGS_HALFCARRY);
-	else FLAGS_CLEAR(FLAGS_HALFCARRY);
+	cpu.registers.f =
+		(((result & 0xff) == 0) << FLAGS_Z_BIT) |												// ZERO
+		0 |																						// NEGATIVE
+		((((*destination & 0x0f) + (value & 0x0f)) > 0x0f) << FLAGS_HC_BIT) |					// HALF-CARRY
+		(((result & 0xff00) != 0) << FLAGS_C_BIT);												// CARRY
 
 	*destination = (unsigned char)(result & 0xff);
-	
-	if(*destination) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-	
-	FLAGS_CLEAR(FLAGS_NEGATIVE);
 }
 
 static inline void add2(unsigned short *destination, unsigned short value) {
 	unsigned long result = *destination + value;
-	
-	if(result & 0xffff0000) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
 
-	if (((*destination & 0x0fff) + (value & 0x0fff)) & 0x1000) FLAGS_SET(FLAGS_HALFCARRY);
-	else FLAGS_CLEAR(FLAGS_HALFCARRY);
-	
-	*destination = (unsigned short)(result & 0xffff);
-	
 	// zero flag left alone
-	
-	FLAGS_CLEAR(FLAGS_NEGATIVE);
+	cpu.registers.f =
+		(FLAGS_ISZERO) |																		// ZERO
+		0 |																						// NEGATIVE
+		(((((*destination & 0x0fff) + (value & 0x0fff)) & 0x1000) != 0) << FLAGS_HC_BIT) |		// HALF-CARRY
+		(((result & 0xffff0000) != 0) << FLAGS_C_BIT);											// CARRY
+
+	*destination = (unsigned short)(result & 0xffff);
 }
 
 static inline void adc(unsigned char value) {
 	int result = cpu.registers.a + value + (FLAGS_ISCARRY ? 1 : 0);
-	
-	if(((value & 0x0f) + (cpu.registers.a & 0x0f) + (FLAGS_ISCARRY ? 1 : 0)) > 0x0f) FLAGS_SET(FLAGS_HALFCARRY);
-	else FLAGS_CLEAR(FLAGS_HALFCARRY);
 
-	if (result & 0xff00) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
+	cpu.registers.f =
+		(((result & 0xff) == 0) << FLAGS_Z_BIT) |															// ZERO
+		0 |																									// NEGATIVE
+		((((value & 0x0f) + (cpu.registers.a & 0x0f) + (FLAGS_ISCARRY ? 1 : 0)) > 0x0f) << FLAGS_HC_BIT) |	// HALF-CARRY
+		(((result & 0xff00) != 0) << FLAGS_C_BIT);															// CARRY
 
-	FLAGS_CLEAR(FLAGS_NEGATIVE);
-	
 	cpu.registers.a = (unsigned char)(result & 0xff);
-
-	if (cpu.registers.a == 0) FLAGS_SET(FLAGS_ZERO);
-	else FLAGS_CLEAR(FLAGS_ZERO);
 }
 
 static inline void sbc(unsigned char value) {
 	int result = cpu.registers.a - value - (FLAGS_ISCARRY ? 1 : 0);
 
-	if ((value & 0x0f) + (FLAGS_ISCARRY ? 1 : 0) > (cpu.registers.a & 0x0f)) FLAGS_SET(FLAGS_HALFCARRY);
-	else FLAGS_CLEAR(FLAGS_HALFCARRY);
-
-	if (result & 0xff00) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
-
-	FLAGS_SET(FLAGS_NEGATIVE);
+	cpu.registers.f =
+		(((result & 0xff) == 0) << FLAGS_Z_BIT) |														// ZERO
+		FLAGS_N |																						// NEGATIVE
+		(((value & 0x0f) + (FLAGS_ISCARRY ? 1 : 0) > (cpu.registers.a & 0x0f)) << FLAGS_HC_BIT) |		// HALF-CARRY
+		(((result & 0xff00) != 0) << FLAGS_C_BIT);														// CARRY
 
 	cpu.registers.a = (unsigned char)(result & 0xff);
 
-	if (cpu.registers.a == 0) FLAGS_SET(FLAGS_ZERO);
-	else FLAGS_CLEAR(FLAGS_ZERO);
 }
 
 static inline void sub(unsigned char value) {
-	FLAGS_SET(FLAGS_NEGATIVE);
-	
-	if(value > cpu.registers.a) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
-	
-	if((value & 0x0f) > (cpu.registers.a & 0x0f)) FLAGS_SET(FLAGS_HALFCARRY);
-	else FLAGS_CLEAR(FLAGS_HALFCARRY);
-	
+	cpu.registers.f =
+		((cpu.registers.a == value) << FLAGS_Z_BIT) |						// ZERO
+		FLAGS_N |															// NEGATIVE
+		(((value & 0x0f) > (cpu.registers.a & 0x0f)) << FLAGS_HC_BIT) |		// HALF-CARRY
+		((value > cpu.registers.a) << FLAGS_C_BIT);							// CARRY
+
 	cpu.registers.a -= value;
-	
-	if(cpu.registers.a) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
 }
 
 static inline void and_a(unsigned char value) {
 	cpu.registers.a &= value;
-	
-	if(cpu.registers.a) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-	
-	FLAGS_CLEAR(FLAGS_CARRY | FLAGS_NEGATIVE);
-	FLAGS_SET(FLAGS_HALFCARRY);
+
+	cpu.registers.f =
+		((cpu.registers.a == 0) << FLAGS_Z_BIT) |							// ZERO
+		0 |																	// NEGATIVE
+		FLAGS_HC |															// HALF-CARRY
+		0;																	// CARRY
 }
 
 static inline void or_a(unsigned char value) {
 	cpu.registers.a |= value;
-	
-	if(cpu.registers.a) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-	
-	FLAGS_CLEAR(FLAGS_CARRY | FLAGS_NEGATIVE | FLAGS_HALFCARRY);
+
+	cpu.registers.f =
+		((cpu.registers.a == 0) << FLAGS_Z_BIT) |							// ZERO
+		0 |																	// NEGATIVE
+		0 |																	// HALF-CARRY
+		0;																	// CARRY
 }
 
 static inline void xor_a(unsigned char value) {
 	cpu.registers.a ^= value;
-	
-	if(cpu.registers.a) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-	
-	FLAGS_CLEAR(FLAGS_CARRY | FLAGS_NEGATIVE | FLAGS_HALFCARRY);
+
+	cpu.registers.f =
+		((cpu.registers.a == 0) << FLAGS_Z_BIT) |							// ZERO
+		0 |																	// NEGATIVE
+		0 |																	// HALF-CARRY
+		0;																	// CARRY
 }
 
 static inline void cp(unsigned char value) {
 	cpu.registers.f =
-		((cpu.registers.a == value) << 7) |							// ZERO
-		FLAGS_NEGATIVE |											// NEGATIVE
-		(((value & 0x0f) > (cpu.registers.a & 0x0f)) << 5) |		// HALF-CARRY
-		((value > cpu.registers.a) << 4);							// CARRY
+		((cpu.registers.a == value) << FLAGS_Z_BIT) |						// ZERO
+		FLAGS_N |															// NEGATIVE
+		(((value & 0x0f) > (cpu.registers.a & 0x0f)) << FLAGS_HC_BIT) |		// HALF-CARRY
+		((value > cpu.registers.a) << 4);									// CARRY
 }
 
 // 0x00
@@ -348,10 +326,12 @@ inline void ld_b_n(unsigned char operand) { cpu.registers.b = operand; }
 // 0x07
 inline void rlca(void) {
 	cpu.registers.a = (cpu.registers.a << 1) | (cpu.registers.a >> 7);
-	if(cpu.registers.a & 0x01) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
-	
-	FLAGS_CLEAR(FLAGS_ZERO | FLAGS_NEGATIVE | FLAGS_HALFCARRY);
+
+	cpu.registers.f =
+		0 |																	// ZERO
+		0 |																	// NEGATIVE
+		0 |																	// HALF-CARRY
+		((cpu.registers.a & 0x01) << FLAGS_C_BIT);							// CARRY
 }
 
 // 0x08
@@ -377,12 +357,13 @@ inline void ld_c_n(unsigned char operand) { cpu.registers.c = operand; }
 
 // 0x0f
 inline void rrca(void) {
-	cpu.registers.a = (cpu.registers.a >> 1) | ((cpu.registers.a << 7) & 0x80);
+	cpu.registers.a = (cpu.registers.a >> 1) | (cpu.registers.a << 7);
 
-	if (cpu.registers.a & 0x80) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
-
-	FLAGS_CLEAR(FLAGS_ZERO | FLAGS_NEGATIVE | FLAGS_HALFCARRY);
+	cpu.registers.f =
+		0 |																	// ZERO
+		0 |																	// NEGATIVE
+		0 |																	// HALF-CARRY
+		((cpu.registers.a & 0x80) >> (7 - FLAGS_C_BIT));					// CARRY
 }
 
 // 0x10
@@ -408,15 +389,16 @@ inline void ld_d_n(unsigned char operand) { cpu.registers.d = operand; }
 
 // 0x17
 inline void rla(void) {
-	int carry = FLAGS_ISSET(FLAGS_CARRY) ? 1 : 0;
-	
-	if(cpu.registers.a & 0x80) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
+	int carry = FLAGS_ISCARRY ? 1 : 0;
+
+	cpu.registers.f =
+		0 |																	// ZERO
+		0 |																	// NEGATIVE
+		0 |																	// HALF-CARRY
+		((cpu.registers.a & 0x80) >> (7 - FLAGS_C_BIT));					// CARRY
 	
 	cpu.registers.a <<= 1;
 	cpu.registers.a += carry;
-	
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_ZERO | FLAGS_HALFCARRY);
 }
 
 // 0x18
@@ -444,15 +426,16 @@ inline void ld_e_n(unsigned char operand) { cpu.registers.e = operand; }
 
 // 0x1f
 inline void rra(void) {
-	int carry = (FLAGS_ISSET(FLAGS_CARRY) ? 1 : 0) << 7;
-	
-	if(cpu.registers.a & 0x01) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
+	int carry = (FLAGS_ISCARRY ? 1 : 0) << 7;
+
+	cpu.registers.f =
+		0 |																	// ZERO
+		0 |																	// NEGATIVE
+		0 |																	// HALF-CARRY
+		((cpu.registers.a & 0x01) << FLAGS_C_BIT);							// CARRY
 	
 	cpu.registers.a >>= 1;
 	cpu.registers.a += carry;
-	
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_ZERO | FLAGS_HALFCARRY);
 }
 
 // 0x20
@@ -504,7 +487,7 @@ inline void daa(void) {
 	}
 
 	if ((s & 0x100) == 0x100) {
-		FLAGS_SET(FLAGS_CARRY);
+		FLAGS_SET(FLAGS_C);
 	}
 	else {
 		// no carry clear
@@ -512,12 +495,12 @@ inline void daa(void) {
 
 	s = s & 0xFF;
 		
-	if(s != 0) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
+	if(s != 0) FLAGS_CLEAR(FLAGS_Z);
+	else FLAGS_SET(FLAGS_Z);
 
 	cpu.registers.a = (unsigned char) s;
 
-	FLAGS_CLEAR(FLAGS_HALFCARRY);
+	FLAGS_CLEAR(FLAGS_HC);
 }
 
 // 0x28
@@ -548,7 +531,7 @@ inline void dec_l(void) { cpu.registers.l = dec(cpu.registers.l); }
 inline void ld_l_n(unsigned char operand) { cpu.registers.l = operand; }
 
 // 0x2f
-inline void cpl(void) { cpu.registers.a = ~cpu.registers.a; FLAGS_SET(FLAGS_NEGATIVE | FLAGS_HALFCARRY); }
+inline void cpl(void) { cpu.registers.a = ~cpu.registers.a; FLAGS_SET(FLAGS_N | FLAGS_HC); }
 
 // 0x30
 inline void jr_nc_n(char operand) {
@@ -578,7 +561,14 @@ inline void dec_hlp(void) { writeByte(cpu.registers.hl, dec(readByte(cpu.registe
 inline void ld_hlp_n(unsigned char operand) { writeByte(cpu.registers.hl, operand); }
 
 // 0x37
-inline void scf(void) { FLAGS_SET(FLAGS_CARRY); FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY); }
+inline void scf(void) { 
+	// set carry flag
+	cpu.registers.f =
+		(FLAGS_ISZERO) |							// ZERO
+		0 |											// NEGATIVE
+		0 |											// HALF-CARRY
+		(1 << FLAGS_C_BIT);							// CARRY
+}
 
 // 0x38
 inline void jr_c_n(char operand) {
@@ -609,10 +599,12 @@ inline void ld_a_n(unsigned char operand) { cpu.registers.a = operand; }
 
 // 0x3f
 inline void ccf(void) {
-	if(FLAGS_ISCARRY) FLAGS_CLEAR(FLAGS_CARRY);
-	else FLAGS_SET(FLAGS_CARRY);
-	
-	FLAGS_CLEAR(FLAGS_NEGATIVE | FLAGS_HALFCARRY);
+	// complement carry flag
+	cpu.registers.f =
+		(FLAGS_ISZERO) |							// ZERO
+		0 |											// NEGATIVE
+		0 |											// HALF-CARRY
+		((FLAGS_ISCARRY == 0) << FLAGS_C_BIT);		// CARRY
 }
 
 // 0x41
@@ -1160,16 +1152,6 @@ inline void ld_ff_c_a(void) { writeByte(0xff00 + cpu.registers.c, cpu.registers.
 // 0xe5
 inline void push_hl(void) { writeShortToStack(cpu.registers.hl); }
 
-// 0xe6
-inline void and_n(unsigned char operand) {
-	cpu.registers.a &= operand;
-	
-	FLAGS_CLEAR(FLAGS_CARRY | FLAGS_NEGATIVE);
-	FLAGS_SET(FLAGS_HALFCARRY);
-	if(cpu.registers.a) FLAGS_CLEAR(FLAGS_ZERO);
-	else FLAGS_SET(FLAGS_ZERO);
-}
-
 // 0xe7
 inline void rst_20(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc = 0x0020; }
 
@@ -1177,15 +1159,12 @@ inline void rst_20(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc
 inline void add_sp_n(unsigned char operand) {
 	unsigned int result = cpu.registers.sp + operand;
 
-	if ((result & 0xff00) != (cpu.registers.sp & 0xff00))
-		FLAGS_SET(FLAGS_CARRY);
-	else
-		FLAGS_CLEAR(FLAGS_CARRY);
-
-	if ((cpu.registers.sp & 0x000f) + (operand & 0x0f) > 0x0f) 
-		FLAGS_SET(FLAGS_HALFCARRY);
-	else
-		FLAGS_CLEAR(FLAGS_HALFCARRY);
+	// _does_ clear the zero flag
+	cpu.registers.f =
+		0 |																						// ZERO
+		0 |																						// NEGATIVE
+		(((cpu.registers.sp & 0x000f) + (operand & 0x0f) > 0x0f) << FLAGS_HC_BIT) |				// HALF-CARRY
+		(((result & 0xff00) != (cpu.registers.sp & 0xff00)) << FLAGS_C_BIT);					// CARRY
 
 	// signed result
 	if (operand & 0x80) {
@@ -1193,9 +1172,6 @@ inline void add_sp_n(unsigned char operand) {
 	}
 
 	cpu.registers.sp = result & 0xffff;
-
-	// _does_ clear the zero flag
-	FLAGS_CLEAR(FLAGS_ZERO | FLAGS_NEGATIVE);
 }
 
 // 0xe9
@@ -1237,22 +1213,16 @@ inline void rst_30(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc
 inline void ld_hl_sp_n(unsigned char operand) {
 	int result = cpu.registers.sp + operand;
 
-	if ((result & 0xff00) != (cpu.registers.sp & 0xff00))
-		FLAGS_SET(FLAGS_CARRY);
-	else
-		FLAGS_CLEAR(FLAGS_CARRY);
-
-	if ((cpu.registers.sp & 0x000f) + (operand & 0x0f) > 0x0f)
-		FLAGS_SET(FLAGS_HALFCARRY);
-	else
-		FLAGS_CLEAR(FLAGS_HALFCARRY);
+	cpu.registers.f =
+		0 |																						// ZERO
+		0 |																						// NEGATIVE
+		(((cpu.registers.sp & 0x000f) + (operand & 0x0f) > 0x0f) << FLAGS_HC_BIT) |				// HALF-CARRY
+		(((result & 0xff00) != (cpu.registers.sp & 0xff00)) << FLAGS_C_BIT);					// CARRY
 
 	// signed result
 	if (operand & 0x80) {
 		result -= 0x0100;
 	}
-
-	FLAGS_CLEAR(FLAGS_ZERO | FLAGS_NEGATIVE);
 	
 	cpu.registers.hl = (unsigned short)(result & 0xffff);
 }
@@ -1265,20 +1235,6 @@ inline void ld_a_nnp(unsigned short operand) { cpu.registers.a = readByte(operan
 
 // 0xfb
 inline void ei(void) { cpu.IME = 1; }
-
-// 0xfe
-inline void cp_n(unsigned char operand) {
-	FLAGS_SET(FLAGS_NEGATIVE);
-	
-	if(cpu.registers.a == operand) FLAGS_SET(FLAGS_ZERO);
-	else FLAGS_CLEAR(FLAGS_ZERO);
-	
-	if(operand > cpu.registers.a) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
-	
-	if((operand & 0x0f) > (cpu.registers.a & 0x0f)) FLAGS_SET(FLAGS_HALFCARRY);
-	else FLAGS_CLEAR(FLAGS_HALFCARRY);
-}
 
 //0xff
 inline void rst_38(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc = 0x0038; }

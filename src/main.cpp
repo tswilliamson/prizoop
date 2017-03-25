@@ -202,31 +202,7 @@ int main(void) {
 
 	// a somewhat forcibly unrolled loop
 	while (shouldExit == false) {
-		{
-			cpuStep();
-			/*
-			if (gpuCheck()) gpuStep();
-			if (interruptCheck()) interruptStep();
-			cpuStep();
-			if (gpuCheck()) gpuStep();
-			if (interruptCheck()) interruptStep();
-			cpuStep();
-			if (gpuCheck()) gpuStep();
-			if (interruptCheck()) interruptStep();
-			cpuStep();
-			if (gpuCheck()) gpuStep();
-			if (interruptCheck()) interruptStep();
-			cpuStep();
-			if (gpuCheck()) gpuStep();
-			if (interruptCheck()) interruptStep();
-			cpuStep();
-			if (gpuCheck()) gpuStep();
-			if (interruptCheck()) interruptStep();
-			cpuStep();
-			if (gpuCheck()) gpuStep();
-			if (interruptCheck()) interruptStep();
-			*/
-		}
+		cpuStep();
 	}
 
 	return 0;
