@@ -317,16 +317,11 @@ static inline void xor_a(unsigned char value) {
 }
 
 static inline void cp(unsigned char value) {
-	if (cpu.registers.a == value) FLAGS_SET(FLAGS_ZERO);
-	else FLAGS_CLEAR(FLAGS_ZERO);
-
-	if (value > cpu.registers.a) FLAGS_SET(FLAGS_CARRY);
-	else FLAGS_CLEAR(FLAGS_CARRY);
-
-	if ((value & 0x0f) > (cpu.registers.a & 0x0f)) FLAGS_SET(FLAGS_HALFCARRY);
-	else FLAGS_CLEAR(FLAGS_HALFCARRY);
-
-	FLAGS_SET(FLAGS_NEGATIVE);
+	cpu.registers.f =
+		((cpu.registers.a == value) << 7) |							// ZERO
+		FLAGS_NEGATIVE |											// NEGATIVE
+		(((value & 0x0f) > (cpu.registers.a & 0x0f)) << 5) |		// HALF-CARRY
+		((value > cpu.registers.a) << 4);							// CARRY
 }
 
 // 0x00
@@ -1290,7 +1285,7 @@ inline void rst_38(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc
 
 // extended instruction set
 #include "cb_impl.inl"
-inline void cb_n(unsigned char instruction) {
+void cb_n(unsigned char instruction) {
 	switch (instruction) {
 		#define CB_INSTRUCTION(name,numticks,func,id,code) case id: DebugInstruction(name); func(); cpu.clocks += numticks; code break;
 		#include "cb_instructions.inl"
@@ -1301,7 +1296,7 @@ inline void cb_n(unsigned char instruction) {
 void cpuStep() {
 	{
 		TIME_SCOPE();
-
+		
 		for (int b = 0; b < BATCHES; b++) {
 			if (cpu.stopped || cpu.halted) {
 				cpu.clocks += 12;
@@ -1315,9 +1310,6 @@ void cpuStep() {
 
 				for (int i = 0; i < numInstr; i++) {
 					DebugPC(cpu.registers.pc);
-
-					static int count = 0;
-					count++;
 
 					// perform inlined instruction op
 					switch (readInstrByte(cpu.registers.pc++)) {

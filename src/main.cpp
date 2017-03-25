@@ -100,6 +100,9 @@ int main(void) {
 	bool overclock = true;
 	bool scale = true;
 	char frameskip = 1;
+#if TARGET_WINSIM
+	frameskip = 0;
+#endif
 	int colorScheme = 2;
 	const colorconfig colorSchemes[] = {
 		{ "Cyan",		{ COLOR_LIGHTCYAN, COLOR_CYAN, COLOR_DARKCYAN, COLOR_BLACK, COLOR_WHITE, COLOR_CYAN, COLOR_MEDIUMBLUE, COLOR_BLACK } },
