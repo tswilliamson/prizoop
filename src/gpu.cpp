@@ -57,12 +57,16 @@ static inline void setMode(int mode, int ticksNeeded, void(*newHandler)()) {
 	gpu.nextTick += ticksNeeded;
 }
 
-static inline void hblank(void) {
-	cpu.memory.LY_lcdline++;
+static inline void SetLY(unsigned int ly) {
+	cpu.memory.LY_lcdline = ly;
 
-	if (cpu.memory.LY_lcdline == cpu.memory.LYC_lcdcompare) {
+	if (ly == cpu.memory.LYC_lcdcompare) {
 		cpu.memory.STAT_lcdstatus |= STAT_LYCSIGNAL;
 		if (cpu.memory.STAT_lcdstatus & STAT_LYCCHECK) {
+			// in some cases it is ignored:
+			if ((ly == 0 || ly > 0x90) && (cpu.memory.STAT_lcdstatus & STAT_VBLANKCHECK))
+				return;
+
 			cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
 		}
 	}
@@ -101,7 +105,9 @@ void stepLCDOn_VRAM(void) {
 		if (!invalidFrame)
 			renderScanline();
 
-		if (cpu.memory.STAT_lcdstatus & STAT_HBLANKCHECK) {
+		// past LYC check ignores hblank check
+		if ((cpu.memory.STAT_lcdstatus & STAT_HBLANKCHECK) &&
+			(!(cpu.memory.STAT_lcdstatus & STAT_LYCCHECK) || cpu.memory.LY_lcdline != cpu.memory.LYC_lcdcompare)) {
 			cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
 		}
 
@@ -122,7 +128,7 @@ void stepLCDOn_HBLANK(void) {
 	}
 
 	if (cpu.clocks >= gpu.nextTick) {
-		hblank();
+		SetLY(cpu.memory.LY_lcdline + 1);
 
 		if (cpu.memory.LY_lcdline == 144) {
 			if (drawFramebuffer) {
@@ -138,13 +144,21 @@ void stepLCDOn_HBLANK(void) {
 				}
 			}
 
-			if (cpu.memory.STAT_lcdstatus & STAT_VBLANKCHECK) {
+			// previous lyc check ignores vblank interrupt
+			if ((cpu.memory.STAT_lcdstatus & STAT_VBLANKCHECK) &&
+				(!(cpu.memory.STAT_lcdstatus & STAT_HBLANKCHECK)) &&
+			    (!(cpu.memory.STAT_lcdstatus & STAT_LYCCHECK) || 0x8F != cpu.memory.LYC_lcdcompare)) {
+
 				cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
 			}
 
 			setMode(GPU_MODE_VBLANK, 456, stepLCDOn_VBLANK);
 		} else {
-			if (cpu.memory.STAT_lcdstatus & STAT_OAMCHECK) {
+			// lyc check or hblank check disables stat OAM interrupt
+			if ((cpu.memory.STAT_lcdstatus & STAT_OAMCHECK) &&
+				(!(cpu.memory.STAT_lcdstatus & STAT_LYCCHECK) || cpu.memory.LY_lcdline-1 != cpu.memory.LYC_lcdcompare) &&
+				!(cpu.memory.STAT_lcdstatus & STAT_HBLANKCHECK)) {
+
 				cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
 			}
 
@@ -154,8 +168,6 @@ void stepLCDOn_HBLANK(void) {
 }
 
 void stepLCDOn_VBLANK(void) {
-	TIME_SCOPE();
-
 	// we can force a step to avoid just spinning wheels when halted:
 	if (cpu.halted && cpu.IME) {
 		// don't screw up the timer or overcompensate
@@ -166,33 +178,33 @@ void stepLCDOn_VBLANK(void) {
 	}
 
 	if (cpu.clocks >= gpu.nextTick) {
-		hblank();
+		switch (cpu.memory.LY_lcdline) {
+			case 0x00:
+				// check if lcd was disabled:
+				if (cpu.memory.LCDC_ctl & 0x80) {
+					invalidFrame = false;
+					setMode(GPU_MODE_OAM, 80, stepLCDOn_OAM);
 
-		if (cpu.memory.LY_lcdline > 153) {
-			// back to line 0, OAM mode
-			cpu.memory.LY_lcdline = 0;
-
-			if (0 == cpu.memory.LYC_lcdcompare) {
-				cpu.memory.STAT_lcdstatus |= STAT_LYCSIGNAL;
-				if (cpu.memory.STAT_lcdstatus & STAT_LYCCHECK) {
-					cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
+					// vlank check disables stat OAM interrupt
+					if ((cpu.memory.STAT_lcdstatus & STAT_OAMCHECK) && !(cpu.memory.STAT_lcdstatus & STAT_VBLANKCHECK)) {
+						cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
+					}
+				} else {
+					gpuStep = stepLCDOff_DrawScreen;
 				}
-			}
-
-			// check if lcd was disabled:
-			if (cpu.memory.LCDC_ctl & 0x80) {
-				if (cpu.memory.STAT_lcdstatus & STAT_OAMCHECK) {
-					cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
-				}
-				invalidFrame = false;
-			}
-			else {
-				gpuStep = stepLCDOff_DrawScreen;
-			}
-
-			setMode(GPU_MODE_OAM, 80, stepLCDOn_OAM);
-		} else {
-			gpu.nextTick += 456;
+				break;
+			case 0x98:
+				SetLY(cpu.memory.LY_lcdline + 1);
+				gpu.nextTick += 56;
+				break;
+			case 0x99:
+				SetLY(0);
+				gpu.nextTick += 400;
+				break;
+			default:
+				SetLY(cpu.memory.LY_lcdline + 1);
+				gpu.nextTick += 456;
+				break;
 		}
 	}
 }
