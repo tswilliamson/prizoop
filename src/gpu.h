@@ -33,8 +33,6 @@ enum gpuMode {
 #define GET_LCDC_MODE() (cpu.memory.STAT_lcdstatus & STAT_MODE)
 
 struct gpu_type {
-	unsigned long tick;
-	unsigned long tickBase;
 	unsigned long nextTick;
 } extern gpu;
 
@@ -68,8 +66,10 @@ extern unsigned char spritePalette[2][4];
 extern void(*gpuStep)(void);
 
 // different gpu steps based on LCD status
-extern void stepLCDOff(void);
-extern void stepLCDOn(void);
+extern void stepLCDOn_OAM(void);
+extern void stepLCDOn_VRAM(void);
+extern void stepLCDOn_HBLANK(void);
+extern void stepLCDOn_VBLANK(void);
 
 void hblank(void);
 
