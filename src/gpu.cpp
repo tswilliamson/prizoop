@@ -69,6 +69,8 @@ static inline void SetLY(unsigned int ly) {
 
 			cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
 		}
+	} else {
+		cpu.memory.STAT_lcdstatus &= ~STAT_LYCSIGNAL;
 	}
 }
 
