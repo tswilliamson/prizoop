@@ -13,18 +13,19 @@ bool stretch = false;
 int framecounter = 0;
 int frameSkip = 0;
 
-unsigned short colorPaletteBG[4] = {
+unsigned short colorPalette[12] = {
 	COLOR_WHITE,
 	COLOR_LIGHTCYAN,
 	COLOR_CYAN,
 	COLOR_DARKCYAN,
-};
-
-unsigned short colorPaletteSprite[4] = {
 	COLOR_WHITE,
 	COLOR_LIGHTCYAN,
 	COLOR_CYAN,
 	COLOR_DARKCYAN,
+	COLOR_WHITE,
+	COLOR_LIGHTCYAN,
+	COLOR_CYAN,
+	COLOR_DARKCYAN
 };
 
 #include "gpu_scanline.inl"
@@ -151,15 +152,8 @@ void SetupDisplayDriver(bool withStretch, char withFrameskip) {
 	stretch = withStretch;
 }
 
-void SetupDisplayColors(unsigned short bg0, unsigned short bg1, unsigned short bg2, unsigned short bg3, unsigned short sp0, unsigned short sp1, unsigned short sp2, unsigned short sp3) {
-	colorPaletteBG[0] = bg0;
-	colorPaletteBG[1] = bg1;
-	colorPaletteBG[2] = bg2;
-	colorPaletteBG[3] = bg3;
-	colorPaletteSprite[0] = sp0;
-	colorPaletteSprite[1] = sp1;
-	colorPaletteSprite[2] = sp2;
-	colorPaletteSprite[3] = sp3;
+void SetupDisplayPalette(unsigned short pal[12]) {
+	memcpy(colorPalette, pal, sizeof(colorPalette));
 }
 
 #endif

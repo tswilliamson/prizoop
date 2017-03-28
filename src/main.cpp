@@ -10,6 +10,7 @@
 #include "memory.h"
 #include "rom.h"
 #include "bmp.h"
+#include "cgb_bootstrap.h"
 
 #if !TARGET_WINSIM
 #include "Prizm_SafeOverClock.h"
@@ -98,7 +99,7 @@ int main(void) {
 		GetKey(&key);
 		return 1;
 	}
-
+	
 	// show emulator options screen
 
 	// figure out options
@@ -195,16 +196,6 @@ int main(void) {
 	SetQuitHandler(shutdown);
 
 	SetupDisplayDriver(scale, frameskip);
-	SetupDisplayColors(
-		colorSchemes[colorScheme].col[0],
-		colorSchemes[colorScheme].col[1],
-		colorSchemes[colorScheme].col[2],
-		colorSchemes[colorScheme].col[3],
-		colorSchemes[colorScheme].col[4],
-		colorSchemes[colorScheme].col[5],
-		colorSchemes[colorScheme].col[6],
-		colorSchemes[colorScheme].col[7]
-	);
 
 	PutBMP("\\\\fls0\\Prizoop\\debug.bmp");
 	reset_printf();
@@ -217,6 +208,20 @@ int main(void) {
 		printf("Failed!\n");
 		GetKey(&key);
 		return 1;
+	}
+
+	// look for gameboy color palette override
+	unsigned short palette[12];
+	if (getCGBTableEntry(&memoryMap[0][ROM_OFFSET_NAME], palette)) {
+		SetupDisplayPalette(palette);
+	} else {
+		for (int i = 0; i < 8; i++) {
+			palette[i] = colorSchemes[colorScheme].col[i];
+		}
+		for (int i = 0; i < 4; i++) {
+			palette[i+8] = colorSchemes[colorScheme].col[i+4];
+		}
+		SetupDisplayPalette(palette);
 	}
 
 	if (scale) {

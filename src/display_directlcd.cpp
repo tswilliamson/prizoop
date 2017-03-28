@@ -29,18 +29,19 @@ void renderScanlineFit(void);
 void renderBlankScanlineFit(void);
 void drawFramebufferMain(void);
 
-unsigned short colorPaletteBG[4] = {
+unsigned short colorPalette[12] = {
 	COLOR_WHITE,
 	COLOR_LIGHTCYAN,
 	COLOR_CYAN,
 	COLOR_DARKCYAN,
-};
-
-unsigned short colorPaletteSprite[4] = {
 	COLOR_WHITE,
 	COLOR_LIGHTCYAN,
 	COLOR_CYAN,
 	COLOR_DARKCYAN,
+	COLOR_WHITE,
+	COLOR_LIGHTCYAN,
+	COLOR_CYAN,
+	COLOR_DARKCYAN
 };
 
 #include "gpu_scanline.inl"
@@ -53,15 +54,8 @@ void SetupDisplayDriver(bool withStretch, char withFrameskip) {
 	renderBlankScanline = withStretch ? renderBlankScanlineFit : renderBlankScanline1x1;
 }
 
-void SetupDisplayColors(unsigned short bg0, unsigned short bg1, unsigned short bg2, unsigned short bg3, unsigned short sp0, unsigned short sp1, unsigned short sp2, unsigned short sp3) {
-	colorPaletteBG[0] = bg0;
-	colorPaletteBG[1] = bg1;
-	colorPaletteBG[2] = bg2;
-	colorPaletteBG[3] = bg3;
-	colorPaletteSprite[0] = sp0;
-	colorPaletteSprite[1] = sp1;
-	colorPaletteSprite[2] = sp2;
-	colorPaletteSprite[3] = sp3;
+void SetupDisplayPalette(unsigned short pal[12]) {
+	memcpy(colorPalette, pal, sizeof(colorPalette));
 }
 
 // number of scanlines to buffer, 2, 4, 6, or 8. Only supports up to 4 when using DMA

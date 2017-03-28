@@ -25,10 +25,10 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 		const int tileOffset = (cpu.memory.LCDC_ctl & LCDC_TILESET) ? 0 : 256;
 
 		const Type palette[4] = {
-			ToScanType((Type)colorPaletteBG[backgroundPalette[0]]),
-			ToScanType((Type)colorPaletteBG[backgroundPalette[1]]),
-			ToScanType((Type)colorPaletteBG[backgroundPalette[2]]),
-			ToScanType((Type)colorPaletteBG[backgroundPalette[3]])
+			ToScanType((Type)colorPalette[backgroundPalette[0]]),
+			ToScanType((Type)colorPalette[backgroundPalette[1]]),
+			ToScanType((Type)colorPalette[backgroundPalette[2]]),
+			ToScanType((Type)colorPalette[backgroundPalette[3]])
 		};
 
 		// draw background
@@ -107,17 +107,17 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 	// if sprites enabled
 	{
 		const Type palette[8] = {
-			ToScanType((Type) colorPaletteSprite[spritePalette[0][0]]),
-			ToScanType((Type) colorPaletteSprite[spritePalette[0][1]]),
-			ToScanType((Type) colorPaletteSprite[spritePalette[0][2]]),
-			ToScanType((Type) colorPaletteSprite[spritePalette[0][3]]),
-			ToScanType((Type) colorPaletteSprite[spritePalette[1][0]]),
-			ToScanType((Type) colorPaletteSprite[spritePalette[1][1]]),
-			ToScanType((Type) colorPaletteSprite[spritePalette[1][2]]),
-			ToScanType((Type) colorPaletteSprite[spritePalette[1][3]]),
+			ToScanType((Type) colorPalette[4+spritePalette[0][0]]),
+			ToScanType((Type) colorPalette[4+spritePalette[0][1]]),
+			ToScanType((Type) colorPalette[4+spritePalette[0][2]]),
+			ToScanType((Type) colorPalette[4+spritePalette[0][3]]),
+			ToScanType((Type) colorPalette[8+spritePalette[1][0]]),
+			ToScanType((Type) colorPalette[8+spritePalette[1][1]]),
+			ToScanType((Type) colorPalette[8+spritePalette[1][2]]),
+			ToScanType((Type) colorPalette[8+spritePalette[1][3]]),
 		};
 
-		Type bgColor = ToScanType((Type)colorPaletteBG[backgroundPalette[0]]);
+		Type bgColor = ToScanType((Type)colorPalette[backgroundPalette[0]]);
 
 		if (cpu.memory.LCDC_ctl & LCDC_SPRITEVDOUBLE) {
 			for (int i = 0; i < 40; i++) {
