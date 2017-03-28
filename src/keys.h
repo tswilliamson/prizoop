@@ -51,3 +51,5 @@ struct keys {
 		unsigned char c;
 	};
 } extern keys;
+
+unsigned char keyDown_fast(int keyCode);

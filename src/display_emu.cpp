@@ -45,7 +45,7 @@ void renderEmu() {
 		}
 	}
 	else {
-		void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * cpu.memory.LY_lcdline];
+		void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * (cpu.memory.LY_lcdline + 36)];
 		RenderScanline<unsigned short>(scanlineStart);
 	}
 }

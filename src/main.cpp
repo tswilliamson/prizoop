@@ -9,6 +9,7 @@
 #include "keys.h"
 #include "memory.h"
 #include "rom.h"
+#include "bmp.h"
 
 #if !TARGET_WINSIM
 #include "Prizm_SafeOverClock.h"
@@ -74,8 +75,7 @@ int main(void) {
 	// prepare for full color mode
 	Bdisp_EnableColor(1);
 	EnableStatusArea(3);
-	Bdisp_AllClr_VRAM();
-	Bdisp_PutDisp_DD();
+
 
 	// allocate cached rom banks on the stack
 	ALLOCATE_ROM_BANKS();
@@ -86,6 +86,12 @@ int main(void) {
 	FindFiles("\\\\fls0\\*.gb", files, numFiles);
 	FindFiles("\\\\fls0\\Games\\*.gb", files, numFiles);
 	FindFiles("\\\\fls0\\ROMS\\*.gb", files, numFiles);
+
+	reset_printf();
+	memset(GetVRAMAddress(), 0, LCD_HEIGHT_PX * LCD_WIDTH_PX * 2);
+	printf("Prizoop Initializing...");
+	DrawFrame(0x0000);
+	Bdisp_PutDisp_DD();
 
 	if (numFiles == 0) {
 		printf("No .gb files found in root!");
@@ -104,6 +110,10 @@ int main(void) {
 	frameskip = 0;
 #endif
 	int colorScheme = 2;
+	int atX = 0;
+	int atY = 0;
+	int srcY = 0;
+	int destHeight = -1;
 	const colorconfig colorSchemes[] = {
 		{ "Cyan",		{ COLOR_LIGHTCYAN, COLOR_CYAN, COLOR_DARKCYAN, COLOR_BLACK, COLOR_WHITE, COLOR_CYAN, COLOR_MEDIUMBLUE, COLOR_BLACK } },
 		{ "B&W",		{ COLOR_WHITE, COLOR_LIGHTGRAY, COLOR_DARKGRAY, COLOR_BLACK, COLOR_WHITE, COLOR_LIGHTGRAY, COLOR_SLATEGRAY, COLOR_BLACK } },
@@ -112,8 +122,9 @@ int main(void) {
 		{ "Lollipop",	{ COLOR_LIGHTCYAN, COLOR_CYAN, COLOR_DARKCYAN, COLOR_BLACK, COLOR_WHITE, COLOR_YELLOW, COLOR_ORANGE, COLOR_DARKRED } },
 	};
 	do {
+		PutBMP("\\\\fls0\\Prizoop\\menu.bmp", atX, atY, srcY, destHeight);
 		reset_printf();
-		printf("Prizoop!\n");
+		printf("\n");
 		printf("F1 - ROM : %s (%d/%d)", files[rom].path, rom+1, numFiles);
 		printf("F2 - Overclock: %s\n", overclock ? "Yes" : "No");
 		printf("F3 - Fit to screen: %s\n", scale ? "Yes" : "No");
@@ -125,35 +136,42 @@ int main(void) {
 		printf("F5 - Color Scheme: %s", colorSchemes[colorScheme].name);
 		printf("F6 - Start");
 
+		DrawFrame(0x0000);
+		Bdisp_PutDisp_DD();
+
+
 		GetKey(&key);
 
+		destHeight = 17;
 		switch (key) {
 			case KEY_CTRL_F1:
 				rom = (rom + 1) % numFiles;
+				srcY = 18 * 1;
 				break;
 			case KEY_CTRL_F2:
 				overclock = !overclock;
+				srcY = 18 * 2;
 				break;
 			case KEY_CTRL_F3:
 				scale = !scale;
+				srcY = 18 * 3;
 				break;
 			case KEY_CTRL_F4:
 				frameskip = frameskip + 1;
 				if (frameskip == 5)
 					frameskip = -1;
+				srcY = 18 * 4;
 				break;
 			case KEY_CTRL_F5:
 				colorScheme = (colorScheme + 1) % (sizeof(colorSchemes) / sizeof(colorSchemes[0]));
+				srcY = 18 * 5;
 				break;
 			case KEY_CTRL_F6:
 				shouldExit = true;
 		}
+		atY = srcY;
 	} while (!shouldExit);
 	shouldExit = false;
-
-	// one more clear
-	Bdisp_AllClr_VRAM();
-	Bdisp_PutDisp_DD();
 
 	// init debug timing system
 	ScopeTimer::InitSystem();
@@ -188,6 +206,7 @@ int main(void) {
 		colorSchemes[colorScheme].col[7]
 	);
 
+	PutBMP("\\\\fls0\\Prizoop\\debug.bmp");
 	reset_printf();
 	printf("Loading file \"%s\"...\n", files[rom].path);
 
@@ -199,6 +218,13 @@ int main(void) {
 		GetKey(&key);
 		return 1;
 	}
+
+	if (scale) {
+		PutBMP("\\\\fls0\\Prizoop\\fit.bmp");
+	} else {
+		PutBMP("\\\\fls0\\Prizoop\\1x1.bmp");
+	}
+	Bdisp_PutDisp_DD();
 
 	// a somewhat forcibly unrolled loop
 	while (shouldExit == false) {

@@ -60,6 +60,10 @@ void Bdisp_PutDisp_DD() {
 	glutMainLoopEvent();
 }
 
+void DrawFrame(int color) {
+	// does nothing
+}
+
 void *GetVRAMAddress(void) {
 	return ScreenBuffer;
 }
@@ -378,6 +382,11 @@ int Bfile_CreateEntry_OS(const unsigned short*filename, int mode, size_t *size) 
 
 	// unknown mode
 	return -1;
+}
+
+int Bfile_SeekFile_OS(int handle, int pos) {
+	SetFilePointer((HANDLE)(size_t)handle, pos, NULL, FILE_BEGIN);
+	return pos;
 }
 
 int Bfile_ReadFile_OS(int handle, void *buf, int size, int readpos) {

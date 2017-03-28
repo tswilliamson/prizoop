@@ -16,9 +16,6 @@ unsigned short debugBreakpoint = 0;
 
 static int printY = 0;
 void reset_printf() {
-	Bdisp_AllClr_VRAM();
-	Bdisp_PutDisp_DD();
-
 	printY = 0;
 }
 
@@ -26,7 +23,7 @@ void ScreenPrint(char* buffer) {
 	int x = 5;
 	bool newline = buffer[strlen(buffer) - 1] == '\n';
 	if (newline) buffer[strlen(buffer) - 1] = 0;
-	PrintMini(&x, &printY, buffer, 0, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_WHITE, 1, 0);
+	PrintMini(&x, &printY, buffer, 0x42, 0xffffffff, 0, 0, COLOR_WHITE, COLOR_BLACK, 1, 0);
 	printY = (printY + 18) % 224;
 }
 
