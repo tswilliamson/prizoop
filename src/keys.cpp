@@ -18,9 +18,9 @@ unsigned char keyDown_fast(int keyCode) {
 void refresh() {
 	{
 		keys.k1.a = keyDown_fast(78);	// SHIFT
-		keys.k1.b = keyDown_fast(77);	// ALPHA
-		keys.k1.select = keyDown_fast(68); // OPTN
-		keys.k1.start = keyDown_fast(58); // VARS
+		keys.k1.b = keyDown_fast(68);	// OPTN
+		keys.k1.select = keyDown_fast(39); // F5
+		keys.k1.start = keyDown_fast(29); // F6
 		keys.k2.right = keyDown_fast(27);
 		keys.k2.left = keyDown_fast(38);
 		keys.k2.up = keyDown_fast(28);

@@ -28,6 +28,10 @@ void stepLCDOff(void) {
 	}
 	else {
 		gpu.nextTick = cpu.clocks + 456;
+
+		// good time to refresh the keys
+		extern void refresh();
+		refresh();
 	}
 }
 
@@ -44,7 +48,13 @@ void stepLCDOff_DrawScreen(void) {
 	}
 
 	if (cpu.memory.LCDC_ctl & 0x80) {
-		//  LCD was re-enabled, but first 
+		//  LCD was re-enabled, but first draw the blank result
+		for (int i = 0; i < 144; i++) {
+			renderBlankScanline();
+		}
+		drawFramebuffer();
+
+		// invalid frame next frame
 		gpuStep = stepLCDOn_OAM;
 		invalidFrame = true;
 		gpu.nextTick = cpu.clocks + 80;
@@ -133,7 +143,7 @@ void stepLCDOn_HBLANK(void) {
 		SetLY(cpu.memory.LY_lcdline + 1);
 
 		if (cpu.memory.LY_lcdline == 144) {
-			if (drawFramebuffer) {
+			if (drawFramebuffer && !invalidFrame) {
 				drawFramebuffer();
 			}
 			cpu.memory.IF_intflag |= INTERRUPTS_VBLANK;

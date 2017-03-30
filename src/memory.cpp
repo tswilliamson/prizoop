@@ -138,8 +138,7 @@ unsigned char readByteSpecial(unsigned short address) {
 			else if (!(cpu.memory.P1_joypad & 0x10)) {
 				return (unsigned char)(0xc0 | keys.keys2 | 0x20);
 			}
-			else if (!(cpu.memory.P1_joypad & 0x30)) return 0xff;
-			else return 0;
+			else return 0xff;
 		}
 		case 0x04: {
 			updateDiv();

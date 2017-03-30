@@ -110,6 +110,7 @@ void reset(void) {
 	cpu.halted = 0;
 	
 	// TODO check this.. should be same as ioReset? Or does it serve a different purpose
+	cpu.memory.P1_joypad = 0xCF;
 	writeByte(0xFF05, 0);
 	writeByte(0xFF06, 0);
 	writeByte(0xFF07, 0);
