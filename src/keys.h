@@ -34,7 +34,7 @@ struct keys2type {
 	#endif
 };
 
-struct keys {
+struct keys_type {
 	union {
 		struct {
 			union {
@@ -50,6 +50,8 @@ struct keys {
 		
 		unsigned char c;
 	};
-} extern keys;
+};
+
+extern keys_type keys;
 
 unsigned char keyDown_fast(int keyCode);

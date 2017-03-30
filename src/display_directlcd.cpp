@@ -158,14 +158,16 @@ void renderScanline1x1(void) {
 void renderBlankScanline1x1(void) {
 	const int scanBufferSize = SCANLINE_BUFFER * 160 * 2;
 
-	if (skippingFrame)
-		return;
+	skippingFrame = false;
 
 	TIME_SCOPE();
 
 	void* scanlineStart = &scanGroup[160 * curScan + curScanBuffer*scanBufferSize];
 
-	memset(scanlineStart, 0xFF, 160 * 2);
+	unsigned short* curScan = (unsigned short*) scanlineStart;
+	for (int i = 0; i < 160; i++) {
+		*(curScan++) = colorPalette[0];
+	}
 
 	// blit every SCANLINE_BUFFER # lines
 	curScan++;
@@ -282,8 +284,12 @@ void renderScanlineFit(void) {
 void renderBlankScanlineFit() {
 	const int scanBufferSize = SCANLINE_BUFFER * 160 * 4 * 3 / 2;
 
-	if (skippingFrame)
-		return;
+	skippingFrame = false;
+
+	unsigned int* curScan = (unsigned int*)scanlineStart;
+	for (int i = 0; i < 160; i++) {
+		*(curScan++) = colorPalette[0] | (colorPalette[0] << 16);
+	}
 
 	TIME_SCOPE();
 

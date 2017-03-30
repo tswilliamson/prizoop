@@ -57,15 +57,26 @@ void renderBlankEmu() {
 	// stretch across screen?
 	if (stretch) {
 		unsigned short* scanlineStart = &((unsigned short*)GetVRAMAddress())[32 + LCD_WIDTH_PX * ((cpu.memory.LY_lcdline * 3) / 2)];
-		memset(scanlineStart, 0xFF, 160 * 4);
+
+		unsigned int* curScan = (unsigned int*)scanlineStart;
+		for (int i = 0; i < 160; i++) {
+			*(curScan++) = colorPalette[0] | (colorPalette[0] << 16);
+		}
 
 		if (cpu.memory.LY_lcdline & 1) {
-			memset(scanlineStart + LCD_WIDTH_PX, 0xFF, 160 * 4);
+			curScan = (unsigned int*) (scanlineStart + LCD_WIDTH_PX);
+			for (int i = 0; i < 160; i++) {
+				*(curScan++) = colorPalette[0] | (colorPalette[0] << 16);
+			}
 		}
 	}
 	else {
 		void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * cpu.memory.LY_lcdline];
-		memset(scanlineStart, 0xFF, 160 * 2);
+
+		unsigned short* curScan = (unsigned short*)scanlineStart;
+		for (int i = 0; i < 160; i++) {
+			*(curScan++) = colorPalette[0];
+		}
 	}
 }
 

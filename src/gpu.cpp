@@ -21,43 +21,16 @@ bool invalidFrame = false;
 
 void stepLCDOff(void) {
 	if (cpu.memory.LCDC_ctl & 0x80) {
-		//  LCD was re-enabled, but first 
+		//  LCD was re-enabled
 		gpuStep = stepLCDOn_OAM;
 		invalidFrame = true;
 		gpu.nextTick = cpu.clocks + 80;
-	}
-	else {
+	} else {
 		gpu.nextTick = cpu.clocks + 456;
 
 		// good time to refresh the keys
 		extern void refresh();
 		refresh();
-	}
-}
-
-void stepLCDOff_DrawScreen(void) {
-	if (cpu.clocks - gpu.nextTick >= 70224) {
-		// draw empty framebuffer and switch to totally off
-		for (int i = 0; i < 144; i++) {
-			renderBlankScanline();
-		}
-		drawFramebuffer();
-		gpuStep = stepLCDOff;
-	} else {
-		gpu.nextTick = cpu.clocks + 456;
-	}
-
-	if (cpu.memory.LCDC_ctl & 0x80) {
-		//  LCD was re-enabled, but first draw the blank result
-		for (int i = 0; i < 144; i++) {
-			renderBlankScanline();
-		}
-		drawFramebuffer();
-
-		// invalid frame next frame
-		gpuStep = stepLCDOn_OAM;
-		invalidFrame = true;
-		gpu.nextTick = cpu.clocks + 80;
 	}
 }
 
@@ -202,7 +175,16 @@ void stepLCDOn_VBLANK(void) {
 						cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
 					}
 				} else {
-					gpuStep = stepLCDOff_DrawScreen;
+					//  LCD was disabled, but first draw the blank result
+					for (int i = 0; i < 144; i++) {
+						cpu.memory.LY_lcdline = i;
+						renderBlankScanline();
+					}
+					cpu.memory.LY_lcdline = 0;
+					drawFramebuffer();
+
+					// set the LCD step off (and technically, HBLANK mode, which indicates allowing write to all display memory)
+					setMode(0, 456, stepLCDOff);
 				}
 				break;
 			case 0x98:

@@ -50,6 +50,13 @@ void LogRegisters(void) {
 	OutputLog("SP: 0x%04x\n", cpu.registers.sp);
 	OutputLog("PC: 0x%04x\n", cpu.registers.pc);
 	OutputLog("IME: 0x%02x IE: 0x%02x IF: 0x%02x\n", cpu.IME, cpu.memory.IE_intenable, cpu.memory.IF_intflag);
+	OutputLog("Stack: 0x%04x 0x%04x 0x%04x 0x%04x 0x%04x 0x%04x\n",
+		readShort(cpu.registers.sp),
+		readShort(cpu.registers.sp+2),
+		readShort(cpu.registers.sp+4),
+		readShort(cpu.registers.sp+6),
+		readShort(cpu.registers.sp+8),
+		readShort(cpu.registers.sp+10))
 }
 
 #if DEBUG_TRACKINSTRUCTIONS

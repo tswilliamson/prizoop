@@ -1,6 +1,6 @@
 #include "keys.h"
 
-struct keys keys;
+struct keys_type keys;
 
 #if !TARGET_WINSIM
 // returns 0 if the key is down, 1 if up (to match gameboy conventions)
