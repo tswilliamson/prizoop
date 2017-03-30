@@ -60,9 +60,6 @@ struct tilestype {
 
 extern tilestype* tiles;
 
-extern unsigned char backgroundPalette[4];
-extern unsigned char spritePalette[2][4];
-
 extern void(*gpuStep)(void);
 
 // different gpu steps based on LCD status

@@ -286,11 +286,6 @@ void renderBlankScanlineFit() {
 
 	skippingFrame = false;
 
-	unsigned int* curScan = (unsigned int*)scanlineStart;
-	for (int i = 0; i < 160; i++) {
-		*(curScan++) = colorPalette[0] | (colorPalette[0] << 16);
-	}
-
 	TIME_SCOPE();
 
 	const int scanBufferOffset[8] = {
@@ -306,7 +301,10 @@ void renderBlankScanlineFit() {
 		&scanGroup[320 * curScan + curScanBuffer*scanBufferSize];
 #endif
 
-	memset(scanlineStart, 0xFF, 160 * 4);
+	unsigned int* curScanInt = (unsigned int*)scanlineStart;
+	for (int i = 0; i < 160; i++) {
+		*(curScanInt++) = colorPalette[0] | (colorPalette[0] << 16);
+	}
 
 #if !USEMEMCPY
 #if SCANLINE_BUFFER == 2
@@ -317,7 +315,10 @@ void renderBlankScanlineFit() {
 #else
 	if ((curScan & 1) == 1) {
 		scanlineStart = &scanGroup[320 * (scanBufferOffset[curScan] + 1) + curScanBuffer*scanBufferSize];
-		memset(scanlineStart, 0xFF, 160 * 4);
+		curScanInt = (unsigned int*)scanlineStart;
+		for (int i = 0; i < 160; i++) {
+			*(curScanInt++) = colorPalette[0] | (colorPalette[0] << 16);
+		}
 	}
 #endif
 #endif

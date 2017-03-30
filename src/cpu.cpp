@@ -88,21 +88,6 @@ void reset(void) {
 
 	memset(tiles, 0, sizeof(tilestype));
 	
-	backgroundPalette[0] = 0;
-	backgroundPalette[1] = 1;
-	backgroundPalette[2] = 2;
-	backgroundPalette[3] = 3;
-	
-	spritePalette[0][0] = 0;
-	spritePalette[0][1] = 3;
-	spritePalette[0][2] = 1;
-	spritePalette[0][3] = 0;
-	
-	spritePalette[1][0] = 0;
-	spritePalette[1][1] = 2;
-	spritePalette[1][2] = 1;
-	spritePalette[1][3] = 0;
-
 	gpu.nextTick = 0;
 	
 	cpu.clocks = 0;

@@ -12,9 +12,6 @@ struct gpu_type gpu;
 
 tilestype* tiles = NULL;
 
-unsigned char backgroundPalette[4];
-unsigned char spritePalette[2][4];
-
 void(*gpuStep)(void) = NULL;
 
 bool invalidFrame = false;
