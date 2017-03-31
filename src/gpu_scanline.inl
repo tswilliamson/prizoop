@@ -26,9 +26,9 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 
 		const Type palette[4] = {
 			ToScanType((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x03) >> 0]),
-			ToScanType((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x0C) >> 2]),
-			ToScanType((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x30) >> 4]),
-			ToScanType((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0xC0) >> 6])
+			ToScanType((Type)(colorPalette[(cpu.memory.BGP_bgpalette & 0x0C) >> 2] ^ 1)),
+			ToScanType((Type)(colorPalette[(cpu.memory.BGP_bgpalette & 0x30) >> 4] ^ 1)),
+			ToScanType((Type)(colorPalette[(cpu.memory.BGP_bgpalette & 0xC0) >> 6] ^ 1))
 		};
 
 		// draw background
@@ -105,6 +105,7 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 	Type* scanline = (Type*)scanlineStart;
 
 	// if sprites enabled
+	if (cpu.memory.LCDC_ctl & LCDC_SPRITEENABLE)
 	{
 		const Type palette[8] = {
 			ToScanType((Type) colorPalette[4+((cpu.memory.OBP0_spritepal0 & 0x03) >> 0)]),
@@ -121,7 +122,7 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 
 		if (cpu.memory.LCDC_ctl & LCDC_SPRITEVDOUBLE) {
 			for (int i = 0; i < 40; i++) {
-				const sprite& sprite = ((struct sprite *)oam)[i];
+				const sprite& sprite = ((struct sprite *)oam)[39-i];
 
 				if (sprite.x) {
 					int sy = sprite.y - 16;
@@ -192,7 +193,7 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 			}
 		} else {
 			for (int i = 0; i < 40; i++) {
-				const sprite& sprite = ((struct sprite *)oam)[i];
+				const sprite& sprite = ((struct sprite *)oam)[39-i];
 
 				if (sprite.x) {
 					int sy = sprite.y - 16;
