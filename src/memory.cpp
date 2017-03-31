@@ -31,6 +31,7 @@ const unsigned char ioReset[0x100] = {
 
 // Special read bytes (bit 0):
 //		0x00 : keyboard
+//		0x02 : Trx bit 7 will also read as 0 (since no serial transfer is currently supported)
 //		0x04 : DIV, upper 8 bits of internal cpu counter
 //      0x05 : TIMA, needs to be updated before being read
 //      0x08 - 0x0e : games are known to read from these and expect 0xFF for some reason
@@ -38,6 +39,7 @@ const unsigned char ioReset[0x100] = {
 //		0x41 : STAT is alway 1 in the high bit
 
 // Special write bytes (bit 1):
+//		0x02 : When enable serial trx, we need to issue an interrupt indicating no gameboy is present
 //		0x04 : DIV, any writes reset it
 //		0x05 : TIMA, writes to it need to adjust our internal timer also
 //		0x07 : TAC, writes to it MAY need to adjust our internal timer also
@@ -49,7 +51,7 @@ const unsigned char ioReset[0x100] = {
 //		0x8000 - 0x97ff
 const unsigned char specialMap[256] ALIGN(256) =
 {
-	0x01, 0x00, 0x00, 0x00,  0x03, 0x03, 0x00, 0x02,  0x01, 0x01, 0x01, 0x01,  0x01, 0x01, 0x01, 0x01,
+	0x01, 0x00, 0x03, 0x00,  0x03, 0x03, 0x00, 0x02,  0x01, 0x01, 0x01, 0x01,  0x01, 0x01, 0x01, 0x01,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
@@ -138,6 +140,10 @@ unsigned char readByteSpecial(unsigned short address) {
 			}
 			else return 0xff;
 		}
+		case 0x02: {
+			// also return transfer bit as 0
+			return cpu.memory.SC_serial_ctl & 0x7F;
+		}
 		case 0x04: {
 			updateDiv();
 			return (cpu.div & 0xFF00) >> 8;
@@ -166,6 +172,15 @@ unsigned char readByteSpecial(unsigned short address) {
 void writeByteSpecial(unsigned short address, unsigned char value) {
 	unsigned char byte = address & 0x00FF;
 	switch (byte) {
+		case 0x02:
+			cpu.memory.SC_serial_ctl = value;
+			if ((value & 0x81) == 0x81) {
+				// "receive" 0xFF and trigger interrupt if enabled
+				cpu.memory.SB_serial_data = 0xFF;
+				cpu.memory.SC_serial_ctl &= 0x7F;
+				cpu.memory.IF_intflag |= INTERRUPTS_SERIAL;
+			}
+			break;
 		case 0x04:
 			// always resets DIV when written to
 			cpu.div = 0;
