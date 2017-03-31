@@ -10,6 +10,9 @@ unsigned char cachedRomIndex[CACHE_ROM_BANK_SIZE];
 unsigned int lastCacheRequestIndex[CACHE_ROM_BANK_SIZE];
 int cacheIndex;
 
+// for higher RAM requirements, we use cached ROM banks to store our ram
+unsigned int romUsedAsRam = 0;
+
 // sram hash (for checking dirty state, need to save)
 unsigned int sramHash = 0;
 
@@ -70,6 +73,16 @@ bool supportedRAM(ramSizeType type) {
 		case RAM_2KB:
 		case RAM_8KB:
 		case RAM_MBC2:
+			// sram will do
+			mbc.ramBank = 0;
+			mbc.numRamBanks = 1;
+			romUsedAsRam = 0;
+			return true;
+		case RAM_32KB:
+			// need 2 pages:
+			mbc.ramBank = 0;
+			mbc.numRamBanks = 4;
+			romUsedAsRam = 2;
 			return true;
 	}
 
@@ -81,6 +94,7 @@ unsigned char ramNibbleCount(ramSizeType type) {
 	switch (type) {
 		case RAM_NONE: return 0;
 		case RAM_2KB: return 8;
+		case RAM_32KB:
 		case RAM_8KB: return 32;
 		case RAM_MBC2: return 2;
 	}
@@ -93,8 +107,8 @@ unsigned char ramNibbleCount(ramSizeType type) {
 mbc_rombank* cacheBank(unsigned char index) {
 	cacheIndex++;
 
-	int minSlot = 0;
-	for (int i = 0; i < CACHE_ROM_BANK_SIZE; i++) {
+	int minSlot = romUsedAsRam;
+	for (int i = romUsedAsRam; i < CACHE_ROM_BANK_SIZE; i++) {
 		if (cachedRomIndex[i] == index) {
 			lastCacheRequestIndex[i] = cacheIndex;
 			return cachedRom[i];
@@ -133,15 +147,26 @@ void selectRomBank(unsigned char bankNum) {
 }
 
 // selects the given ram bank
-void selectRamBank(unsigned char bankNum) {
-	// does nothing currently
+void selectRamBank(unsigned char bankNum, bool force = false) {
+	if ((bankNum != mbc.ramBank || force) && bankNum < mbc.numRamBanks) {
+		// map memory to our usurped rom cache area
+		int nibbleCount = ramNibbleCount(mbc.ramType);
+		for (int i = 0; i < nibbleCount; i++) {
+			memoryMap[0xa0 + i] = &cachedRom[bankNum / 2]->bank[(i << 8) + 0x2000 * (bankNum % 2)];
+		}
+		mbc.ramBank = bankNum;
+	}
 }
 
 // enable sram by updating memory map
 void enableSRAM() {
-	int nibbleCount = ramNibbleCount(mbc.ramType);
-	for (int i = 0; i < nibbleCount; i++) {
-		memoryMap[0xa0 + i] = &sram[i << 8];
+	if (mbc.numRamBanks <= 1) {
+		int nibbleCount = ramNibbleCount(mbc.ramType);
+		for (int i = 0; i < nibbleCount; i++) {
+			memoryMap[0xa0 + i] = &sram[i << 8];
+		}
+	} else {
+		selectRamBank(mbc.ramBank, true);
 	}
 }
 
@@ -167,6 +192,7 @@ bool setupMBCType(mbcType type, unsigned char romSizeByte, unsigned char ramSize
 			// sram is sometimes in use with these, just enable it:
 			mbc.ramType = RAM_8KB;
 			mbc.numRomBanks = 2;
+			mbc.numRamBanks = 1;
 			selectRomBank(1);
 			enableSRAM();
 			return true;
@@ -182,6 +208,14 @@ bool setupMBCType(mbcType type, unsigned char romSizeByte, unsigned char ramSize
 			mbc.batteryBacked = 1;
 		case ROM_MBC2:
 			mbc.ramType = RAM_MBC2;
+			mbc.numRomBanks = numSwitchableBanksFromType(romSizeByte);
+			selectRomBank(1);
+			break;
+		case ROM_MBC3_RAM_BATT:
+			mbc.batteryBacked = 1;
+		case ROM_MBC3_RAM:
+			mbc.ramType = (ramSizeType)ramSizeByte;
+		case ROM_MBC3:
 			mbc.numRomBanks = numSwitchableBanksFromType(romSizeByte);
 			selectRomBank(1);
 			break;
@@ -266,24 +300,58 @@ void mbcWrite(unsigned short address, unsigned char value) {
 				}
 			}
 			return;
+		case ROM_MBC3:
+		case ROM_MBC3_RAM:
+		case ROM_MBC3_RAM_BATT:
+			if (upperNibble <= 0x01) {
+				if ((value & 0x0F) == 0x0A) {
+					enableSRAM();
+				}
+				else {
+					disableSRAM();
+				}
+			}
+			else if (upperNibble <= 0x03) {
+				// lower 7 bits
+				value &= 0x7F;
+				if (value == 0) {
+					selectRomBank(1);
+				} else {
+					selectRomBank(value);
+				}
+			} 
+			else if (upperNibble <= 0x05) {
+				selectRamBank(value);
+			}
 	}
 }
 
 // SRAM saving / loading
 
-static unsigned int curSRAMHash(int size) {
-	DebugAssert(size <= 8192);
-
+static unsigned int curRAMHash(int size) {
 	unsigned int ret = 0;
-	for (int i = 0; i < size; i++) {
-		ret = ((ret << 5) + (ret >> 27)) ^ sram[i];
+
+	if (size <= 8192) {
+		for (int i = 0; i < size; i++) {
+			ret = ((ret << 5) + (ret >> 27)) ^ sram[i];
+		}
+	} else {
+		for (int b = 0; b <= size / 0x4000; b++) {
+			for (int i = 0; i < 0x4000; i++) {
+				ret = ((ret << 5) + (ret >> 27)) ^ cachedRom[b]->bank[i];
+			}
+		}
 	}
+
 	return ret;
 }
 
 // attempts to load SRAM from the given file path, false on error
 bool tryLoadSRAM(const char* filepath) {
 	int sramSize = ramNibbleCount(mbc.ramType) * 256;
+	if (mbc.numRamBanks > 1) {
+		sramSize = 8192 * mbc.numRamBanks;
+	}
 
 	if (sramSize) {
 		unsigned short pFile[256];
@@ -295,10 +363,25 @@ bool tryLoadSRAM(const char* filepath) {
 			return false;
 		}
 
-		if (Bfile_ReadFile_OS(hFile, sram, sramSize, 0) == sramSize) {
-			sramHash = curSRAMHash(sramSize);
-			Bfile_CloseFile_OS(hFile);
-			return true;
+		if (sramSize <= 8192) {
+			if (Bfile_ReadFile_OS(hFile, sram, sramSize, 0) == sramSize) {
+				sramHash = curRAMHash(sramSize);
+				Bfile_CloseFile_OS(hFile);
+				return true;
+			}
+		} else {
+			// read each bank
+			bool failed = false;
+			for (unsigned char i = 0; i < mbc.numRamBanks; i++) {
+				if (Bfile_ReadFile_OS(hFile, &cachedRom[i / 2]->bank[0x2000 * (i % 2)], 0x2000, i * 0x2000) != 0x2000) {
+					failed = true;
+				}
+			}
+			if (!failed) {
+				sramHash = curRAMHash(sramSize);
+				Bfile_CloseFile_OS(hFile);
+				return true;
+			}
 		}
 
 		Bfile_CloseFile_OS(hFile);
@@ -315,7 +398,10 @@ bool tryLoadSRAM(const char* filepath) {
 // attempts to save SRAM for a game to the given file path
 void trySaveSRAM(const char* filepath) {
 	int sramSize = ramNibbleCount(mbc.ramType) * 256;
-	int curHash = curSRAMHash(sramSize);
+	if (mbc.numRamBanks > 1) {
+		sramSize = 8192 * mbc.numRamBanks;
+	}
+	int curHash = curRAMHash(sramSize);
 
 	if (curHash != sramHash) {
 		unsigned short pFile[256];
@@ -334,7 +420,17 @@ void trySaveSRAM(const char* filepath) {
 			}
 		}
 
-		Bfile_WriteFile_OS(hFile, sram, sramSize);
+		if (sramSize <= 8192) {
+			Bfile_WriteFile_OS(hFile, sram, sramSize);
+		}
+		else {
+			// read each bank
+			bool failed = false;
+			for (unsigned char i = 0; i < mbc.numRamBanks; i++) {
+				Bfile_WriteFile_OS(hFile, &cachedRom[i / 2]->bank[0x2000 * (i % 2)], 0x2000);
+			}
+		}
+
 		Bfile_CloseFile_OS(hFile);
 
 		// now in sync with file system

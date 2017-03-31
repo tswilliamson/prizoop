@@ -48,6 +48,7 @@ struct mbc_state {
 	mbcType type;					// active type
 	ramSizeType ramType;			// active ram type
 	unsigned char numRomBanks;		// number of 16 KB ROM banks
+	unsigned char numRamBanks;		// number of 8 KB RAM Banks
 	unsigned char batteryBacked;	// 1 if rom battery backup is used for RAM
 
 	unsigned char romBank;			// selected rom bank
