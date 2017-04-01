@@ -140,19 +140,6 @@ void drawEmu() {
 	refresh();
 }
 
-#if TARGET_WINSIM
-#include "prizmsim.h"
-void refresh() {
-	keys.k1.a = GetKey_SimFast(KEY_CTRL_SHIFT) ? 0 : 1;	// SHIFT
-	keys.k1.b = GetKey_SimFast(KEY_CTRL_ALPHA) ? 0 : 1;	// ALPHA
-	keys.k1.select = GetKey_SimFast(KEY_CTRL_OPTN) ? 0 : 1; // OPTN
-	keys.k1.start = GetKey_SimFast(KEY_CTRL_VARS) ? 0 : 1; // VARS
-	keys.k2.right = GetKey_SimFast(KEY_CTRL_RIGHT) ? 0 : 1;
-	keys.k2.left = GetKey_SimFast(KEY_CTRL_LEFT) ? 0 : 1;
-	keys.k2.up = GetKey_SimFast(KEY_CTRL_UP) ? 0 : 1;
-	keys.k2.down = GetKey_SimFast(KEY_CTRL_DOWN) ? 0 : 1;
-}
-#endif
 
 void(*renderScanline)(void) = renderEmu;
 void(*renderBlankScanline)(void) = renderBlankEmu;

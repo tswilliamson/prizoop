@@ -81,6 +81,8 @@ int main(void) {
 	// allocate cached rom banks on the stack
 	ALLOCATE_ROM_BANKS();
 
+	emulator.startUp();
+
 	// collect ROM files
 	foundFile files[16];
 	int numFiles = 0;

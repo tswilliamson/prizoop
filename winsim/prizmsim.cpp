@@ -163,79 +163,85 @@ void PrintMini(int *x, int *y, const char *MB_string, int mode_flags, unsigned i
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Keyboard handling
 
+struct VKeyMapping {
+	DWORD virtualKey;
+	unsigned short getKeyCode;
+	unsigned char fastKeyCode;
+};
+
 // Mapped virtual keys:
 #define NUM_KEY_MAPS 50
-DWORD vKeyToPrizmKey[NUM_KEY_MAPS][2] = {
+static VKeyMapping keys[NUM_KEY_MAPS] = {
 //  F1-F6 - F1-F6
-	{ VK_F1,			KEY_CTRL_F1 },
-	{ VK_F2,			KEY_CTRL_F2 },
-	{ VK_F3,			KEY_CTRL_F3 },
-	{ VK_F4,			KEY_CTRL_F4 },
-	{ VK_F5,			KEY_CTRL_F5 },
-	{ VK_F6,			KEY_CTRL_F6 },
+	{ VK_F1,			KEY_CTRL_F1, 79 },
+	{ VK_F2,			KEY_CTRL_F2, 69 },
+	{ VK_F3,			KEY_CTRL_F3, 59 },
+	{ VK_F4,			KEY_CTRL_F4, 49 },
+	{ VK_F5,			KEY_CTRL_F5, 39 },
+	{ VK_F6,			KEY_CTRL_F6, 29 },
 //  Directional Arrows - Arrow Keys
-	{ VK_LEFT,			KEY_CTRL_LEFT },
-	{ VK_RIGHT,			KEY_CTRL_RIGHT },
-	{ VK_UP,			KEY_CTRL_UP },
-	{ VK_DOWN,			KEY_CTRL_DOWN },
+	{ VK_LEFT,			KEY_CTRL_LEFT, 38 },
+	{ VK_RIGHT,			KEY_CTRL_RIGHT, 27 },
+	{ VK_UP,			KEY_CTRL_UP, 28 },
+	{ VK_DOWN,			KEY_CTRL_DOWN, 37 },
 //  SHIFT/OPTN/VARS/MENU - ASDF 
-	{ 'A',				KEY_CTRL_SHIFT },
-	{ 'S',				KEY_CTRL_OPTN },
-	{ 'D',				KEY_CTRL_VARS },
-	{ 'F',				KEY_CTRL_MENU },
+	{ 'A',				KEY_CTRL_SHIFT, 78 },
+	{ 'S',				KEY_CTRL_OPTN, 68 },
+	{ 'D',				KEY_CTRL_VARS, 58 },
+	{ 'F',				KEY_CTRL_MENU, 48 },
 //  ALPHA/X^2/^/EXIT - ZXCV
-	{ 'Z',				KEY_CTRL_ALPHA },
-	{ 'X',				KEY_CHAR_SQUARE },
-	{ 'C',				KEY_CHAR_POW },
-	{ 'V',				KEY_CTRL_EXIT },
+	{ 'Z',				KEY_CTRL_ALPHA, 77 },
+	{ 'X',				KEY_CHAR_SQUARE, 67 },
+	{ 'C',				KEY_CHAR_POW, 57 },
+	{ 'V',				KEY_CTRL_EXIT, 47 },
 //  Row of X.theta.tan - TYUIOP
-	{ 'T',				KEY_CTRL_XTT },
-	{ 'Y',				KEY_CHAR_LOG },
-	{ 'U',				KEY_CHAR_LN },
-	{ 'I',				KEY_CHAR_SIN },
-	{ 'O',				KEY_CHAR_COS },
-	{ 'P',				KEY_CHAR_TAN },
+	{ 'T',				KEY_CTRL_XTT, 76 },
+	{ 'Y',				KEY_CHAR_LOG, 66 },
+	{ 'U',				KEY_CHAR_LN, 56 },
+	{ 'I',				KEY_CHAR_SIN, 46 },
+	{ 'O',				KEY_CHAR_COS, 36 },
+	{ 'P',				KEY_CHAR_TAN, 26 },
 //  Row of Ab/c - GHJKL;
-	{ 'G',				KEY_CTRL_MIXEDFRAC },
-	{ 'H',				KEY_CTRL_FD },
-	{ 'J',				KEY_CHAR_LPAR },
-	{ 'K',				KEY_CHAR_RPAR },
-	{ 'L',				KEY_CHAR_COMMA },
-	{ ';',				KEY_CHAR_STORE },
+	{ 'G',				KEY_CTRL_MIXEDFRAC, 75 },
+	{ 'H',				KEY_CTRL_FD, 65 },
+	{ 'J',				KEY_CHAR_LPAR, 55 },
+	{ 'K',				KEY_CHAR_RPAR, 45 },
+	{ 'L',				KEY_CHAR_COMMA, 35 },
+	{ ';',				KEY_CHAR_STORE, 25 },
 //  Numpad maps to bottom numpad
-	{ VK_NUMPAD0,		KEY_CHAR_0 },
-	{ VK_NUMPAD1,		KEY_CHAR_1 },
-	{ VK_NUMPAD2,		KEY_CHAR_2 },
-	{ VK_NUMPAD3,		KEY_CHAR_3 },
-	{ VK_NUMPAD4,		KEY_CHAR_4 },
-	{ VK_NUMPAD5,		KEY_CHAR_5 },
-	{ VK_NUMPAD6,		KEY_CHAR_6 },
-	{ VK_NUMPAD7,		KEY_CHAR_7 },
-	{ VK_NUMPAD8,		KEY_CHAR_8 },
-	{ VK_NUMPAD9,		KEY_CHAR_9 },
-	{ VK_OEM_MINUS,		KEY_CHAR_MINUS },
-	{ VK_OEM_PLUS,		KEY_CHAR_PLUS },
-	{ VK_MULTIPLY,		KEY_CHAR_MULT },
-	{ VK_DIVIDE,		KEY_CHAR_DIV },
-	{ VK_OEM_PERIOD,	KEY_CHAR_DP },
+	{ VK_NUMPAD0,		KEY_CHAR_0, 71 },
+	{ VK_NUMPAD1,		KEY_CHAR_1, 72 },
+	{ VK_NUMPAD2,		KEY_CHAR_2, 62 },
+	{ VK_NUMPAD3,		KEY_CHAR_3, 52 },
+	{ VK_NUMPAD4,		KEY_CHAR_4, 73 },
+	{ VK_NUMPAD5,		KEY_CHAR_5, 63 },
+	{ VK_NUMPAD6,		KEY_CHAR_6, 53 },
+	{ VK_NUMPAD7,		KEY_CHAR_7, 74 },
+	{ VK_NUMPAD8,		KEY_CHAR_8, 64 },
+	{ VK_NUMPAD9,		KEY_CHAR_9, 54 },
+	{ VK_OEM_MINUS,		KEY_CHAR_MINUS, 32 },
+	{ VK_OEM_PLUS,		KEY_CHAR_PLUS, 42 },
+	{ VK_MULTIPLY,		KEY_CHAR_MULT, 43 },
+	{ VK_DIVIDE,		KEY_CHAR_DIV, 33 },
+	{ VK_OEM_PERIOD,	KEY_CHAR_DP, 61 },
 //  DEL - Delete
-	{ VK_DELETE,		KEY_CTRL_DEL },
+	{ VK_DELETE,		KEY_CTRL_DEL, 44 },
 //  EXP - Home
-	{ VK_HOME,			KEY_CHAR_EXP },
+	{ VK_HOME,			KEY_CHAR_EXP , 51},
 //  (-) - End
-	{ VK_END,			KEY_CHAR_PMINUS },
+	{ VK_END,			KEY_CHAR_PMINUS, 41 },
 //  EXE - Enter
-	{ VK_RETURN,		KEY_CTRL_EXE },
+	{ VK_RETURN,		KEY_CTRL_EXE, 31 },
 //  AC/On - Escape (though this will exit the program on simulator anyway)
-	{ VK_ESCAPE,		KEY_CTRL_AC },
+	{ VK_ESCAPE,		KEY_CTRL_AC, 10 },
 };
 
 int GetKey(int* key) {
 	int result = 0;
 	while (!result) {
 		for (int i = 0; i < NUM_KEY_MAPS; i++) {
-			if ((GetAsyncKeyState(vKeyToPrizmKey[i][0]) & 0x8000) != 0) {
-				result = vKeyToPrizmKey[i][1];
+			if ((GetAsyncKeyState(keys[i].virtualKey) & 0x8000) != 0) {
+				result = keys[i].getKeyCode;
 				break;
 			}
 		}
@@ -250,7 +256,7 @@ int GetKey(int* key) {
 	while (!up) {
 		up = true;
 		for (int i = 0; i < NUM_KEY_MAPS; i++) {
-			if ((GetAsyncKeyState(vKeyToPrizmKey[i][0]) & 0x8000) != 0) {
+			if ((GetAsyncKeyState(keys[i].virtualKey) & 0x8000) != 0) {
 				up = false;
 				break;
 			}
@@ -269,18 +275,18 @@ int GetKey(int* key) {
 	return result >= 30000 ? 0 : 1;
 }
 
-int GetKey_SimFast(int keycode) {
+bool keyDown_fast(int keycode) {
 	for (int i = 0; i < NUM_KEY_MAPS; i++) {
-		if (vKeyToPrizmKey[i][1] == keycode) {
-			if ((GetAsyncKeyState(vKeyToPrizmKey[i][0]) & 0x8000) != 0) {
-				return 1;
+		if (keys[i].fastKeyCode == keycode) {
+			if ((GetAsyncKeyState(keys[i].virtualKey) & 0x8000) != 0) {
+				return true;
 			} else {
-				return 0;
+				return false;
 			}
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
