@@ -2,8 +2,10 @@
 #include "platform.h"
 
 #include "bmp.h"
+#include "emulator.h"
+#include "debug.h"
 
-void PutBMP(const char* filepath, int atX, int atY, int srcY, int destHeight) {
+void PutBMP(const char* filepath, int x1, int y1, int x2, int y2) {
 	// try to load the file
 	unsigned short fileAsName[512];
 	Bfile_StrToName_ncpy(fileAsName, filepath, strlen(filepath) + 1);
@@ -17,31 +19,28 @@ void PutBMP(const char* filepath, int atX, int atY, int srcY, int destHeight) {
 	unsigned char header[54];
 	Bfile_ReadFile_OS(file, header, 54, -1); // read the 54-byte header
 
-											   // extract image height and width from header
+	 // extract image height and width from header
 	signed short width = header[18] + 256 * header[19];
 	signed short height = header[22] + 256 * header[23];
 	signed short depth = header[28] + 256 * header[29];
-
 	if (height < 0) height = -height;
 
-	if (depth != 16 || width > 384) {
+	// currently only support full screen images
+	DebugAssert(width == 384 && height == 216);
+
+	if (depth != 16) {
 		Bfile_CloseFile_OS(file);
 		memset(GetVRAMAddress(), 0x00, 2 * LCD_HEIGHT_PX * LCD_WIDTH_PX);
 		return;
 	}
 
-	if (srcY != 0) {
-		Bfile_SeekFile_OS(file, 54 + 2 * width * srcY);
-	}
-
-	int endY = height;
-	if (destHeight != -1) {
-		endY = srcY + destHeight;
+	if (y1 != 0) {
+		Bfile_SeekFile_OS(file, 54 + 2 * width * y1);
 	}
 
 	// each row:
 	unsigned short color[384];
-	for (int y = srcY; y < endY; y++) {
+	for (int y = y1; y < y2; y++) {
 		Bfile_ReadFile_OS(file, color, 2 * width, -1);
 		// assuming format is endian flipped BGR:
 #ifdef BIG_E
@@ -56,10 +55,14 @@ void PutBMP(const char* filepath, int atX, int atY, int srcY, int destHeight) {
 				((color[x] & 0x7C00) << 1);
 		}
 		memcpy(
-			((short*)GetVRAMAddress()) + atX + (y - srcY + atY) * LCD_WIDTH_PX,
+			((short*)GetVRAMAddress()) + x1 + y * LCD_WIDTH_PX,
 			color,
-			2 * width);
+			2 * (x2 - x1));
 	}
 
 	Bfile_CloseFile_OS(file);
+}
+
+void emulator_screen::DrawBG(char* filename, int x1, int y1, int x2, int y2) {
+	PutBMP(filename, x1, y1, x2, y2);
 }

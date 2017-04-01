@@ -3,17 +3,19 @@
 #include "cpu.h"
 #include "mbc.h"
 
-enum emu_button {
-	A = 0,
-	B = 1,
-	SELECT = 2,
-	START = 3,
-	RIGHT = 4,
-	LEFT = 5,
-	UP = 6, 
-	DOWN = 7,
-	MAX = 8
-};
+namespace emu_button {
+	enum {
+		A = 0,
+		B = 1,
+		SELECT = 2,
+		START = 3,
+		RIGHT = 4,
+		LEFT = 5,
+		UP = 6,
+		DOWN = 7,
+		MAX = 8
+	};
+}
 
 // Emulation settings
 struct emulator_settings {
@@ -49,9 +51,21 @@ struct emulator_state {
 
 struct emulator_screen {
 	int fKey;
-	virtual void setup();
-	virtual void run();
-	virtual void cleanup();
+
+	virtual void setup() {}
+	virtual void select() {}
+	virtual void deselect() {}
+
+	// key press handles
+	virtual void handleUp() {}
+	virtual void handleDown() {}
+	virtual void handleLeft() {}
+	virtual void handleRight() {}
+	virtual void handleSelect() {}
+
+protected:
+	// helper functions
+	void DrawBG(char* filename, int x1 = 0, int y1 = 0, int x2 = 384, int y2 = 216);
 };
 
 // The main emulator object
@@ -62,10 +76,10 @@ struct emulator_type {
 	// menu
 	int curScreen;
 	emulator_screen* screens[6];
-	void changeScreen(emulator_screen* newScreen);
 
 	// overall application
 	void startUp();
+	void run();
 
 	// options display and handling
 	bool loadSettings();			// returns false if not found
@@ -78,6 +92,9 @@ struct emulator_type {
 	void bootLoadedRom();			// boots loaded rom from 0x100 address and reset Gameboy state
 	void saveState();
 	bool loadState();				// returns true if a state was found
+
+private:
+	void tryScreenChange(int targetFKey);
 };
 
 extern emulator_type emulator;

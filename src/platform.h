@@ -17,6 +17,7 @@
 #else
 #define ALIGN(x) __attribute__((aligned(x)))
 #define BIG_E
+#define override
 #endif
 
 // compile time assert, will throw negative subscript error

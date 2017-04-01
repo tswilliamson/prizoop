@@ -1,4 +1,4 @@
 #pragma once
 
 // copies the given 16-bit bmp file to the screen
-void PutBMP(const char* filepath, int atX = 0, int atY = 0, int srcY = 0, int destHeight = -1);
+void PutBMP(const char* filepath, int x1 = 0, int y1 = 0, int x2 = 384, int y2 = 216);

@@ -103,6 +103,7 @@ int main(void) {
 	}
 	
 	// show emulator options screen
+	PutBMP("\\\\fls0\\Prizoop\\menu.bmp");
 
 	// figure out options
 	int rom = 0;
@@ -113,10 +114,10 @@ int main(void) {
 	frameskip = 0;
 #endif
 	int colorScheme = 2;
-	int atX = 0;
-	int atY = 0;
-	int srcY = 0;
-	int destHeight = -1;
+	int x1 = 0;
+	int y1 = 0;
+	int x2 = 384;
+	int y2 = 18;
 	const colorconfig colorSchemes[] = {
 		{ "Cyan",		{ COLOR_LIGHTCYAN, COLOR_CYAN, COLOR_DARKCYAN, COLOR_BLACK, COLOR_WHITE, COLOR_CYAN, COLOR_MEDIUMBLUE, COLOR_BLACK } },
 		{ "B&W",		{ COLOR_WHITE, COLOR_LIGHTGRAY, COLOR_DARKGRAY, COLOR_BLACK, COLOR_WHITE, COLOR_LIGHTGRAY, COLOR_SLATEGRAY, COLOR_BLACK } },
@@ -125,7 +126,7 @@ int main(void) {
 		{ "Lollipop",	{ COLOR_LIGHTCYAN, COLOR_CYAN, COLOR_DARKCYAN, COLOR_BLACK, COLOR_WHITE, COLOR_YELLOW, COLOR_ORANGE, COLOR_DARKRED } },
 	};
 	do {
-		PutBMP("\\\\fls0\\Prizoop\\menu.bmp", atX, atY, srcY, destHeight);
+		PutBMP("\\\\fls0\\Prizoop\\menu.bmp", x1, y1, x2, y2);
 		reset_printf();
 		printf("\n");
 		printf("F1 - ROM : %s (%d/%d)", files[rom].path, rom+1, numFiles);
@@ -145,34 +146,33 @@ int main(void) {
 
 		GetKey(&key);
 
-		destHeight = 17;
 		switch (key) {
 			case KEY_CTRL_F1:
 				rom = (rom + 1) % numFiles;
-				srcY = 18 * 1;
+				y1 = 18 * 1;
 				break;
 			case KEY_CTRL_F2:
 				overclock = !overclock;
-				srcY = 18 * 2;
+				y1 = 18 * 2;
 				break;
 			case KEY_CTRL_F3:
 				scale = !scale;
-				srcY = 18 * 3;
+				y1 = 18 * 3;
 				break;
 			case KEY_CTRL_F4:
 				frameskip = frameskip + 1;
 				if (frameskip == 5)
 					frameskip = -1;
-				srcY = 18 * 4;
+				y1 = 18 * 4;
 				break;
 			case KEY_CTRL_F5:
 				colorScheme = (colorScheme + 1) % (sizeof(colorSchemes) / sizeof(colorSchemes[0]));
-				srcY = 18 * 5;
+				y1 = 18 * 5;
 				break;
 			case KEY_CTRL_F6:
 				shouldExit = true;
 		}
-		atY = srcY;
+		y2 = y1 + 17;
 	} while (!shouldExit);
 	shouldExit = false;
 

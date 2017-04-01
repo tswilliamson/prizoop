@@ -90,6 +90,9 @@
     <ClCompile Include="..\src\bmp.cpp">
       <Filter>Source Files\menu</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\screen_rom.cpp">
+      <Filter>Source Files\menu</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\main.h">
@@ -147,6 +150,9 @@
       <Filter>Header Files\core</Filter>
     </ClInclude>
     <ClInclude Include="..\src\bmp.h">
+      <Filter>Header Files\menu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\screen_rom.h">
       <Filter>Header Files\menu</Filter>
     </ClInclude>
   </ItemGroup>
