@@ -128,6 +128,10 @@ mbc_bankcache* cacheBank(unsigned int index) {
 #if TARGET_WINSIM
 	extern int cacheMisses;
 	cacheMisses++;
+#else
+	// flush DMA call since we are making a serious system call
+	extern void DmaWaitNext();
+	DmaWaitNext();
 #endif
 
 	// uncached! using minimum cache request index, read into slot from file and return
