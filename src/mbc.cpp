@@ -4,14 +4,14 @@
 #include "mbc.h"
 #include "memory.h"
 
-// cached rom banks
-mbc_rombank* cachedRom[CACHE_ROM_BANK_SIZE];
-unsigned char cachedRomIndex[CACHE_ROM_BANK_SIZE];
-unsigned int lastCacheRequestIndex[CACHE_ROM_BANK_SIZE];
-int cacheIndex;
+// cached banks
+mbc_bankcache* cachedBanks[NUM_CACHED_BANKS];
+unsigned int cachedBankIndex[NUM_CACHED_BANKS];
+unsigned int lastCacheRequestIndex[NUM_CACHED_BANKS];
+int cacheIndex = 0;
 
-// for higher RAM requirements, we use cached ROM banks to store our ram
-unsigned int romUsedAsRam = 0;
+// for higher RAM requirements, we use cached banks to store our ram, the rest our stored starting with firstRomCache, as indicated by this var
+unsigned int firstRomCache = 0;
 
 // sram hash (for checking dirty state, need to save)
 unsigned int sramHash = 0;
@@ -76,13 +76,13 @@ bool supportedRAM(ramSizeType type) {
 			// sram will do
 			mbc.ramBank = 0;
 			mbc.numRamBanks = 1;
-			romUsedAsRam = 0;
+			firstRomCache = 0;
 			return true;
 		case RAM_32KB:
 			// need 2 pages:
 			mbc.ramBank = 0;
 			mbc.numRamBanks = 4;
-			romUsedAsRam = 2;
+			firstRomCache = 8;
 			return true;
 	}
 
@@ -103,29 +103,41 @@ unsigned char ramNibbleCount(ramSizeType type) {
 	return 0;
 }
 
-// returns the cached rom bank (or caches it) with the given index
-mbc_rombank* cacheBank(unsigned char index) {
+// returns the cached rom bank (or caches it) with the given index (which is a a factor of the number of caches per rom bank)
+mbc_bankcache* cacheBank(unsigned int index) {
 	cacheIndex++;
 
-	int minSlot = romUsedAsRam;
-	for (int i = romUsedAsRam; i < CACHE_ROM_BANK_SIZE; i++) {
-		if (cachedRomIndex[i] == index) {
+	// rare case: on overflow, the cache system needs a reset
+	if (cacheIndex == 0) {
+		for (int i = firstRomCache; i < NUM_CACHED_BANKS; i++) {
+			lastCacheRequestIndex[i] = 0;
+		}
+	}
+
+	int minSlot = firstRomCache;
+	for (int i = firstRomCache; i < NUM_CACHED_BANKS; i++) {
+		if (cachedBankIndex[i] == index) {
 			lastCacheRequestIndex[i] = cacheIndex;
-			return cachedRom[i];
+			return cachedBanks[i];
 		} 
 		if (lastCacheRequestIndex[i] < lastCacheRequestIndex[minSlot]) {
 			minSlot = i;
 		}
 	}
 
-	// uncached! using minimum cache request index, read into slot from file and return
-	int read = Bfile_ReadFile_OS(mbc.romFile, cachedRom[minSlot]->bank, 0x4000, index * 0x4000);
-	DebugAssert(read == 0x4000);
+#if TARGET_WINSIM
+	extern int cacheMisses;
+	cacheMisses++;
+#endif
 
-	if (read == 0x4000) {
-		cachedRomIndex[minSlot] = index;
+	// uncached! using minimum cache request index, read into slot from file and return
+	int read = Bfile_ReadFile_OS(mbc.romFile, cachedBanks[minSlot]->bank, 0x1000, index * 0x1000);
+	DebugAssert(read == 0x1000);
+
+	if (read == 0x1000) {
+		cachedBankIndex[minSlot] = index;
 		lastCacheRequestIndex[minSlot] = cacheIndex;
-		return cachedRom[minSlot];
+		return cachedBanks[minSlot];
 	} else {
 		return NULL;
 	}
@@ -141,24 +153,44 @@ unsigned char numSwitchableBanksFromType(unsigned char romSizeByte) {
 void selectRomBank(unsigned char bankNum) {
 	if (bankNum < mbc.numRomBanks && bankNum != mbc.romBank) {
 		TIME_SCOPE();
-
-		mbc_rombank* bank = cacheBank(bankNum);
+		
 		mbc.romBank = bankNum;
 
-		// map the bank to 0x4000 to 0x7fff:
+		// invalidate addresses in memory map for reading
 		for (int i = 0x40; i <= 0x7f; i++) {
-			memoryMap[i] = &bank->bank[(i - 0x40) << 8];
+			specialMap[i] |= 0x10;
 		}
 	}
+}
+
+unsigned char mbcRead(unsigned short address) {
+	unsigned char highNibble = address >> 12;
+	mbc_bankcache* cache = cacheBank(mbc.romBank * 4 + highNibble - 4);
+
+	for (int i = 0; i < 16; i++) {
+		// map the cache
+		memoryMap[(highNibble << 4) + i] = &cache->bank[256 * i];
+		// we've validated the highest nibble
+		specialMap[(highNibble << 4) + i] &= ~0x10;
+	}
+
+	// to avoid memory barrier caching issues, flush next page if we are close to the end of the current one
+	if (highNibble != 0x07 && ((address & 0x0FF0) == 0x0FF0)) {
+		mbcRead(address + 16);
+	}
+
+	return memoryMap[address >> 8][address & 0xFF];
 }
 
 // selects the given ram bank
 void selectRamBank(unsigned char bankNum, bool force = false) {
 	if ((bankNum != mbc.ramBank || force) && bankNum < mbc.numRamBanks) {
 		// map memory to our usurped rom cache area
-		int nibbleCount = ramNibbleCount(mbc.ramType);
-		for (int i = 0; i < nibbleCount; i++) {
-			memoryMap[0xa0 + i] = &cachedRom[bankNum / 2]->bank[(i << 8) + 0x2000 * (bankNum % 2)];
+		for (int i = 0; i < 16; i++) {
+			memoryMap[0xa0 + i] = &cachedBanks[bankNum * 2]->bank[i << 8];
+		}
+		for (int i = 0; i < 16; i++) {
+			memoryMap[0xb0 + i] = &cachedBanks[bankNum * 2+1]->bank[i << 8];
 		}
 		mbc.ramBank = bankNum;
 	}
@@ -185,7 +217,7 @@ void disableSRAM() {
 
 bool setupMBCType(mbcType type, unsigned char romSizeByte, unsigned char ramSizeByte, int fileID) {
 	memset(&mbc, 0, sizeof(mbc));
-	memset(cachedRomIndex, 0, sizeof(cachedRomIndex));
+	memset(cachedBankIndex, 0, sizeof(cachedBankIndex));
 	memset(lastCacheRequestIndex, 0, sizeof(lastCacheRequestIndex));
 	cacheIndex = 0;
 
@@ -201,6 +233,10 @@ bool setupMBCType(mbcType type, unsigned char romSizeByte, unsigned char ramSize
 			mbc.numRamBanks = 1;
 			selectRomBank(1);
 			enableSRAM();
+		/*	mbcRead(0x4000);
+			mbcRead(0x5000);
+			mbcRead(0x6000);
+			mbcRead(0x7000); */
 			return true;
 		case ROM_MBC1_RAM_BATT:
 			mbc.batteryBacked = 1;
@@ -342,9 +378,9 @@ static unsigned int curRAMHash(int size) {
 			ret = ((ret << 5) + (ret >> 27)) ^ sram[i];
 		}
 	} else {
-		for (int b = 0; b <= size / 0x4000; b++) {
-			for (int i = 0; i < 0x4000; i++) {
-				ret = ((ret << 5) + (ret >> 27)) ^ cachedRom[b]->bank[i];
+		for (int b = 0; b <= size / 0x1000; b++) {
+			for (int i = 0; i < 0x1000; i++) {
+				ret = ((ret << 5) + (ret >> 27)) ^ cachedBanks[b]->bank[i];
 			}
 		}
 	}
@@ -378,8 +414,8 @@ bool tryLoadSRAM(const char* filepath) {
 		} else {
 			// read each bank
 			bool failed = false;
-			for (unsigned char i = 0; i < mbc.numRamBanks; i++) {
-				if (Bfile_ReadFile_OS(hFile, &cachedRom[i / 2]->bank[0x2000 * (i % 2)], 0x2000, i * 0x2000) != 0x2000) {
+			for (unsigned char i = 0; i < mbc.numRamBanks * 2; i++) {
+				if (Bfile_ReadFile_OS(hFile, &cachedBanks[i]->bank[0], 0x1000, i * 0x1000) != 0x1000) {
 					failed = true;
 				}
 			}
@@ -430,9 +466,9 @@ void trySaveSRAM(const char* filepath) {
 			Bfile_WriteFile_OS(hFile, sram, sramSize);
 		}
 		else {
-			// read each bank
-			for (unsigned char i = 0; i < mbc.numRamBanks; i++) {
-				Bfile_WriteFile_OS(hFile, &cachedRom[i / 2]->bank[0x2000 * (i % 2)], 0x2000);
+			// write each bank
+			for (unsigned char i = 0; i < mbc.numRamBanks * 2; i++) {
+				Bfile_WriteFile_OS(hFile, &cachedBanks[i]->bank[0], 0x1000);
 			}
 		}
 

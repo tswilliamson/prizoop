@@ -4,6 +4,7 @@
 
 #include "platform.h"
 #include "debug.h"
+#include "emulator.h"
 
 #include "memory.h"
 #include "gpu.h"
@@ -348,6 +349,14 @@ void drawFramebufferMain(void) {
 		int tickdiff = ticks - rtc_lastticks;
 		curfps = 40960 / tickdiff;
 		rtc_lastticks = ticks;
+	}
+
+	// TODO : not the best... only clamps speed to 64 FPS (7% too high)
+	if (emulator.settings.clampSpeed) {
+		static int lastClampTicks = 0;
+		int curTicks = RTC_GetTicks();
+		while (curTicks == lastClampTicks || curTicks == lastClampTicks + 1) { curTicks = RTC_GetTicks(); }
+		lastClampTicks = curTicks;
 	}
 
 	if (curfps != fps) {

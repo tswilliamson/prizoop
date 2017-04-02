@@ -27,8 +27,9 @@ extern unsigned char* memoryMap[256] ALIGN(256);
 // Specific bits used for different special mapping purposes:
 // Bit 0 : for high memory, specific bytes that need a special read
 // Bit 1 : for high memory, specific bytes that need a special write
-// Bit 2 : for most signicant memory byte, whether a write requires a tile update (TODO, use mem directly in display code)
-extern const unsigned char specialMap[256] ALIGN(256);
+// Bit 2 : for most significant memory byte, whether a write requires a tile update (TODO, use mem directly in display code)
+// Bit 4 : for most significant memory byte, whether a read must validate the area first (switched bank)
+extern unsigned char specialMap[256] ALIGN(256);
 
 void resetMemoryMaps();
 
@@ -39,9 +40,10 @@ void writeByteSpecial(unsigned short address, unsigned char value);
 
 // called when a write attempt occurs for rom
 void mbcWrite(unsigned short address, unsigned char value);
+unsigned char mbcRead(unsigned short address);
 
 inline unsigned char readByte(unsigned short address) {
-	return ((address >> 8) == 0xff && (specialMap[address & 0xFF] & 0x01)) ? readByteSpecial(address) : memoryMap[address >> 8][address & 0xFF];
+	return (((address >> 8) == 0xff && (specialMap[address & 0xFF] & 0x01)) || (specialMap[address >> 8] & 0x10)) ? readByteSpecial(address) : memoryMap[address >> 8][address & 0xFF];
 }
 
 inline unsigned short readShort(unsigned short address) {
@@ -56,6 +58,7 @@ inline unsigned short readShortFromStack(void) {
 
 // branch avoidance. instructions will just have bad "reads" if somehow we are executing code off the on chip registers
 inline unsigned char* getInstrByte(unsigned short address) {
+	if (specialMap[address >> 8] & 0x10) mbcRead(address);	// force flush of cached ROM page
 	return memoryMap[address >> 8] + (address & 0xFF);
 }
 

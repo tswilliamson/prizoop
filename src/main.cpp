@@ -24,9 +24,8 @@ int main(void) {
 	Bdisp_EnableColor(1);
 	EnableStatusArea(3);
 
-
-	// allocate cached rom banks on the stack
-	ALLOCATE_ROM_BANKS();
+	// allocate cached mbc banks on the stack
+	ALLOCATE_CACHED_BANKS();
 
 	reset_printf();
 	memset(GetVRAMAddress(), 0, LCD_HEIGHT_PX * LCD_WIDTH_PX * 2);

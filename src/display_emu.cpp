@@ -3,6 +3,7 @@
 #if !TARGET_PRIZM
 
 #include "debug.h"
+#include "emulator.h"
 
 #include "gpu.h"
 #include "memory.h"
@@ -80,6 +81,10 @@ void renderBlankEmu() {
 	}
 }
 
+
+int cacheMisses = 0;
+
+
 void drawEmu() {
 
 	TIME_SCOPE();
@@ -99,6 +104,14 @@ void drawEmu() {
 			curfps = 40960 / tickdiff;
 			lastticks = ticks;
 		}
+	}
+
+	// TODO : not the best... only clamps speed to 64 FPS (7% too high)
+	if (emulator.settings.clampSpeed) {
+		static int lastClampTicks = 0;
+		int curTicks = RTC_GetTicks();
+		while (curTicks == lastClampTicks || curTicks == lastClampTicks + 1) { curTicks = RTC_GetTicks(); }
+		lastClampTicks = curTicks;
 	}
 
 	if (curfps != fps) {

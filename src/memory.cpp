@@ -49,7 +49,7 @@ const unsigned char ioReset[0x100] = {
 
 // Tile memory update area (bit 2)
 //		0x8000 - 0x97ff
-const unsigned char specialMap[256] ALIGN(256) =
+unsigned char specialMap[256] ALIGN(256) =
 {
 	0x01, 0x00, 0x03, 0x00,  0x03, 0x03, 0x00, 0x02,  0x01, 0x01, 0x01, 0x01,  0x01, 0x01, 0x01, 0x01,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
@@ -127,6 +127,11 @@ void copy(unsigned short destination, unsigned short source, size_t length) {
 
 // this only gets called on 0xFF** addresses
 unsigned char readByteSpecial(unsigned short address) {
+	if (specialMap[address >> 8] & 0x10) {
+		// simply needs mbc validation
+		return mbcRead(address);
+	}
+
 	unsigned char byte = address & 0x00FF;
 	switch (byte) {
 		case 0x00:

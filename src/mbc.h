@@ -1,7 +1,7 @@
 #pragma once
 
-// requires 16k per bank, allocated on stack on the Prizm
-#define CACHE_ROM_BANK_SIZE 12
+// requires 4k per bank, allocated on stack on the Prizm
+#define NUM_CACHED_BANKS 48
 
 enum mbcType {
 	ROM_PLAIN = 0x00,
@@ -56,8 +56,8 @@ struct mbc_state {
 	unsigned char bankMode;			// various mbc types use changable bank modes
 };
 
-struct mbc_rombank {
-	unsigned char bank[0x4000] ALIGN(256);
+struct mbc_bankcache {
+	unsigned char bank[0x1000] ALIGN(256);
 };
 
 extern mbc_state mbc;
@@ -77,8 +77,8 @@ const char* getMBCTypeString(mbcType type);
 // given a ramSizeType returns a string description
 const char* getRAMTypeString(ramSizeType type);
 
-// pointers to each cached rom bank
-extern mbc_rombank* cachedRom[CACHE_ROM_BANK_SIZE];
+// pointers to each cached bank
+extern mbc_bankcache* cachedBanks[NUM_CACHED_BANKS];
 
 // cached ROM banks is alloc'd in main() on the stack
-#define ALLOCATE_ROM_BANKS() mbc_rombank stackCachedRom[CACHE_ROM_BANK_SIZE]; for (int r = 0; r < CACHE_ROM_BANK_SIZE; r++) { cachedRom[r] = &stackCachedRom[r]; }
+#define ALLOCATE_CACHED_BANKS() mbc_bankcache stackCachedBanks[NUM_CACHED_BANKS]; for (int r = 0; r < NUM_CACHED_BANKS; r++) { cachedBanks[r] = &stackCachedBanks[r]; }

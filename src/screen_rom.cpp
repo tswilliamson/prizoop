@@ -19,7 +19,7 @@ static void FindFiles(const char* path, foundFile* toArray, int& numFound) {
 
 	ret = Bfile_FindFirst((const char*)filter, &handle, (char*)found, &info);
 
-	while (ret == 0 && numFound < 32) {
+	while (ret == 0 && numFound < 64) {
 		Bfile_NameToStr_ncpy(toArray[numFound++].path, found, 32);
 		ret = Bfile_FindNext(handle, (char*)found, (char*)&info);
 	};
@@ -28,7 +28,7 @@ static void FindFiles(const char* path, foundFile* toArray, int& numFound) {
 }
 
 void screen_rom::discoverFiles() {
-	files = new foundFile[32];
+	files = new foundFile[64];
 	numFiles = 0;
 	FindFiles("\\\\fls0\\*.gb", files, numFiles);
 	FindFiles("\\\\fls0\\Games\\*.gb", files, numFiles);
@@ -61,6 +61,7 @@ void screen_rom::select() {
 	bool wasLoaded = mbc.romFile != 0;
 	if (wasLoaded) {
 		Bfile_CloseFile_OS(mbc.romFile);
+		mbc.romFile = 0;
 	}
 
 	discoverFiles();
@@ -103,9 +104,10 @@ void screen_rom::deselect() {
 		}
 	}
 
-
 	delete[] files;
 	files = NULL;
+
+	emulator.saveSettings();
 }
 
 bool screen_rom::checkScroll() {
