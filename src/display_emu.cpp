@@ -71,7 +71,7 @@ void renderBlankEmu() {
 		}
 	}
 	else {
-		void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * cpu.memory.LY_lcdline];
+		void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * (cpu.memory.LY_lcdline + 36)];
 
 		unsigned short* curScan = (unsigned short*)scanlineStart;
 		for (int i = 0; i < 160; i++) {

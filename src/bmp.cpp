@@ -61,8 +61,39 @@ void PutBMP(const char* filepath, int x1, int y1, int x2, int y2) {
 	}
 
 	Bfile_CloseFile_OS(file);
+
+	DrawFrame(0);
 }
 
-void emulator_screen::DrawBG(char* filename, int x1, int y1, int x2, int y2) {
+void emulator_screen::DrawBG(const char* filename, int x1, int y1, int x2, int y2) {
 	PutBMP(filename, x1, y1, x2, y2);
+}
+
+void emulator_screen::Print(int x, int y, const char* buffer, bool selected, unsigned short color) {
+	int srcX = x;
+	if (selected) {
+		int srcY = y;
+
+		x--;
+		PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, COLOR_LIGHTGREEN, COLOR_BLACK, 1, 0);
+		x = srcX;
+		y = srcY - 1;
+		PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, COLOR_LIGHTGREEN, COLOR_BLACK, 1, 0);
+		x = srcX + 1;
+		y = srcY;
+		PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, COLOR_SPRINGGREEN, COLOR_BLACK, 1, 0);
+		x = srcX;
+		y = srcY + 1;
+		PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, COLOR_SPRINGGREEN, COLOR_BLACK, 1, 0);
+		x = srcX;
+		y = srcY;
+	}
+
+	PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, color, 0x0001, 1, 0);
+}
+
+int emulator_screen::PrintWidth(const char* buffer) {
+	int x = 0, y = 0;
+	PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_BLACK, 0, 0);
+	return x;
 }

@@ -7,3 +7,4 @@
 
 unsigned char loadROM(const char *filename);
 void unloadROM(void);
+void saveRAM(void);

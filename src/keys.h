@@ -54,4 +54,4 @@ struct keys_type {
 
 extern keys_type keys;
 
-bool keyDown_fast(int keyCode);
+bool keyDown_fast(unsigned char keyCode);

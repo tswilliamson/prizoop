@@ -16,7 +16,6 @@ unsigned char loadROM(const char *filename) {
 	int i;
 	
 	int length;
-	int key;
 	
 	unsigned char header[0x180];
 
@@ -63,7 +62,6 @@ unsigned char loadROM(const char *filename) {
 	if (!setupMBCType(type, romSizeByte, ramSizeByte, hFile)) {
 		printf("Unsupported MBC: %s, (%02x ROM, %02x RAM)\n", getMBCTypeString(type), romSizeByte, ramSizeByte);
 		unloadROM();
-		GetKey(&key);
 		return 0;
 	}
 
@@ -72,7 +70,7 @@ unsigned char loadROM(const char *filename) {
 	printf("Num ROM Banks: %d\n", mbc.numRomBanks);
 		
 	// read permanent ROM Area in
-	int read = Bfile_ReadFile_OS(hFile, cart, /*min(length,*/ 0x4000/*)*/, 0);
+	Bfile_ReadFile_OS(hFile, cart, /*min(length,*/ 0x4000/*)*/, 0);
 
 	if (mbc.batteryBacked) {
 		if (tryLoadSRAM(curSaveFile)) {
@@ -85,9 +83,6 @@ unsigned char loadROM(const char *filename) {
 		printf("No save file, not battery backed\n");
 	}
 
-
-	GetKey(&key);
-
 	return 1;
 }
 
@@ -97,6 +92,10 @@ void unloadROM(void) {
 		mbc.romFile = 0;
 	}
 
+	saveRAM();
+}
+
+void saveRAM(void) {
 	if (mbc.batteryBacked) {
 		trySaveSRAM(curSaveFile);
 	}

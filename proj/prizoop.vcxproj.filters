@@ -93,6 +93,12 @@
     <ClCompile Include="..\src\screen_rom.cpp">
       <Filter>Source Files\menu</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\screen_play.cpp">
+      <Filter>Source Files\menu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\screen_settings.cpp">
+      <Filter>Source Files\menu</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\main.h">
@@ -153,6 +159,12 @@
       <Filter>Header Files\menu</Filter>
     </ClInclude>
     <ClInclude Include="..\src\screen_rom.h">
+      <Filter>Header Files\menu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\screen_play.h">
+      <Filter>Header Files\menu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\screen_settings.h">
       <Filter>Header Files\menu</Filter>
     </ClInclude>
   </ItemGroup>

@@ -120,9 +120,15 @@ mbc_rombank* cacheBank(unsigned char index) {
 
 	// uncached! using minimum cache request index, read into slot from file and return
 	int read = Bfile_ReadFile_OS(mbc.romFile, cachedRom[minSlot]->bank, 0x4000, index * 0x4000);
-	cachedRomIndex[minSlot] = index;
-	lastCacheRequestIndex[minSlot] = cacheIndex;
-	return cachedRom[minSlot];
+	DebugAssert(read == 0x4000);
+
+	if (read == 0x4000) {
+		cachedRomIndex[minSlot] = index;
+		lastCacheRequestIndex[minSlot] = cacheIndex;
+		return cachedRom[minSlot];
+	} else {
+		return NULL;
+	}
 }
 
 // total number of rom banks calculation (16k per bank)
@@ -401,7 +407,7 @@ void trySaveSRAM(const char* filepath) {
 	if (mbc.numRamBanks > 1) {
 		sramSize = 8192 * mbc.numRamBanks;
 	}
-	int curHash = curRAMHash(sramSize);
+	unsigned int curHash = curRAMHash(sramSize);
 
 	if (curHash != sramHash) {
 		unsigned short pFile[256];
@@ -425,7 +431,6 @@ void trySaveSRAM(const char* filepath) {
 		}
 		else {
 			// read each bank
-			bool failed = false;
 			for (unsigned char i = 0; i < mbc.numRamBanks; i++) {
 				Bfile_WriteFile_OS(hFile, &cachedRom[i / 2]->bank[0x2000 * (i % 2)], 0x2000);
 			}

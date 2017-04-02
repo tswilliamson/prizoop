@@ -114,7 +114,7 @@ bool getCGBTableEntry(unsigned char* romInternalName, unsigned short* allPalette
 	unsigned char disamb = romInternalName[3];
 
 	int best = -1;
-	for (int j = 0; j < sizeof(entries) / sizeof(entries[0]); j++) {
+	for (unsigned int j = 0; j < sizeof(entries) / sizeof(entries[0]); j++) {
 		if (entries[j].hash == hash) {
 			if (entries[j].disamb == disamb) {
 				// won't find a better one

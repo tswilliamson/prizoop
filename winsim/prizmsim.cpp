@@ -10,9 +10,7 @@
 
 extern HDC renderContext;
 extern GLuint screenTexture;
-
-#define TO_COLORREF_16(x) ( ((x & 0xF800) << 8) | ((x & 0x07E0) << 5) | ((x & 0x001F) << 3) )
-#define TO_16_FROM_32(x) ((unsigned short) ( ((x & 0x00F80000) >> 8) | ((x & 0x0000FC00) >> 5) | ((x & 0x000000F8) >> 3) ))
+extern HWND GWnd;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // System
@@ -34,11 +32,17 @@ int RTC_GetTicks() {
 	return GetTickCount() * 16 / 125;
 }
 
+void OS_InnerWait_ms(int ms) {
+	Sleep(ms);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Display Generics
 
 // the actual CPU side screen buffer
-unsigned short ScreenBuffer[216][384] = { 0 };
+unsigned short VRAM[216][384] = { 0 };
+
+unsigned short BackgroundVRAM[216][384] = { 0 };
 
 void Bdisp_EnableColor(int n) {
 	//  only true color currently supported
@@ -49,8 +53,16 @@ void EnableStatusArea(int) {
 	// ignored, no status area on win sim
 }
 
+void SaveVRAM_1() {
+	memcpy(BackgroundVRAM, VRAM, sizeof(VRAM));
+}
+
+void LoadVRAM_1() {
+	memcpy(VRAM, BackgroundVRAM, sizeof(VRAM));
+}
+
 void Bdisp_AllClr_VRAM() {
-	memset(ScreenBuffer, 0xFF, sizeof(ScreenBuffer));
+	memset(VRAM, 0xFF, sizeof(VRAM));
 	glutPostRedisplay();
 	glutMainLoopEvent();
 }
@@ -65,7 +77,26 @@ void DrawFrame(int color) {
 }
 
 void *GetVRAMAddress(void) {
-	return ScreenBuffer;
+	return VRAM;
+}
+
+void Bdisp_AreaClr(struct display_fill* area, unsigned char target, unsigned short color) {
+	unsigned targetColor = area->mode == 0 ? COLOR_WHITE : color;
+
+	if (area->mode != 4) {
+		for (int y = area->y1; y <= area->y2; y++) {
+			for (int x = area->x1; x <= area->x2; x++) {
+				VRAM[y][x] = targetColor;
+			}
+		}
+	}
+	else {
+		for (int y = area->y1; y <= area->y2; y++) {
+			for (int x = area->x1; x <= area->x2; x++) {
+				VRAM[y][x] = ~(VRAM[y][x]);
+			}
+		}
+	}
 }
 
 // Actual OpenGL draw of CPU texture
@@ -84,7 +115,7 @@ void DisplayGLUTScreen() {
 	glBindTexture(GL_TEXTURE_2D, screenTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 384, 216, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, ScreenBuffer);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 384, 216, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, VRAM);
 
 	glPushMatrix();
 	glLoadIdentity();
@@ -108,8 +139,11 @@ void DisplayGLUTScreen() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Text Printing
 
+#define TO_COLORREF_16(x) ( ((x & 0xF800) << 8) | ((x & 0x07E0) << 5) | ((x & 0x001F) << 3) )
+#define TO_16_FROM_32(x) ((unsigned short) ( ((x & 0x00F80000) >> 19) | ((x & 0x0000FC00) >> 5) | ((x & 0x000000F8) << 8) ))
+
 // returns width in pixels printed
-static int PrintTextHelper(HFONT Font, int height, int x, int y, const char* string, int color, int back_color) {
+static int PrintTextHelper(HFONT Font, int height, int x, int y, const char* string, int color, int back_color, bool transparent, int writeflag = 1) {
 	HDC Compat = CreateCompatibleDC(wglGetCurrentDC());
 	HBITMAP Bitmap = CreateCompatibleBitmap(renderContext, 384, 216);
 
@@ -134,12 +168,16 @@ static int PrintTextHelper(HFONT Font, int height, int x, int y, const char* str
 	Assert(info[0].bmiHeader.biBitCount == 32);
 	GetDIBits(Compat, Bitmap, 0, 216, (LPVOID)rows, &info[0], DIB_RGB_COLORS);
 
-	// blit each row (have to y flip)
-	for (int i = 0; i < rect.bottom; i++, y++) {
-		if (y >= 0 && y <= 215) {
-			for (int j = 0; j < rect.right; j++) {
-				if (x + j < 384 && x + j >= 0) {
-					ScreenBuffer[y][x+j] = TO_16_FROM_32(rows[(384 * (215 - i) + j)]);
+	if (writeflag) {
+		// blit each row (have to y flip)
+		for (int i = 0; i < rect.bottom; i++, y++) {
+			if (y >= 0 && y <= 215) {
+				for (int j = 0; j < rect.right; j++) {
+					if (x + j < 384 && x + j >= 0) {
+						if (!transparent || TO_16_FROM_32(rows[(384 * (215 - i) + j)]) != back_color) {
+							VRAM[y][x + j] = TO_16_FROM_32(rows[(384 * (215 - i) + j)]);
+						}
+					}
 				}
 			}
 		}
@@ -154,10 +192,7 @@ static int PrintTextHelper(HFONT Font, int height, int x, int y, const char* str
 static HFONT MiniFont = CreateFont(18, 0, 0, 0, FW_BOLD, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, NONANTIALIASED_QUALITY, FF_ROMAN, "Times New Roman");
 
 void PrintMini(int *x, int *y, const char *MB_string, int mode_flags, unsigned int xlimit, int P6, int P7, int color, int back_color, int writeflag, int P11) {
-	x += PrintTextHelper(MiniFont, 18, *x, *y, MB_string, color, back_color);
-
-	glutPostRedisplay();
-	glutMainLoopEvent();
+	*x += PrintTextHelper(MiniFont, 18, *x, *y, MB_string, color, back_color, (mode_flags & 0x40), writeflag);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -240,7 +275,7 @@ int GetKey(int* key) {
 	int result = 0;
 	while (!result) {
 		for (int i = 0; i < NUM_KEY_MAPS; i++) {
-			if ((GetAsyncKeyState(keys[i].virtualKey) & 0x8000) != 0) {
+			if ((GetFocus() == GWnd && GetAsyncKeyState(keys[i].virtualKey) & 0x8000) != 0) {
 				result = keys[i].getKeyCode;
 				break;
 			}
@@ -275,10 +310,10 @@ int GetKey(int* key) {
 	return result >= 30000 ? 0 : 1;
 }
 
-bool keyDown_fast(int keycode) {
+bool keyDown_fast(unsigned char keycode) {
 	for (int i = 0; i < NUM_KEY_MAPS; i++) {
 		if (keys[i].fastKeyCode == keycode) {
-			if ((GetAsyncKeyState(keys[i].virtualKey) & 0x8000) != 0) {
+			if ((GetFocus() == GWnd && GetAsyncKeyState(keys[i].virtualKey) & 0x8000) != 0) {
 				return true;
 			} else {
 				return false;
@@ -484,6 +519,99 @@ int Bfile_FindClose(int FindHandle) {
 		FindClose(data->winHandle);
 		delete data;
 	}
+	return 0;
+}
+
+int MCS_CreateDirectory(unsigned char*dir) {
+	if (!dir || dir[0] == 0)
+		return 0xF0;
+
+	ResolvePaths();
+
+	char fullPath[512];
+	strcpy(fullPath, ramPath);
+	strcat(fullPath, (const char*) dir);
+	if (CreateDirectory(fullPath, NULL)) {
+		if (GetLastError() == ERROR_ALREADY_EXISTS) {
+			return 0x42;
+		} else {
+			return 0x43;
+		}
+	}
+
+	return 0;
+}
+
+static char curReadFile[512] = { 0 };
+
+int MCSGetData1(int offset, int len_to_copy, void*buffer) {
+	if (curReadFile[0] == 0) {
+		return -1;
+	}
+
+	OFSTRUCT ofStruct;
+	HFILE file = OpenFile(curReadFile, &ofStruct, OF_READ);
+	if (file == HFILE_ERROR) {
+		curReadFile[0] = 0;
+		return -1;
+	}
+
+	SetFilePointer((HANDLE)file, offset, NULL, FILE_BEGIN);
+
+	DWORD read = 0;
+	ReadFile((HANDLE)file, buffer, len_to_copy, &read, NULL);
+	CloseHandle((HANDLE)file);
+
+	if (read != len_to_copy)
+		return -1;
+
+	return 0;
+}
+
+int MCSGetDlen2(unsigned char*dir, unsigned char*item, int*data_len) {
+	ResolvePaths();
+	strcpy(curReadFile, ramPath);
+	strcat(curReadFile, (const char*)dir);
+	strcat(curReadFile, "/");
+	strcat(curReadFile, (const char*)item);
+
+	OFSTRUCT ofStruct;
+	HFILE file = OpenFile(curReadFile, &ofStruct, OF_READ);
+	if (file == HFILE_ERROR) {
+		curReadFile[0] = 0;
+		return -1;
+	}
+
+	*data_len = GetFileSize((HANDLE) file, NULL);
+	CloseHandle((HANDLE)file);
+
+	return 0;
+}
+
+int MCS_WriteItem(unsigned char*dir, unsigned char*item, short itemtype, int data_length, int buffer) {
+	ResolvePaths();
+
+	if (data_length % 4 != 0)
+		return 0x10;
+
+	char fullPath[512];
+	strcpy(fullPath, ramPath);
+	strcat(fullPath, (const char*)dir);
+	strcat(fullPath, "/");
+	strcat(fullPath, (const char*) item);
+
+	OFSTRUCT ofStruct;
+	HFILE file = OpenFile(fullPath, &ofStruct, OF_CREATE | OF_WRITE);
+	if (file == HFILE_ERROR)
+		return 0x40;
+
+	DWORD written = 0;
+	WriteFile((HANDLE)file, (void*) buffer, data_length, &written, NULL);
+	CloseHandle((HANDLE)file);
+
+	if (written != data_length)
+		return 0x11;
+
 	return 0;
 }
 

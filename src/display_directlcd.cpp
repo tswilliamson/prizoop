@@ -164,9 +164,9 @@ void renderBlankScanline1x1(void) {
 
 	void* scanlineStart = &scanGroup[160 * curScan + curScanBuffer*scanBufferSize];
 
-	unsigned short* curScan = (unsigned short*) scanlineStart;
+	unsigned short* curScanLine = (unsigned short*) scanlineStart;
 	for (int i = 0; i < 160; i++) {
-		*(curScan++) = colorPalette[0];
+		*(curScanLine++) = colorPalette[0];
 	}
 
 	// blit every SCANLINE_BUFFER # lines

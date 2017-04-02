@@ -13,6 +13,7 @@
 
 HDC renderContext;
 GLuint screenTexture;
+HWND GWnd;
 extern void DisplayGLUTScreen();
 extern void GLUTExit();
 
@@ -49,9 +50,9 @@ void StartGlut() {
 	glutDisplayFunc(DisplayGLUTScreen);
 	glutInitDisplayMode(GLUT_RGBA);
 
-	HWND hwnd = FindWindow(NULL, "Prizm Sim");
-	oldProc = (WNDPROC) GetWindowLong(hwnd, GWL_WNDPROC);
-	SetWindowLong(hwnd, GWL_WNDPROC, (LONG) WndProc);
+	GWnd = FindWindow(NULL, "Prizm Sim");
+	oldProc = (WNDPROC) GetWindowLong(GWnd, GWL_WNDPROC);
+	SetWindowLong(GWnd, GWL_WNDPROC, (LONG) WndProc);
 
 	glGenTextures(1, &screenTexture);
 	glBindTexture(GL_TEXTURE_2D, screenTexture);

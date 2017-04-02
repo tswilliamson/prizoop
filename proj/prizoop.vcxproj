@@ -43,6 +43,8 @@
     <ClCompile Include="..\src\display_emu.cpp" />
     <ClCompile Include="..\src\emulator.cpp" />
     <ClCompile Include="..\src\mbc.cpp" />
+    <ClCompile Include="..\src\screen_settings.cpp" />
+    <ClCompile Include="..\src\screen_play.cpp" />
     <ClCompile Include="..\src\screen_rom.cpp" />
     <ClCompile Include="..\src\Prizm_SafeOverClock.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|x64'">true</ExcludedFromBuild>
@@ -71,6 +73,8 @@
     <ClInclude Include="..\src\display.h" />
     <ClInclude Include="..\src\emulator.h" />
     <ClInclude Include="..\src\mbc.h" />
+    <ClInclude Include="..\src\screen_settings.h" />
+    <ClInclude Include="..\src\screen_play.h" />
     <ClInclude Include="..\src\screen_rom.h" />
     <ClInclude Include="..\src\Prizm_SafeOverClock.h" />
     <ClInclude Include="..\src\ScopeTimer.h" />

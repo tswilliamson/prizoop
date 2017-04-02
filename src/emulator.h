@@ -20,15 +20,20 @@ namespace emu_button {
 // Emulation settings
 struct emulator_settings {
 	char selectedRom[32];
-	bool overclock : 8;
-	bool scaleToScreen : 8;
-	bool useCGBColors : 8;
-	bool clampSpeed : 8;
+	unsigned char overclock;
+	unsigned char scaleToScreen;
+	unsigned char useCGBColors;
+	unsigned char clampSpeed;
 	unsigned char keyMap[emu_button::MAX]; 
 	char frameSkip;
 	unsigned char bgColorPalette;
 	unsigned char obj1ColorPalette;
 	unsigned char obj2ColorPalette;
+};
+
+// color palette colors
+struct colorpalette_type {
+	unsigned short colors[4];
 };
 
 // Serializable state container for the emulator
@@ -65,7 +70,13 @@ struct emulator_screen {
 
 protected:
 	// helper functions
-	void DrawBG(char* filename, int x1 = 0, int y1 = 0, int x2 = 384, int y2 = 216);
+	static void DrawBG(const char* filename, int x1 = 0, int y1 = 0, int x2 = 384, int y2 = 216);
+
+	// Print a string at the given coordinates
+	static void Print(int x, int y, const char* buffer, bool selected, unsigned short color = COLOR_WHITE);
+
+	// Width of the given string in pixels
+	static int PrintWidth(const char* buffer);
 };
 
 // The main emulator object
@@ -80,10 +91,12 @@ struct emulator_type {
 	// overall application
 	void startUp();
 	void run();
+	void shutDown();
 
 	// options display and handling
 	bool loadSettings();			// returns false if not found
 	void saveSettings();
+	void defaultSettings();
 
 	// load the given rom filename, returns false on error (unsupported MBC, etc)
 	bool loadRom(const char* filename);
@@ -93,7 +106,10 @@ struct emulator_type {
 	void saveState();
 	bool loadState();				// returns true if a state was found
 
-private:
+	// custom color palettes
+	static unsigned char numPalettes();
+	static void getPalette(unsigned char paletteNum, colorpalette_type& intoColors);
+
 	void tryScreenChange(int targetFKey);
 };
 
