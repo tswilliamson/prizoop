@@ -56,8 +56,9 @@ struct mbc_state {
 	unsigned char bankMode;			// various mbc types use changable bank modes
 };
 
+// each cache has 2 extra bytes in it to account for instruction overlap
 struct mbc_bankcache {
-	unsigned char bank[0x1000] ALIGN(256);
+	unsigned char bank[0x1002];
 };
 
 extern mbc_state mbc;

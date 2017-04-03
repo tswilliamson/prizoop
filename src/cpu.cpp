@@ -145,6 +145,10 @@ inline void undefined(void) {
 	
 	unsigned char instruction = readByte(cpu.registers.pc);
 
+#if DEBUG_BREAKPOINT
+	HitBreakpoint();
+#endif
+
 	#if TARGET_WINSIM
 		char d[100];
 		sprintf(d, "Undefined instruction 0x%02x!\n\nCheck stdout for more details.", instruction);

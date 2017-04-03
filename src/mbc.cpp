@@ -135,10 +135,11 @@ mbc_bankcache* cacheBank(unsigned int index) {
 #endif
 
 	// uncached! using minimum cache request index, read into slot from file and return
-	int read = Bfile_ReadFile_OS(mbc.romFile, cachedBanks[minSlot]->bank, 0x1000, index * 0x1000);
-	DebugAssert(read == 0x1000);
+	unsigned int instrOverlap = index == mbc.numRomBanks * 4 - 1 ? 0 : 2;
+	int read = Bfile_ReadFile_OS(mbc.romFile, cachedBanks[minSlot]->bank, 0x1000 + instrOverlap, index * 0x1000);
+	DebugAssert(read == 0x1000 + instrOverlap);
 
-	if (read == 0x1000) {
+	if (read == 0x1000 + instrOverlap) {
 		cachedBankIndex[minSlot] = index;
 		lastCacheRequestIndex[minSlot] = cacheIndex;
 		return cachedBanks[minSlot];
@@ -176,11 +177,6 @@ unsigned char mbcRead(unsigned short address) {
 		memoryMap[(highNibble << 4) + i] = &cache->bank[256 * i];
 		// we've validated the highest nibble
 		specialMap[(highNibble << 4) + i] &= ~0x10;
-	}
-
-	// to avoid memory barrier caching issues, flush next page if we are close to the end of the current one
-	if (highNibble != 0x07 && ((address & 0x0FF0) == 0x0FF0)) {
-		mbcRead(address + 16);
 	}
 
 	return memoryMap[address >> 8][address & 0xFF];
@@ -237,10 +233,6 @@ bool setupMBCType(mbcType type, unsigned char romSizeByte, unsigned char ramSize
 			mbc.numRamBanks = 1;
 			selectRomBank(1);
 			enableSRAM();
-		/*	mbcRead(0x4000);
-			mbcRead(0x5000);
-			mbcRead(0x6000);
-			mbcRead(0x7000); */
 			return true;
 		case ROM_MBC1_RAM_BATT:
 			mbc.batteryBacked = 1;

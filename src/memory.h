@@ -58,8 +58,9 @@ inline unsigned short readShortFromStack(void) {
 
 // branch avoidance. instructions will just have bad "reads" if somehow we are executing code off the on chip registers
 inline unsigned char* getInstrByte(unsigned short address) {
-	if (specialMap[address >> 8] & 0x10) mbcRead(address);	// force flush of cached ROM page
-	return memoryMap[address >> 8] + (address & 0xFF);
+	const unsigned char topBit = address >> 8;
+	if (specialMap[topBit] & 0x10) mbcRead(address);			// force flush of cached ROM page
+	return memoryMap[topBit] + (address & 0xFF);
 }
 
 inline void writeByte(unsigned short address, unsigned char value) {
