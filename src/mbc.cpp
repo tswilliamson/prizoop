@@ -135,8 +135,8 @@ mbc_bankcache* cacheBank(unsigned int index) {
 #endif
 
 	// uncached! using minimum cache request index, read into slot from file and return
-	unsigned int instrOverlap = index == mbc.numRomBanks * 4 - 1 ? 0 : 2;
-	int read = Bfile_ReadFile_OS(mbc.romFile, cachedBanks[minSlot]->bank, 0x1000 + instrOverlap, index * 0x1000);
+	unsigned int instrOverlap = index == (mbc.numRomBanks * 4 - 1) ? 0 : 2;
+	unsigned int read = Bfile_ReadFile_OS(mbc.romFile, cachedBanks[minSlot]->bank, 0x1000 + instrOverlap, index * 0x1000);
 	DebugAssert(read == 0x1000 + instrOverlap);
 
 	if (read == 0x1000 + instrOverlap) {

@@ -109,8 +109,10 @@ void screen_play::play() {
 	SetupDisplayPalette(palette);
 	SetupDisplayDriver(emulator.settings.scaleToScreen, emulator.settings.frameSkip);
 
+#if DEBUG
 	// init debug timing system
 	ScopeTimer::InitSystem();
+#endif
 
 	// wait for menu key to exit
 	while (keyDown_fast(48) == false) {
@@ -127,7 +129,9 @@ void screen_play::play() {
 		overclocked = false;
 	}
 
+#if DEBUG
 	ScopeTimer::Shutdown();
+#endif
 
 	// switch to options screen
 	emulator.tryScreenChange(2);

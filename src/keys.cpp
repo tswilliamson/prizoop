@@ -35,7 +35,9 @@ void refresh() {
 		keys.k2.down = getGBAKey(7);
 	}
 
+#if DEBUG
 	if (keyDown_fast(79)) {
 		ScopeTimer::DisplayTimes();
 	}
+#endif
 }

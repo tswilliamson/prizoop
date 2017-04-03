@@ -31,8 +31,9 @@ void screen_rom::discoverFiles() {
 	files = new foundFile[64];
 	numFiles = 0;
 	FindFiles("\\\\fls0\\*.gb", files, numFiles);
-	FindFiles("\\\\fls0\\Games\\*.gb", files, numFiles);
-	FindFiles("\\\\fls0\\ROMS\\*.gb", files, numFiles);
+	// TODO : These don't work on Prizm?
+	// FindFiles("\\\\fls0\\Games\\*.gb", files, numFiles);
+	// FindFiles("\\\\fls0\\ROMS\\*.gb", files, numFiles);
 }
 
 void screen_rom::drawFiles() {

@@ -1,11 +1,10 @@
 
 #include "platform.h"
 
-#include "bmp.h"
 #include "emulator.h"
 #include "debug.h"
 
-void PutBMP(const char* filepath, int x1, int y1, int x2, int y2) {
+void emulator_screen::DrawBG(const char* filepath, int x1, int y1, int x2, int y2) {
 	// try to load the file
 	unsigned short fileAsName[512];
 	Bfile_StrToName_ncpy(fileAsName, filepath, strlen(filepath) + 1);
@@ -19,7 +18,7 @@ void PutBMP(const char* filepath, int x1, int y1, int x2, int y2) {
 	unsigned char header[54];
 	Bfile_ReadFile_OS(file, header, 54, -1); // read the 54-byte header
 
-	 // extract image height and width from header
+											 // extract image height and width from header
 	signed short width = header[18] + 256 * header[19];
 	signed short height = header[22] + 256 * header[23];
 	signed short depth = header[28] + 256 * header[29];
@@ -63,10 +62,6 @@ void PutBMP(const char* filepath, int x1, int y1, int x2, int y2) {
 	Bfile_CloseFile_OS(file);
 
 	DrawFrame(0);
-}
-
-void emulator_screen::DrawBG(const char* filename, int x1, int y1, int x2, int y2) {
-	PutBMP(filename, x1, y1, x2, y2);
 }
 
 void emulator_screen::Print(int x, int y, const char* buffer, bool selected, unsigned short color) {

@@ -1,30 +1,54 @@
+![Options Screen](/Screens/Options.png?raw=true)
+
 Prizoop
 =======
 
-Fork of the multiplatform Game Boy emulator, Cinoop, by CTurt, with intense focus on optimization and improved feature set for the Casio Prizm.
+Prizoop is a Game Boy emulator for the Casio Prizm series graphing calculator, with intense focus on optimization and decent feature set for the target device. As such, it is not a very accurate emulator but is very fast and compatible. 
+
+It goes its name because it started out as a fork of the multiplatform Game Boy emulator, Cinoop, by CTurt. It has since undergone significant rewrites and improvements, and shares some of the cpu code, organization and constructs from Cinoop, but for the most part resembles Cinoop much less than a normal fork.
 
 Currently 100% C with a bit of direct register usage for the Prizm, and will likely feature a bit of assembly language hopefully soon :-)
 
+## Install
+
+Copy the .g3a file and entire Prizoop folder from this repository to your Casio Prizm calculator's root path when linked via USB. Gameboy roms (.gb) also should go inside of the root directory.
+
 ## Support
 
-**Games:** Tetris is most likely the only playable game,
+![Game Banner](/Screens/GameBanner.png?raw=true)
+
+The emulator now plays over 95% of the games I have been able to test smoothly at this point. Some games where timing accuracy is very important suffer, specifically racing games. Road Rash and F1 Race are playable but have some visual issues, and F1 Pole Position does not play at all.
 
 ## Building
 
-Project root must be within /projects directory of publicly available community SDK v0.3 for Prizm. To build on a Windows machine simply run make.bat. For other systems please refer to your Prizm SDK documentation on how to compile projects.
+Project root must be within /projects directory of publicly available community SDK v0.3 for Prizm. The SDK must be patched with the latest version of lib FXCG as well. To build on a Windows machine simply run make.bat. For other systems please refer to your Prizm SDK documentation on how to compile projects.
+
+If you use Visual Studio, a project is included that uses a Windows Simulator I wrote that wraps Prizm OS functions so that the code and emulator can easily be tested and iterated on within Visual Studio.
 
 ## Usage
 
-Currently hardcoded to look for tetris.gb in the root of your Prizm, will hopefully support filesystem crawl in the future.
+In the menu system use the arrow keys and SHIFT to select.
+
+F1 - Select ROM
+F2 - Settings (most are self explanatory)
+F6 - Play ROM (it will first show diagnostic information)
+
+When inside a game, the MENU key will exit to the settings screen, and pressing MENU again will take you back to the calculator OS.
 
 ### Prizm Controls
-- B: ALPHA
+
+You can configure your own keys in the Settings menu, these are the default I found to work well:
+
+- B: OPTN
 - A: SHIFT
-- Select: OPTN
-- Start: VARS
+- Select: F5
+- Start: F6
 - Dpad : Dpad
 
 ## Special Thanks
+
+BGB was a huge part of bug fixing and obtaining great ROM compatibility. It is a Gameboy emulator with great debugging and memory visualization tools:
+http://bgb.bircd.org/
 
 A huge special thanks obviously goes to CTurt, who's simple explanations and easy to read source got this project rolling by making it seem much less scary. See the original Cinoop source code here:
 https://github.com/CTurt/Cinoop
