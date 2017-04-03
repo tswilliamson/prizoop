@@ -5,13 +5,11 @@ Prizoop
 
 Prizoop is a Game Boy emulator for the Casio Prizm series graphing calculator, with intense focus on optimization and decent feature set for the target device. As such, it is not a very accurate emulator but is very fast and compatible. 
 
-It goes its name because it started out as a fork of the multiplatform Game Boy emulator, Cinoop, by CTurt. It has since undergone significant rewrites and improvements, and shares some of the cpu code, organization and constructs from Cinoop, but for the most part resembles Cinoop much less than a normal fork.
-
-Currently 100% C with a bit of direct register usage for the Prizm, and will likely feature a bit of assembly language hopefully soon :-)
+It got its name because it started out as a fork of the multiplatform Game Boy emulator, Cinoop, by CTurt. It has since undergone significant rewrites and improvements, and shares some of the cpu code, organization and constructs from Cinoop, but for the most part resembles Cinoop much less than a normal fork.
 
 ## Install
 
-Copy the .g3a file and entire Prizoop folder from this repository to your Casio Prizm calculator's root path when linked via USB. Gameboy roms (.gb) also should go inside of the root directory.
+Copy the .g3a file and the Prizoop folder from this repository to your Casio Prizm calculator's root path when linked via USB. Gameboy roms (.gb) also should go inside of the root directory.
 
 ## Support
 
@@ -21,9 +19,9 @@ The emulator now plays over 95% of the games I have been able to test smoothly a
 
 ## Building
 
-Project root must be within /projects directory of publicly available community SDK v0.3 for Prizm. The SDK must be patched with the latest version of lib FXCG as well. To build on a Windows machine simply run make.bat. For other systems please refer to your Prizm SDK documentation on how to compile projects.
+Project root must be within /projects directory of publicly available community SDK v0.3 for Prizm. The SDK must be patched with the latest version of libFXCG as well. To build on a Windows machine simply run make.bat. For other systems please refer to your Prizm SDK documentation on how to compile projects.
 
-If you use Visual Studio, a project is included that uses a Windows Simulator I wrote that wraps Prizm OS functions so that the code and emulator can easily be tested and iterated on within Visual Studio.
+If you use Visual Studio, a project is included that uses a Windows Simulator I wrote that wraps Prizm OS functions so that the code and emulator can easily be tested and iterated on within Visual Studio. See the prizmsim.cpp/h code for details on its usage.
 
 ## Usage
 
