@@ -25,14 +25,22 @@ static inline unsigned char getGBAKey(unsigned int keyNum) {
 
 void refresh() {
 	{
-		keys.k1.a = getGBAKey(0);
-		keys.k1.b = getGBAKey(1);
-		keys.k1.select = getGBAKey(2);
-		keys.k1.start = getGBAKey(3);
-		keys.k2.right = getGBAKey(4);
-		keys.k2.left = getGBAKey(5);
-		keys.k2.up = getGBAKey(6);
-		keys.k2.down = getGBAKey(7);
+		keys.k1.a = getGBAKey(emu_button::A);
+		keys.k1.b = getGBAKey(emu_button::B);
+		keys.k1.select = getGBAKey(emu_button::SELECT);
+		keys.k1.start = getGBAKey(emu_button::START);
+		keys.k2.right = getGBAKey(emu_button::RIGHT);
+		keys.k2.left = getGBAKey(emu_button::LEFT);
+		keys.k2.up = getGBAKey(emu_button::UP);
+		keys.k2.down = getGBAKey(emu_button::DOWN);
+	}
+
+	if (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_SAVE])) {
+		emulator.saveState();
+	}
+
+	if (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_LOAD])) {
+		emulator.loadState();
 	}
 
 #if DEBUG

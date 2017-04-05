@@ -120,10 +120,14 @@ void emulator_type::defaultSettings() {
 	settings.keyMap[emu_button::LEFT] = 38;
 	settings.keyMap[emu_button::UP] = 28;
 	settings.keyMap[emu_button::DOWN] = 37;
+	settings.keyMap[emu_button::STATE_SAVE] = 53;	// 'S'
+	settings.keyMap[emu_button::STATE_LOAD] = 25;   // 'L'
 
 	// simulator only defaults
 #if TARGET_WINSIM
 	settings.frameSkip = 0;
+	settings.keyMap[emu_button::STATE_SAVE] = 59;	// maps to F3
+	settings.keyMap[emu_button::STATE_LOAD] = 49;	// maps to F4
 #endif
 }
 
@@ -164,4 +168,15 @@ unsigned char emulator_type::numPalettes() {
 
 void emulator_type::getPalette(unsigned char paletteNum, colorpalette_type& intoColors) {
 	memcpy(&intoColors, &palettes[paletteNum], sizeof(colorpalette_type));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Save states
+
+void emulator_type::saveState() {
+
+}
+
+bool emulator_type::loadState() {
+	return false;
 }

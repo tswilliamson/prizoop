@@ -13,7 +13,9 @@ namespace emu_button {
 		LEFT = 5,
 		UP = 6,
 		DOWN = 7,
-		MAX = 8
+		STATE_SAVE = 8,
+		STATE_LOAD = 9,
+		MAX = 10
 	};
 }
 

@@ -242,7 +242,7 @@ static VKeyMapping keys[NUM_KEY_MAPS] = {
 	{ 'J',				KEY_CHAR_LPAR, 55 },
 	{ 'K',				KEY_CHAR_RPAR, 45 },
 	{ 'L',				KEY_CHAR_COMMA, 35 },
-	{ ';',				KEY_CHAR_STORE, 25 },
+	{ VK_OEM_1,			KEY_CHAR_STORE, 25 },		// semicolon
 //  Numpad maps to bottom numpad
 	{ VK_NUMPAD0,		KEY_CHAR_0, 71 },
 	{ VK_NUMPAD1,		KEY_CHAR_1, 72 },
