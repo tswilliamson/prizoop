@@ -54,6 +54,7 @@ struct mbc_state {
 	unsigned char romBank;			// selected rom bank
 	unsigned char ramBank;			// selected ram bank
 	unsigned char bankMode;			// various mbc types use changable bank modes
+	unsigned char sramEnabled;		// whether sram is currently enabled
 };
 
 // each cache has 2 extra bytes in it to account for instruction overlap
@@ -77,6 +78,12 @@ const char* getMBCTypeString(mbcType type);
 
 // given a ramSizeType returns a string description
 const char* getRAMTypeString(ramSizeType type);
+
+// returns current mbc ram size in bytes
+unsigned int getRAMSize();
+
+// call after state save load for proper handling
+void mbcOnStateLoad();
 
 // pointers to each cached bank
 extern mbc_bankcache* cachedBanks[NUM_CACHED_BANKS];

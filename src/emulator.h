@@ -38,24 +38,6 @@ struct colorpalette_type {
 	unsigned short colors[4];
 };
 
-// Serializable state container for the emulator
-struct emulator_state {
-	unsigned short headerChecksum;		// checksum from 0x14E of the ROM 
-	cpu_type cpu;						// full cpu structure state
-	mbc_state mbc;						// full mbc structure state
-
-	// saved ram blocks (variable size)
-	unsigned long sramSize;				
-	unsigned char* sram;
-
-	unsigned long wramSize;				
-	unsigned char* wram;							
-
-	// saved display ram regions (fixed size)
-	unsigned char* vram;							
-	unsigned char* oam;
-};
-
 struct emulator_screen {
 	int fKey;
 

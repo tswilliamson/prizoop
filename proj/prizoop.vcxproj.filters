@@ -81,9 +81,6 @@
     <ClCompile Include="..\src\memory.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\registers.cpp">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\rom.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>

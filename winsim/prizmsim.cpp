@@ -183,6 +183,8 @@ static int PrintTextHelper(HFONT Font, int height, int x, int y, const char* str
 		}
 	}
 
+	free(rows);
+
 	DeleteObject(Bitmap);
 	DeleteObject(Compat);
 

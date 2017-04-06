@@ -88,7 +88,7 @@ void reset(void) {
 
 	memset(tiles, 0, sizeof(tilestype));
 	
-	gpu.nextTick = 0;
+	cpu.gpuTick = 0;
 	
 	cpu.clocks = 0;
 	cpu.stopped = 0;
@@ -1247,7 +1247,7 @@ void cpuStep() {
 				cpu.clocks += 12;
 			} else {
 				// 8 clocks per instruction is about the average from empirical testing
-				int numInstr = min(max(gpu.nextTick - cpu.clocks, (MIN_CPU_BATCH * 8)) / 8, MAX_CPU_BATCH);
+				int numInstr = min(max(cpu.gpuTick - cpu.clocks, (MIN_CPU_BATCH * 8)) / 8, MAX_CPU_BATCH);
 
 				if (cpu.memory.TAC_timerctl & 0x04) {
 					numInstr = min(max(cpu.timerInterrupt - cpu.clocks, (MIN_CPU_BATCH * 8)) / 8, numInstr);

@@ -65,6 +65,19 @@ const char* getRAMTypeString(ramSizeType type) {
 	}
 }
 
+unsigned int getRAMSize() {
+	switch (mbc.ramType) {
+		case RAM_NONE: return 0;
+		case RAM_2KB: return 1024 * 2;
+		case RAM_8KB: return 1024 * 8;
+		case RAM_32KB: return 1024 * 32;
+		case RAM_128KB: return 1024 * 128;
+		case RAM_64KB: return 1024 * 64;
+		case RAM_MBC2: return 512;
+		default:  return 0;
+	}
+}
+
 // we don't support large RAM sizes yet..
 bool supportedRAM(ramSizeType type) {
 	// not yet supporting RAM bank switching:
@@ -198,6 +211,7 @@ void selectRamBank(unsigned char bankNum, bool force = false) {
 
 // enable sram by updating memory map
 void enableSRAM() {
+	mbc.sramEnabled = 1;
 	if (mbc.numRamBanks <= 1) {
 		int nibbleCount = ramNibbleCount(mbc.ramType);
 		for (int i = 0; i < nibbleCount; i++) {
@@ -210,6 +224,7 @@ void enableSRAM() {
 
 // disable sram by updating memory map
 void disableSRAM() {
+	mbc.sramEnabled = 0;
 	for (int i = 0xa0; i <= 0xbf; i++) {
 		memoryMap[i] = &disabledArea[0];
 	}
@@ -472,5 +487,24 @@ void trySaveSRAM(const char* filepath) {
 
 		// now in sync with file system
 		sramHash = curHash;
+	}
+}
+
+// call after state save load for proper handling
+void mbcOnStateLoad() {
+	if (mbc.sramEnabled) {
+		enableSRAM();
+	}
+	else {
+		disableSRAM();
+	}
+
+	// invalidate memory areas for ROM bank
+	for (int i = 0x40; i <= 0x7f; i++) {
+		specialMap[i] |= 0x10;
+	}
+
+	if (getRAMSize() <= 8 * 1024) {
+		sramHash = curRAMHash(getRAMSize());
 	}
 }

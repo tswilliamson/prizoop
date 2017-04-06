@@ -63,6 +63,9 @@ struct cpu_type {
 	unsigned long timer;
 	unsigned long timerBase;
 	unsigned long timerInterrupt;
+
+	// gpu
+	unsigned long gpuTick;		// next relevant tick for gpu
 };
 #pragma pack(pop)
 

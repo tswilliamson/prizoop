@@ -32,12 +32,8 @@ enum gpuMode {
 #define SET_LCDC_MODE(x) cpu.memory.STAT_lcdstatus = (cpu.memory.STAT_lcdstatus & 0xFC) | (x)
 #define GET_LCDC_MODE() (cpu.memory.STAT_lcdstatus & STAT_MODE)
 
-struct gpu_type {
-	unsigned long nextTick;
-} extern gpu;
-
 inline bool gpuCheck() {
-	return (cpu.clocks >= gpu.nextTick || (cpu.halted && cpu.IME));
+	return (cpu.clocks >= cpu.gpuTick || (cpu.halted && cpu.IME));
 }
 
 struct sprite {

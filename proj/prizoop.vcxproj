@@ -55,7 +55,6 @@
     <ClCompile Include="..\src\interrupts.cpp" />
     <ClCompile Include="..\src\keys.cpp" />
     <ClCompile Include="..\src\memory.cpp" />
-    <ClCompile Include="..\src\registers.cpp" />
     <ClCompile Include="..\src\rom.cpp" />
     <ClCompile Include="..\src\main.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|x64'">false</ExcludedFromBuild>

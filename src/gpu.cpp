@@ -8,8 +8,6 @@
 
 #include "gpu.h"
 
-struct gpu_type gpu;
-
 tilestype* tiles = NULL;
 
 void(*gpuStep)(void) = NULL;
@@ -21,9 +19,9 @@ void stepLCDOff(void) {
 		//  LCD was re-enabled
 		gpuStep = stepLCDOn_OAM;
 		invalidFrame = true;
-		gpu.nextTick = cpu.clocks + 80;
+		cpu.gpuTick = cpu.clocks + 80;
 	} else {
-		gpu.nextTick = cpu.clocks + 456;
+		cpu.gpuTick = cpu.clocks + 456;
 
 		// good time to refresh the keys
 		extern void refresh();
@@ -34,7 +32,7 @@ void stepLCDOff(void) {
 static inline void setMode(int mode, int ticksNeeded, void(*newHandler)()) {
 	SET_LCDC_MODE(mode);
 	gpuStep = newHandler;
-	gpu.nextTick += ticksNeeded;
+	cpu.gpuTick += ticksNeeded;
 }
 
 static inline void SetLY(unsigned int ly) {
@@ -60,13 +58,13 @@ void stepLCDOn_OAM(void) {
 	// we can force a step to avoid just spinning wheels when halted:
 	if (cpu.halted && cpu.IME) {
 		// don't screw up the timer or overcompensate
-		if (cpu.clocks < gpu.nextTick && cpu.timerInterrupt > gpu.nextTick) {
-			cpu.clocks += gpu.nextTick - cpu.clocks;
-			gpu.nextTick = cpu.clocks;
+		if (cpu.clocks < cpu.gpuTick && cpu.timerInterrupt > cpu.gpuTick) {
+			cpu.clocks += cpu.gpuTick - cpu.clocks;
+			cpu.gpuTick = cpu.clocks;
 		}
 	}
 
-	if (cpu.clocks >= gpu.nextTick) {
+	if (cpu.clocks >= cpu.gpuTick) {
 		setMode(GPU_MODE_VRAM, 172, stepLCDOn_VRAM);
 	}
 }
@@ -77,13 +75,13 @@ void stepLCDOn_VRAM(void) {
 	// we can force a step to avoid just spinning wheels when halted:
 	if (cpu.halted && cpu.IME) {
 		// don't screw up the timer or overcompensate
-		if (cpu.clocks < gpu.nextTick && cpu.timerInterrupt > gpu.nextTick) {
-			cpu.clocks += gpu.nextTick - cpu.clocks;
-			gpu.nextTick = cpu.clocks;
+		if (cpu.clocks < cpu.gpuTick && cpu.timerInterrupt > cpu.gpuTick) {
+			cpu.clocks += cpu.gpuTick - cpu.clocks;
+			cpu.gpuTick = cpu.clocks;
 		}
 	}
 
-	if (cpu.clocks >= gpu.nextTick) {
+	if (cpu.clocks >= cpu.gpuTick) {
 		if (!invalidFrame)
 			renderScanline();
 
@@ -103,13 +101,13 @@ void stepLCDOn_HBLANK(void) {
 	// we can force a step to avoid just spinning wheels when halted:
 	if (cpu.halted && cpu.IME) {
 		// don't screw up the timer or overcompensate
-		if (cpu.clocks < gpu.nextTick && cpu.timerInterrupt > gpu.nextTick) {
-			cpu.clocks += gpu.nextTick - cpu.clocks;
-			gpu.nextTick = cpu.clocks;
+		if (cpu.clocks < cpu.gpuTick && cpu.timerInterrupt > cpu.gpuTick) {
+			cpu.clocks += cpu.gpuTick - cpu.clocks;
+			cpu.gpuTick = cpu.clocks;
 		}
 	}
 
-	if (cpu.clocks >= gpu.nextTick) {
+	if (cpu.clocks >= cpu.gpuTick) {
 		SetLY(cpu.memory.LY_lcdline + 1);
 
 		if (cpu.memory.LY_lcdline == 144) {
@@ -153,13 +151,13 @@ void stepLCDOn_VBLANK(void) {
 	// we can force a step to avoid just spinning wheels when halted:
 	if (cpu.halted && cpu.IME) {
 		// don't screw up the timer or overcompensate
-		if (cpu.clocks < gpu.nextTick && cpu.timerInterrupt > gpu.nextTick) {
-			cpu.clocks += gpu.nextTick - cpu.clocks;
-			gpu.nextTick = cpu.clocks;
+		if (cpu.clocks < cpu.gpuTick && cpu.timerInterrupt > cpu.gpuTick) {
+			cpu.clocks += cpu.gpuTick - cpu.clocks;
+			cpu.gpuTick = cpu.clocks;
 		}
 	}
 
-	if (cpu.clocks >= gpu.nextTick) {
+	if (cpu.clocks >= cpu.gpuTick) {
 		switch (cpu.memory.LY_lcdline) {
 			case 0x00:
 				// check if lcd was disabled:
@@ -186,15 +184,15 @@ void stepLCDOn_VBLANK(void) {
 				break;
 			case 0x98:
 				SetLY(cpu.memory.LY_lcdline + 1);
-				gpu.nextTick += 56;
+				cpu.gpuTick += 56;
 				break;
 			case 0x99:
 				SetLY(0);
-				gpu.nextTick += 400;
+				cpu.gpuTick += 400;
 				break;
 			default:
 				SetLY(cpu.memory.LY_lcdline + 1);
-				gpu.nextTick += 456;
+				cpu.gpuTick += 456;
 				break;
 		}
 	}
