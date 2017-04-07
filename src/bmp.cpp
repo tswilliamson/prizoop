@@ -4,6 +4,10 @@
 #include "emulator.h"
 #include "debug.h"
 
+#include "rom.h"
+#include "cgb_bootstrap.h"
+#include "memory.h"
+
 void emulator_screen::DrawBG(const char* filepath, int x1, int y1, int x2, int y2) {
 	// try to load the file
 	unsigned short fileAsName[512];
@@ -91,4 +95,37 @@ int emulator_screen::PrintWidth(const char* buffer) {
 	int x = 0, y = 0;
 	PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_BLACK, 0, 0);
 	return x;
+}
+
+void emulator_screen::DrawPausePreview() {
+
+	if (!emulator.pausePreviewValid)
+		return;
+
+	// construct palette
+	unsigned short palette[12];
+	if (!emulator.settings.useCGBColors || !getCGBTableEntry(&memoryMap[0][ROM_OFFSET_NAME], palette)) {
+		colorpalette_type pal;
+		emulator.getPalette(emulator.settings.bgColorPalette, pal);
+		memcpy(&palette[0], pal.colors, sizeof(pal.colors));
+
+		emulator.getPalette(emulator.settings.obj1ColorPalette, pal);
+		memcpy(&palette[4], pal.colors, sizeof(pal.colors));
+
+		emulator.getPalette(emulator.settings.obj2ColorPalette, pal);
+		memcpy(&palette[8], pal.colors, sizeof(pal.colors));
+	}
+
+	const int xStart = 300;
+	const int yStart = 22;
+	unsigned char* pause = &emulator.pausePreview[0];
+	unsigned short* vramStart = ((unsigned short*)GetVRAMAddress()) + xStart + yStart * LCD_WIDTH_PX;
+	for (int y = 0; y < 72; y++) {
+		for (int x = 0; x < 80; x += 2, pause++) {
+			unsigned int color0 = palette[(pause[0] & 0xF0) >> 4];
+			unsigned int color1 = palette[(pause[0] & 0x0F) >> 0];
+			vramStart[x + y * LCD_WIDTH_PX] = color0;
+			vramStart[x + y * LCD_WIDTH_PX + 1] = color1;
+		}
+	}
 }

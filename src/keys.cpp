@@ -1,6 +1,7 @@
 #include "keys.h"
 #include "emulator.h"
 #include "debug.h"
+#include "gpu.h"
 
 struct keys_type keys;
 
@@ -41,6 +42,11 @@ void refresh() {
 
 	if (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_LOAD])) {
 		emulator.loadState();
+	}
+
+	if (keyDown_fast(48)) {
+		// this will set keys.exit once a full frame renders
+		enablePausePreview();
 	}
 
 #if DEBUG

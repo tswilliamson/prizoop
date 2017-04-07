@@ -20,7 +20,9 @@ namespace emu_button {
 }
 
 // Emulation settings
+#define SETTINGS_VERSION 1
 struct emulator_settings {
+	int version;
 	char selectedRom[32];
 	unsigned char overclock;
 	unsigned char scaleToScreen;
@@ -61,6 +63,9 @@ protected:
 
 	// Width of the given string in pixels
 	static int PrintWidth(const char* buffer);
+
+	// Draws the pause preview (if valid) to the VRAM
+	static void DrawPausePreview();
 };
 
 // The main emulator object
@@ -71,6 +76,10 @@ struct emulator_type {
 	// menu
 	int curScreen;
 	emulator_screen* screens[6];
+
+	// pause preview window (4 bits per pixel)
+	unsigned char pausePreview[80 * 72 / 2];
+	bool pausePreviewValid;
 
 	// overall application
 	void startUp();

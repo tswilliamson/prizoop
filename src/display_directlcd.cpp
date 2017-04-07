@@ -145,7 +145,7 @@ void renderScanline1x1(void) {
 
 	void* scanlineStart = &scanGroup[160 * curScan + curScanBuffer*scanBufferSize];
 
-	RenderScanline<unsigned short>(scanlineStart);
+	RenderScanline<unsigned short, 1>(scanlineStart);
 
 	// blit every SCANLINE_BUFFER # lines
 	curScan++;
@@ -257,7 +257,7 @@ void renderScanlineFit(void) {
 		&scanGroup[320 * curScan + curScanBuffer*scanBufferSize];
 #endif
 
-	RenderScanline<unsigned int>(scanlineStart);
+	RenderScanline<unsigned int, 1>(scanlineStart);
 
 #if !USEMEMCPY
 #if SCANLINE_BUFFER == 2
@@ -268,7 +268,7 @@ void renderScanlineFit(void) {
 #else
 	if ((curScan & 1) == 1) {
 		scanlineStart = &scanGroup[320 * (scanBufferOffset[curScan] + 1) + curScanBuffer*scanBufferSize];
-		RenderScanline<unsigned int>(scanlineStart);
+		RenderScanline<unsigned int, 1>(scanlineStart);
 	}
 #endif
 #endif

@@ -41,6 +41,7 @@
     <ClCompile Include="..\src\debug.cpp" />
     <ClCompile Include="..\src\display_directlcd.cpp" />
     <ClCompile Include="..\src\display_emu.cpp" />
+    <ClCompile Include="..\src\display_preview.cpp" />
     <ClCompile Include="..\src\emulator.cpp" />
     <ClCompile Include="..\src\mbc.cpp" />
     <ClCompile Include="..\src\screen_settings.cpp" />

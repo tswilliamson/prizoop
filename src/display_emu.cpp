@@ -40,15 +40,15 @@ void renderEmu() {
 	// stretch across screen?
 	if (stretch) {
 		unsigned short* scanlineStart = &((unsigned short*)GetVRAMAddress())[32 + LCD_WIDTH_PX * ((cpu.memory.LY_lcdline * 3) / 2)];
-		RenderScanline<unsigned int>(scanlineStart);
+		RenderScanline<unsigned int, 1>(scanlineStart);
 
 		if (cpu.memory.LY_lcdline & 1) {
-			RenderScanline<unsigned int>(scanlineStart + LCD_WIDTH_PX);
+			RenderScanline<unsigned int, 1>(scanlineStart + LCD_WIDTH_PX);
 		}
 	}
 	else {
 		void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * (cpu.memory.LY_lcdline + 36)];
-		RenderScanline<unsigned short>(scanlineStart);
+		RenderScanline<unsigned short, 1>(scanlineStart);
 	}
 }
 
@@ -161,6 +161,10 @@ void(*drawFramebuffer)(void) = drawEmu;
 void SetupDisplayDriver(bool withStretch, char withFrameskip) {
 	frameSkip = withFrameskip;
 	stretch = withStretch;
+
+	drawFramebuffer = drawEmu;
+	renderScanline = renderEmu;
+	renderBlankScanline = renderBlankEmu;
 }
 
 void SetupDisplayPalette(unsigned short pal[12]) {

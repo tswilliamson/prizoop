@@ -114,10 +114,13 @@ void screen_play::play() {
 	ScopeTimer::InitSystem();
 #endif
 
-	// wait for menu key to exit
-	while (keyDown_fast(48) == false) {
+	// wait for exit "key" to exit (This actually renders a preview screen first)
+	keys.exit = false;
+	while (keys.exit == false) {
 		cpuStep();
 	}
+
+	// make sure menu isn't pressed
 	while (keyDown_fast(48) == true);
 
 	// save sram

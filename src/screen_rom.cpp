@@ -68,6 +68,7 @@ void screen_rom::select() {
 	discoverFiles();
 
 	DrawBG("\\\\fls0\\Prizoop\\menu.bmp");
+	DrawPausePreview();
 	SaveVRAM_1();
 
 	// if our selected file from settings is in the rom list

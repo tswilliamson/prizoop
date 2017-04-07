@@ -33,6 +33,7 @@ void screen_settings::setup() {
 void screen_settings::select() {
 	DrawBG("\\\\fls0\\Prizoop\\menu.bmp");
 	SaveVRAM_1();
+	DrawPausePreview();
 
 	drawOptions();
 }
@@ -97,7 +98,7 @@ void screen_settings::drawOptions() {
 }
 
 static const char* keyName[] = {
-	"A", "B", "Select", "Start", "Right", "Left", "Up", "Down"
+	"A", "B", "Select", "Start", "Right", "Left", "Up", "Down", "Save State", "Load State"
 };
 
 unsigned char getCurrentKey(bool wait = true) {
@@ -136,13 +137,14 @@ void screen_settings::selectKeys() {
 		area.y1 = 86;
 		area.y2 = 132;
 		area.mode = 1;
-		Bdisp_AreaClr(&area, 0, COLOR_BLACK);
+		display_fill temp = area;
+		Bdisp_AreaClr(&temp, 1, COLOR_BLACK);
 
 		area.x1 += 2;
 		area.x2 -= 2;
 		area.y1 += 2;
 		area.y2 -= 2;
-		Bdisp_AreaClr(&area, 0, COLOR_WHITE);
+		Bdisp_AreaClr(&area, 1, COLOR_WHITE);
 
 		const char* pressKey = "Press key for ";
 		const char* exitPrompt = "Press MENU to cancel";
@@ -174,6 +176,7 @@ void screen_settings::handleUp() {
 	curOption = (curOption + NumOptions() - 1) % NumOptions();
 
 	LoadVRAM_1();
+	DrawPausePreview();
 	drawOptions();
 }
 
@@ -181,6 +184,7 @@ void screen_settings::handleDown() {
 	curOption = (curOption + 1) % NumOptions();
 
 	LoadVRAM_1();
+	DrawPausePreview();
 	drawOptions();
 }
 
@@ -215,6 +219,7 @@ void screen_settings::handleSelect() {
 	}
 
 	LoadVRAM_1();
+	DrawPausePreview();
 	drawOptions();
 }
 

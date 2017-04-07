@@ -50,6 +50,8 @@ struct keys_type {
 		
 		unsigned char c;
 	};
+
+	unsigned char exit;
 };
 
 extern keys_type keys;

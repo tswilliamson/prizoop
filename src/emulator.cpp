@@ -11,6 +11,7 @@ emulator_type emulator;
 // Main emulator functionality
 void emulator_type::startUp() {
 	curScreen = 0;
+	pausePreviewValid = false;
 
 	if (!loadSettings()) {
 		defaultSettings();
@@ -106,6 +107,7 @@ static const char* settingsFile = "Settings";
 
 void emulator_type::defaultSettings() {
 	// default settings
+	settings.version = SETTINGS_VERSION;
 	settings.selectedRom[0] = 0;
 	settings.overclock = false;
 	settings.scaleToScreen = true;
@@ -122,7 +124,7 @@ void emulator_type::defaultSettings() {
 	settings.keyMap[emu_button::LEFT] = 38;
 	settings.keyMap[emu_button::UP] = 28;
 	settings.keyMap[emu_button::DOWN] = 37;
-	settings.keyMap[emu_button::STATE_SAVE] = 53;	// 'S'
+	settings.keyMap[emu_button::STATE_SAVE] = 43;	// 'S'
 	settings.keyMap[emu_button::STATE_LOAD] = 25;   // 'L'
 
 	// simulator only defaults
@@ -136,8 +138,12 @@ void emulator_type::defaultSettings() {
 bool emulator_type::loadSettings() {
 	int len;
 	if (!MCSGetDlen2((unsigned char*) settingsDir, (unsigned char*) settingsFile, &len) && len == sizeof(emulator.settings)) {
-		if (!MCSGetData1(0, sizeof(emulator.settings), &emulator.settings)) {
-			return true;
+		emulator_settings readSettings;
+		if (!MCSGetData1(0, sizeof(readSettings), &readSettings)) {
+			if (readSettings.version == SETTINGS_VERSION) {
+				memcpy(&emulator.settings, &readSettings, sizeof(emulator_settings));
+				return true;
+			}
 		}
 	}
 	return false;
@@ -146,6 +152,7 @@ bool emulator_type::loadSettings() {
 void emulator_type::saveSettings() {
 	DebugAssert(sizeof(emulator.settings) % 4 == 0);
 	MCS_CreateDirectory((unsigned char*) settingsDir);
+	emulator.settings.version = SETTINGS_VERSION;
 	MCS_WriteItem((unsigned char*) settingsDir, (unsigned char*) settingsFile, 0, sizeof(emulator.settings), (int)(&emulator.settings));
 }
 

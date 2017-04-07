@@ -16,7 +16,7 @@ inline unsigned int ToScanType(unsigned int color) {
 	return color | (color << 16);
 }
 
-template<class Type> inline void RenderScanline(void* scanlineStart) {
+template<class Type, Type colorXor> inline void RenderScanline(void* scanlineStart) {
 	// background/window
 	{
 		int i;
@@ -26,9 +26,9 @@ template<class Type> inline void RenderScanline(void* scanlineStart) {
 
 		const Type palette[4] = {
 			ToScanType((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x03) >> 0]),
-			ToScanType((Type)(colorPalette[(cpu.memory.BGP_bgpalette & 0x0C) >> 2] ^ 1)),
-			ToScanType((Type)(colorPalette[(cpu.memory.BGP_bgpalette & 0x30) >> 4] ^ 1)),
-			ToScanType((Type)(colorPalette[(cpu.memory.BGP_bgpalette & 0xC0) >> 6] ^ 1))
+			ToScanType((Type)(colorPalette[(cpu.memory.BGP_bgpalette & 0x0C) >> 2] ^ colorXor)),
+			ToScanType((Type)(colorPalette[(cpu.memory.BGP_bgpalette & 0x30) >> 4] ^ colorXor)),
+			ToScanType((Type)(colorPalette[(cpu.memory.BGP_bgpalette & 0xC0) >> 6] ^ colorXor))
 		};
 
 		// draw background

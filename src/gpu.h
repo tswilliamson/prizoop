@@ -67,3 +67,5 @@ extern void stepLCDOn_VBLANK(void);
 void hblank(void);
 
 void updateTile(unsigned short address, unsigned char value);
+
+void enablePausePreview();
