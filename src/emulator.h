@@ -26,7 +26,7 @@ struct emulator_settings {
 	unsigned char scaleToScreen;
 	unsigned char useCGBColors;
 	unsigned char clampSpeed;
-	unsigned char keyMap[emu_button::MAX]; 
+	unsigned char keyMap[12];	// padding past emu_button::MAX to make it 4 byte aligned
 	char frameSkip;
 	unsigned char bgColorPalette;
 	unsigned char obj1ColorPalette;

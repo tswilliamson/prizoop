@@ -144,6 +144,7 @@ bool emulator_type::loadSettings() {
 }
 
 void emulator_type::saveSettings() {
+	DebugAssert(sizeof(emulator.settings) % 4 == 0);
 	MCS_CreateDirectory((unsigned char*) settingsDir);
 	MCS_WriteItem((unsigned char*) settingsDir, (unsigned char*) settingsFile, 0, sizeof(emulator.settings), (int)(&emulator.settings));
 }
