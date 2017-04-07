@@ -111,7 +111,7 @@ void emulator_type::defaultSettings() {
 	settings.selectedRom[0] = 0;
 	settings.overclock = false;
 	settings.scaleToScreen = true;
-	settings.frameSkip = 1;
+	settings.frameSkip = -1;
 
 	settings.clampSpeed = true;
 	settings.useCGBColors = true;

@@ -127,13 +127,7 @@ void drawEmu() {
 	skippingFrame = false;
 	if (frameSkip && framecounter > 4) {
 		if (frameSkip < 0) {
-			// negative is automatic (frame skip amt stored in HOW negative it is)
-			if (fps > 597 && frameSkip != -1) {
-				frameSkip++;
-			}
-			else if (fps && fps < 500 && frameSkip != -4) {
-				frameSkip--;
-			}
+			// negative is automatic (frame skip amt stored in HOW negative it is, though Windows is pretty much always full speed)
 			skippingFrame = (framecounter % (-frameSkip)) != 0;
 		}
 		else {

@@ -349,23 +349,34 @@ void drawFramebufferMain(void) {
 		int tickdiff = ticks - rtc_lastticks;
 		curfps = 40960 / tickdiff;
 		rtc_lastticks = ticks;
+
+		if (curfps != fps) {
+			fps = curfps;
+#if DEBUG
+			// report frame rate:
+			memset(ScopeTimer::debugString, 0, sizeof(ScopeTimer::debugString));
+			sprintf(ScopeTimer::debugString, "FPS:%d.%d, Skip:%d", fps / 10, fps % 10, frameSkip);
+#endif
+
+			// auto frameskip adjustment
+			if (frameSkip < 0) {
+				if (fps > 638 && frameSkip != -1) {
+					frameSkip++;
+				}
+				else if (fps && fps < 480 && frameSkip != -3) {
+					frameSkip--;
+				}
+			}
+		}
 	}
 
 	// TODO : not the best... only clamps speed to 64 FPS (7% too high)
+	bool waited = false;
 	if (emulator.settings.clampSpeed) {
 		static int lastClampTicks = 0;
 		int curTicks = RTC_GetTicks();
-		while (curTicks == lastClampTicks || curTicks == lastClampTicks + 1) { curTicks = RTC_GetTicks(); }
+		while (curTicks == lastClampTicks || curTicks == lastClampTicks + 1) { waited = true;  curTicks = RTC_GetTicks(); }
 		lastClampTicks = curTicks;
-	}
-
-	if (curfps != fps) {
-		fps = curfps;
-#if DEBUG
-		// report frame rate:
-		memset(ScopeTimer::debugString, 0, sizeof(ScopeTimer::debugString));
-		sprintf(ScopeTimer::debugString, "FPS:%d.%d, Skip:%d", fps / 10, fps % 10, frameSkip);
-#endif
 	}
 
 	// determine frame skip
@@ -373,11 +384,6 @@ void drawFramebufferMain(void) {
 	if (frameSkip && framecounter > 4) {
 		if (frameSkip < 0) {
 			// negative is automatic (frame skip amt stored in HOW negative it is)
-			if (fps > 597 && frameSkip != -1) {
-				frameSkip++;
-			} else if (fps && fps < 500 && frameSkip != -4) {
-				frameSkip--;
-			}
 			skippingFrame = (framecounter % (-frameSkip)) != 0;
 		}
 		else {
