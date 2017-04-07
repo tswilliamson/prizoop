@@ -249,14 +249,6 @@ bool setupMBCType(mbcType type, unsigned char romSizeByte, unsigned char ramSize
 			selectRomBank(1);
 			enableSRAM();
 			return true;
-		case ROM_MBC1_RAM_BATT:
-			mbc.batteryBacked = 1;
-		case ROM_MBC1_RAM:
-			mbc.ramType = (ramSizeType)ramSizeByte;
-		case ROM_MBC1:
-			mbc.numRomBanks = numSwitchableBanksFromType(romSizeByte);
-			selectRomBank(1);
-			break;
 		case ROM_MBC2_BATTERY:
 			mbc.batteryBacked = 1;
 		case ROM_MBC2:
@@ -264,16 +256,30 @@ bool setupMBCType(mbcType type, unsigned char romSizeByte, unsigned char ramSize
 			mbc.numRomBanks = numSwitchableBanksFromType(romSizeByte);
 			selectRomBank(1);
 			break;
+		// support for MBC 1/3/5
+		case ROM_MBC1_RAM_BATT:
 		case ROM_MBC3_RAM_BATT:
+		case ROM_MBC5_RAM_BATT:
+		case ROM_MBC5_RUMBLE_SRAM_BATT:
 			mbc.batteryBacked = 1;
+		case ROM_MBC1_RAM:
 		case ROM_MBC3_RAM:
+		case ROM_MBC5_RAM:
+		case ROM_MBC5_RUMBLE_SRAM:
 			mbc.ramType = (ramSizeType)ramSizeByte;
+		case ROM_MBC1:
 		case ROM_MBC3:
+		case ROM_MBC5:
+		case ROM_MBC5_RUMBLE:
 			mbc.numRomBanks = numSwitchableBanksFromType(romSizeByte);
 			selectRomBank(1);
 			break;
 		default:
 			return false;
+	}
+
+	if (type == ROM_MBC5_RUMBLE || type == ROM_MBC5_RUMBLE_SRAM || type == ROM_MBC5_RUMBLE_SRAM_BATT) {
+		mbc.rumblePack = 1;
 	}
 
 	// support if we support the ram bank type
@@ -369,13 +375,44 @@ void mbcWrite(unsigned short address, unsigned char value) {
 				value &= 0x7F;
 				if (value == 0) {
 					selectRomBank(1);
-				} else {
+				}
+				else {
 					selectRomBank(value);
 				}
-			} 
+			}
 			else if (upperNibble <= 0x05) {
 				selectRamBank(value);
 			}
+			return;
+		case ROM_MBC5:
+		case ROM_MBC5_RAM:
+		case ROM_MBC5_RAM_BATT:
+		case ROM_MBC5_RUMBLE:
+		case ROM_MBC5_RUMBLE_SRAM:
+		case ROM_MBC5_RUMBLE_SRAM_BATT:
+			if (upperNibble <= 0x01) {
+				if ((value & 0x0F) == 0x0A) {
+					enableSRAM();
+				} else {
+					disableSRAM();
+				}
+			}
+			// TODO : no support for ROM's greater > 256 banks
+			else if (upperNibble <= 0x03) {
+				if (value == 0) {
+					selectRomBank(1);
+				} else {
+					selectRomBank(value);
+				}
+			}
+			else if (upperNibble <= 0x05) {
+				if (mbc.rumblePack) {
+					selectRamBank(value & 0x7);
+				} else {
+					selectRamBank(value);
+				}
+			}
+			return;
 	}
 }
 

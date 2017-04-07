@@ -50,6 +50,7 @@ struct mbc_state {
 	unsigned char numRomBanks;		// number of 16 KB ROM banks
 	unsigned char numRamBanks;		// number of 8 KB RAM Banks
 	unsigned char batteryBacked;	// 1 if rom battery backup is used for RAM
+	unsigned char rumblePack;		// 1 if rumble pack is part of the ROM
 
 	unsigned char romBank;			// selected rom bank
 	unsigned char ramBank;			// selected ram bank
