@@ -214,6 +214,10 @@ void screen_settings::handleSelect() {
 		{
 			unsigned char* palette = ((unsigned char*)options[curOption].addr);
 			*palette = ((*palette) + 1) % emulator.numPalettes();
+
+			// disable cgb colors
+			emulator.settings.useCGBColors = false;
+
 			break;
 		}
 	}
