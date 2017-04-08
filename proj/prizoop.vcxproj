@@ -35,6 +35,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\bg_compressed.cpp" />
     <ClCompile Include="..\src\bmp.cpp" />
     <ClCompile Include="..\src\cgb_bootstrap.cpp" />
     <ClCompile Include="..\src\cpu.cpp" />
@@ -62,6 +63,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\src\timer.cpp" />
+    <ClCompile Include="..\src\zx7\compress.c" />
+    <ClCompile Include="..\src\zx7\dzx7.c" />
+    <ClCompile Include="..\src\zx7\optimize.c" />
+    <ClCompile Include="..\src\zx7\zx7.c" />
     <ClCompile Include="..\winsim\prizmsim.cpp" />
     <ClCompile Include="..\winsim\winmain.cpp" />
   </ItemGroup>
@@ -86,6 +91,7 @@
     <ClInclude Include="..\src\registers.h" />
     <ClInclude Include="..\src\rom.h" />
     <ClInclude Include="..\src\tmu.h" />
+    <ClInclude Include="..\src\zx7\zx7.h" />
     <ClInclude Include="..\winsim\prizmsim.h" />
   </ItemGroup>
   <ItemGroup>
@@ -94,6 +100,9 @@
     <None Include="..\src\cb_instructions.inl" />
     <None Include="..\src\cpu_instructions.inl" />
     <None Include="..\src\gpu_scanline.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\src\zx7\zx7.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0A1E9BF8-05DD-4F73-81D8-18DA73DB5796}</ProjectGuid>

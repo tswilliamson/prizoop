@@ -21,7 +21,7 @@ include $(FXCGSDK)/common/prizm_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	$(CONFIG)
-SOURCES		:=	src
+SOURCES		:=	src src/zx7
 DATA		:=	data  
 INCLUDES	:=
 

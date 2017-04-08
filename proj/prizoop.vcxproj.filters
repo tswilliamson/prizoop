@@ -28,6 +28,9 @@
     <Filter Include="Source Files\menu">
       <UniqueIdentifier>{59ac1813-d914-4e4b-847f-f6b520fcb177}</UniqueIdentifier>
     </Filter>
+    <Filter Include="zx7">
+      <UniqueIdentifier>{101f6621-ea55-42c5-a919-df436e845d59}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ScopeTimer.cpp">
@@ -99,6 +102,21 @@
     <ClCompile Include="..\src\display_preview.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\zx7\compress.c">
+      <Filter>zx7</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\zx7\dzx7.c">
+      <Filter>zx7</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\zx7\optimize.c">
+      <Filter>zx7</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\zx7\zx7.c">
+      <Filter>zx7</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bg_compressed.cpp">
+      <Filter>Source Files\menu</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\main.h">
@@ -164,6 +182,9 @@
     <ClInclude Include="..\src\screen_settings.h">
       <Filter>Header Files\menu</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\zx7\zx7.h">
+      <Filter>zx7</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile" />
@@ -179,5 +200,10 @@
     <None Include="..\src\gpu_scanline.inl">
       <Filter>Source Files\core</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\src\zx7\zx7.txt">
+      <Filter>zx7</Filter>
+    </Text>
   </ItemGroup>
 </Project>

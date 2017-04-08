@@ -40,6 +40,10 @@ struct colorpalette_type {
 	unsigned short colors[4];
 };
 
+extern const unsigned char* bg_menu;
+extern const unsigned char* bg_1x1;
+extern const unsigned char* bg_fit;
+
 struct emulator_screen {
 	int fKey;
 
@@ -56,7 +60,8 @@ struct emulator_screen {
 
 protected:
 	// helper functions
-	static void DrawBG(const char* filename, int x1 = 0, int y1 = 0, int x2 = 384, int y2 = 216);
+	static void DrawBG(const char* filename);
+	static void DrawBGEmbedded(unsigned char* compressedData);
 
 	// Print a string at the given coordinates
 	static void Print(int x, int y, const char* buffer, bool selected, unsigned short color = COLOR_WHITE);

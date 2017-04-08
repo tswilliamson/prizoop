@@ -31,7 +31,7 @@ void screen_settings::setup() {
 }
 
 void screen_settings::select() {
-	DrawBG("\\\\fls0\\Prizoop\\menu.bmp");
+	DrawBGEmbedded((unsigned char*)bg_menu);
 	SaveVRAM_1();
 	DrawPausePreview();
 

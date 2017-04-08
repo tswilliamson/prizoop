@@ -8,7 +8,9 @@
 #include "cgb_bootstrap.h"
 #include "memory.h"
 
-void emulator_screen::DrawBG(const char* filepath, int x1, int y1, int x2, int y2) {
+#include "zx7/zx7.h"
+
+void emulator_screen::DrawBG(const char* filepath) {
 	// try to load the file
 	unsigned short fileAsName[512];
 	Bfile_StrToName_ncpy(fileAsName, filepath, strlen(filepath) + 1);
@@ -37,13 +39,9 @@ void emulator_screen::DrawBG(const char* filepath, int x1, int y1, int x2, int y
 		return;
 	}
 
-	if (y1 != 0) {
-		Bfile_SeekFile_OS(file, 54 + 2 * width * y1);
-	}
-
 	// each row:
 	unsigned short color[384];
-	for (int y = y1; y < y2; y++) {
+	for (int y = 0; y < 216; y++) {
 		Bfile_ReadFile_OS(file, color, 2 * width, -1);
 		// assuming format is endian flipped BGR:
 #ifdef BIG_E
@@ -58,14 +56,44 @@ void emulator_screen::DrawBG(const char* filepath, int x1, int y1, int x2, int y
 				((color[x] & 0x7C00) << 1);
 		}
 		memcpy(
-			((short*)GetVRAMAddress()) + x1 + y * LCD_WIDTH_PX,
+			((short*)GetVRAMAddress()) + y * LCD_WIDTH_PX,
 			color,
-			2 * (x2 - x1));
+			2 * 384);
 	}
 
 	Bfile_CloseFile_OS(file);
 
+#if TARGET_WINSIM
+	unsigned char* outData;
+	int compressedSize = ZX7Compress((unsigned char*)GetVRAMAddress(), 384 * 216 * 2, &outData);
+	
+	// output embedded code to file
+	OutputLog("const unsigned char %s[] =\n", filepath);
+	OutputLog("{\n\t");
+	for (int i = 0; i < compressedSize; i++) {
+		OutputLog("%d,", outData[i]);
+		if (i % 64 == 63) {
+			OutputLog("\n\t");
+		}
+	}
+	OutputLog("};\n");
+
+	free(outData);
+#endif
+
 	DrawFrame(0);
+}
+
+void emulator_screen::DrawBGEmbedded(unsigned char* compressedData) {
+	ZX7Decompress(compressedData, (unsigned char*) GetVRAMAddress(), 384 * 216 * 2);
+
+#ifdef BIG_E
+	unsigned short* data = (unsigned short*)GetVRAMAddress();
+	for (int x = 0; x < 384*216; x++) {
+		*data = ((*data & 0xFF00) >> 8) | ((*data & 0x00FF) << 8);
+		data++;
+	}
+#endif
 }
 
 void emulator_screen::Print(int x, int y, const char* buffer, bool selected, unsigned short color) {

@@ -69,10 +69,10 @@ void screen_play::initRom() {
 
 void screen_play::play() {
 	if (emulator.settings.scaleToScreen) {
-		DrawBG("\\\\fls0\\Prizoop\\fit.bmp");
+		DrawBGEmbedded((unsigned char*)bg_fit);
 	}
 	else {
-		DrawBG("\\\\fls0\\Prizoop\\1x1.bmp");
+		DrawBGEmbedded((unsigned char*)bg_1x1);
 	}
 	Bdisp_PutDisp_DD();
 

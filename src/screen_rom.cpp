@@ -67,7 +67,7 @@ void screen_rom::select() {
 
 	discoverFiles();
 
-	DrawBG("\\\\fls0\\Prizoop\\menu.bmp");
+	DrawBGEmbedded((unsigned char*) bg_menu);
 	DrawPausePreview();
 	SaveVRAM_1();
 
