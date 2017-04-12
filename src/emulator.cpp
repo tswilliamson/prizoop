@@ -212,6 +212,31 @@ int getSaveStateSize(unsigned int& withRAMSize) {
 	return spaceNeeded;
 }
 
+#ifdef LITTLE_E
+void EndianSwap(unsigned short& s) {
+	s = ((s & 0xFF00) >> 8) | ((s & 0x00FF) << 8);
+}
+void EndianSwap(unsigned int& i) {
+	i = ((i & 0xFF000000) >> 24) | ((i & 0x00FF0000) >> 8) | ((i & 0x0000FF00) << 8) | ((i & 0x000000FF) << 24);
+}
+#else
+#define EndianSwap(...) 
+#endif
+
+static void CompatSwaps() {
+	EndianSwap(cpu.registers.pc);
+	EndianSwap(cpu.registers.sp);
+	EndianSwap(cpu.clocks);
+	EndianSwap(cpu.div);
+	EndianSwap(cpu.divBase);
+	EndianSwap(cpu.timer);
+	EndianSwap(cpu.timerBase);
+	EndianSwap(cpu.timerInterrupt);
+	EndianSwap(cpu.gpuTick);
+	EndianSwap((unsigned int&)mbc.type);
+	EndianSwap((unsigned int&)mbc.ramType);
+}
+
 void emulator_type::saveState() {
 #if !TARGET_WINSIM
 	// flush DMA before making OS calls
@@ -238,6 +263,8 @@ void emulator_type::saveState() {
 		}
 	}
 
+	CompatSwaps();
+
 	// write rom bytes 0x14E-F (checksum) for sanity
 	Bfile_WriteFile_OS(hFile, &cart[0x14E], 2);
 
@@ -257,6 +284,8 @@ void emulator_type::saveState() {
 
 	// done!
 	Bfile_CloseFile_OS(hFile);
+
+	CompatSwaps();
 }
 
 bool emulator_type::loadState() {
@@ -296,6 +325,8 @@ bool emulator_type::loadState() {
 	Bfile_ReadFile_OS(hFile, &cpu, sizeof(cpu_type), -1);
 	Bfile_ReadFile_OS(hFile, &mbc, sizeof(mbc_state), -1);
 	mbc.romFile = romFile;
+
+	CompatSwaps();
 
 	// write various work rams
 	Bfile_ReadFile_OS(hFile, &wram[0], sizeof(wram), -1);

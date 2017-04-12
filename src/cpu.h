@@ -51,21 +51,21 @@ struct cpu_type {
 	unsigned char IME;							// master interrupt enable (di, ei)
 
 	// misc cpu info
-	unsigned long clocks;		// according to clock frequency (4 MHz)
+	unsigned int clocks;		// according to clock frequency (4 MHz)
 	unsigned char halted;
 	unsigned char stopped;
 
 	// cpu div
-	unsigned long div;
-	unsigned long divBase;
+	unsigned int div;
+	unsigned int divBase;
 
 	// cpu timer
-	unsigned long timer;
-	unsigned long timerBase;
-	unsigned long timerInterrupt;
+	unsigned int timer;
+	unsigned int timerBase;
+	unsigned int timerInterrupt;
 
 	// gpu
-	unsigned long gpuTick;		// next relevant tick for gpu
+	unsigned int gpuTick;		// next relevant tick for gpu
 };
 #pragma pack(pop)
 
