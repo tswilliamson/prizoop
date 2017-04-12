@@ -76,7 +76,7 @@ int read_offset() {
         i = i << 1 | read_bit();
         i = i << 1 | read_bit();
         i = i << 1 | read_bit();
-        return (value & 127 | (i << 7)) + 128;
+        return ((value & 127) | (i << 7)) + 128;
     }
 }
 

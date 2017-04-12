@@ -31,6 +31,9 @@
     <Filter Include="zx7">
       <UniqueIdentifier>{101f6621-ea55-42c5-a919-df436e845d59}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ptune2_simple">
+      <UniqueIdentifier>{693d36c5-6996-45ff-a69e-a5ad57b2d2a1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ScopeTimer.cpp">
@@ -117,6 +120,9 @@
     <ClCompile Include="..\src\bg_compressed.cpp">
       <Filter>Source Files\menu</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\ptune2_simple\Ptune2_direct.c">
+      <Filter>ptune2_simple</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\main.h">
@@ -184,6 +190,12 @@
     </ClInclude>
     <ClInclude Include="..\src\zx7\zx7.h">
       <Filter>zx7</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ptune2_simple\Ptune2_direct.h">
+      <Filter>ptune2_simple</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ptune2_simple\SH7305_CPG_BSC.h">
+      <Filter>ptune2_simple</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

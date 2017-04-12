@@ -45,6 +45,7 @@
     <ClCompile Include="..\src\display_preview.cpp" />
     <ClCompile Include="..\src\emulator.cpp" />
     <ClCompile Include="..\src\mbc.cpp" />
+    <ClCompile Include="..\src\ptune2_simple\Ptune2_direct.c" />
     <ClCompile Include="..\src\screen_settings.cpp" />
     <ClCompile Include="..\src\screen_play.cpp" />
     <ClCompile Include="..\src\screen_rom.cpp" />
@@ -77,6 +78,8 @@
     <ClInclude Include="..\src\display.h" />
     <ClInclude Include="..\src\emulator.h" />
     <ClInclude Include="..\src\mbc.h" />
+    <ClInclude Include="..\src\ptune2_simple\Ptune2_direct.h" />
+    <ClInclude Include="..\src\ptune2_simple\SH7305_CPG_BSC.h" />
     <ClInclude Include="..\src\screen_settings.h" />
     <ClInclude Include="..\src\screen_play.h" />
     <ClInclude Include="..\src\screen_rom.h" />

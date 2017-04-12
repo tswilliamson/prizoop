@@ -8,17 +8,18 @@ struct option_type {
 	const char* name;
 	int type;		// 0 = toggle, 1 = keys, 2 = frameskip, 3 = color
 	void* addr;
+	bool disabled;
 };
 
 static option_type options[] = {
-	{ "Overclock", 0, &emulator.settings.overclock },
-	{ "Fit To Screen", 0, &emulator.settings.scaleToScreen },
-	{ "CGB Colors", 0, &emulator.settings.useCGBColors },
-	{ "Clamp Speed", 0, &emulator.settings.clampSpeed },
-	{ "Frameskip", 2, &emulator.settings.frameSkip },
-	{ "BG Colors", 3, &emulator.settings.bgColorPalette },
-	{ "Sprite 1 Colors", 3, &emulator.settings.obj1ColorPalette },
-	{ "Sprite 2 Colors", 3, &emulator.settings.obj2ColorPalette },
+	{ "Overclock", 0, &emulator.settings.overclock, false },
+	{ "Fit To Screen", 0, &emulator.settings.scaleToScreen, false },
+	{ "CGB Colors", 0, &emulator.settings.useCGBColors, false },
+	{ "Clamp Speed", 0, &emulator.settings.clampSpeed, false },
+	{ "Frameskip", 2, &emulator.settings.frameSkip, false },
+	{ "BG Colors", 3, &emulator.settings.bgColorPalette, false },
+	{ "Sprite 1 Colors", 3, &emulator.settings.obj1ColorPalette, false },
+	{ "Sprite 2 Colors", 3, &emulator.settings.obj2ColorPalette, false },
 	{ "Map Keys", 1, NULL },
 };
 
@@ -35,6 +36,12 @@ void screen_settings::select() {
 	SaveVRAM_1();
 	DrawPausePreview();
 
+	// disable overclock on non CG-20 devices
+	options[0].disabled = getDeviceType() != DT_CG20;
+
+	// can't select disabled option
+	while (options[curOption].disabled) curOption = (curOption + 1) % NumOptions();
+
 	drawOptions();
 }
 
@@ -47,13 +54,13 @@ void screen_settings::drawOptions() {
 		bool selected = curOption == i;
 		int y = i * 18 + 4;
 
-		Print(10, y, options[i].name, selected);
+		Print(10, y, options[i].name, selected, options[i].disabled ? COLOR_DARKGRAY : COLOR_WHITE);
 
 		if (options[i].type == 0) {
 			unsigned char isOn = *((unsigned char*)options[i].addr);
 
-			Print(200, y, "On", selected && isOn, isOn ? COLOR_WHITE : COLOR_DARKGRAY);
-			Print(230, y, "Off", selected && !isOn, !isOn ? COLOR_WHITE : COLOR_DARKGRAY);
+			Print(200, y, "On", selected && isOn, isOn && !options[i].disabled ? COLOR_WHITE : COLOR_DARKGRAY);
+			Print(230, y, "Off", selected && !isOn, !isOn && !options[i].disabled ? COLOR_WHITE : COLOR_DARKGRAY);
 		}
 		else if (options[i].type == 1) {
 			// key map
@@ -173,7 +180,9 @@ void screen_settings::selectKeys() {
 }
 
 void screen_settings::handleUp() {
-	curOption = (curOption + NumOptions() - 1) % NumOptions();
+	do {
+		curOption = (curOption + NumOptions() - 1) % NumOptions();
+	} while (options[curOption].disabled);
 
 	LoadVRAM_1();
 	DrawPausePreview();
@@ -181,7 +190,9 @@ void screen_settings::handleUp() {
 }
 
 void screen_settings::handleDown() {
-	curOption = (curOption + 1) % NumOptions();
+	do {
+		curOption = (curOption + 1) % NumOptions();
+	} while (options[curOption].disabled);
 
 	LoadVRAM_1();
 	DrawPausePreview();
