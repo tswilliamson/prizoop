@@ -125,6 +125,21 @@ unsigned char ramNibbleCount(ramSizeType type) {
 typedef int(*sc_ipiii)(int,int,unsigned int*);
 const unsigned int sc1DAA[] = { SCA, SCB, SCE, 0x1DAA };
 #define Bfile_GetBlockAddress (*(sc_ipiii)sc1DAA)
+
+static unsigned int BlockAddresses[512] = { 0 };
+void mbcFileUpdate() {
+	int numBlocks = mbc.numRomBanks * 4; // 16k ROM banks means 4 4k blocks a piece
+	for (int i = 0; i < numBlocks; i++) {
+		int ret = Bfile_GetBlockAddress(mbc.romFile, i * 0x1000, &BlockAddresses[i]);
+		if (ret < 0)
+			// error!
+			return;
+	}
+}
+
+#else
+void mbcFileUpdate() {
+}
 #endif
 
 // returns the cached rom bank (or caches it) with the given index (which is a a factor of the number of caches per rom bank)
@@ -163,15 +178,9 @@ mbc_bankcache* cacheBank(unsigned int index) {
 #if !TARGET_WINSIM
 	// use Bfile_GetBlockAddress to do a direct copy
 	unsigned int read = 0x1000 + instrOverlap;
-	unsigned int addr;
-	int ret = Bfile_GetBlockAddress(mbc.romFile, index * 0x1000, &addr);
-	if (ret < 0) read = 0;
-	else {
-		memcpy(cachedBanks[minSlot]->bank, (const void*)addr, 0x1000);
-		if (instrOverlap) {
-			Bfile_GetBlockAddress(mbc.romFile, (index + 1) * 0x1000, &addr);
-			memcpy(&cachedBanks[minSlot]->bank[0x1000], (const void*)addr, instrOverlap);
-		}
+	memcpy(cachedBanks[minSlot]->bank, (const void*)BlockAddresses[index], 0x1000);
+	if (instrOverlap) {
+		memcpy(&cachedBanks[minSlot]->bank[0x1000], (const void*)BlockAddresses[index+1], instrOverlap);
 	}
 #else
 	unsigned int read = Bfile_ReadFile_OS(mbc.romFile, cachedBanks[minSlot]->bank, 0x1000 + instrOverlap, index * 0x1000);

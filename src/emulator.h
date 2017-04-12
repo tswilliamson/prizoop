@@ -50,6 +50,7 @@ struct emulator_screen {
 	virtual void setup() {}
 	virtual void select() {}
 	virtual void deselect() {}
+	virtual void postStateChange() {}
 
 	// key press handles
 	virtual void handleUp() {}

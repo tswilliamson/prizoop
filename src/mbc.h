@@ -86,6 +86,9 @@ unsigned int getRAMSize();
 // call after state save load for proper handling
 void mbcOnStateLoad();
 
+// called when play begins or file I/O happens during gameplay
+void mbcFileUpdate();
+
 // pointers to each cached bank
 extern mbc_bankcache* cachedBanks[NUM_CACHED_BANKS];
 

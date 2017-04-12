@@ -54,7 +54,7 @@ void screen_play::initRom() {
 	strcpy(loadedROM, emulator.settings.selectedRom);
 }
 
-void screen_play::play() {
+void screen_play::drawPlayBG() {
 	if (emulator.settings.scaleToScreen) {
 		DrawBGEmbedded((unsigned char*)bg_fit);
 	}
@@ -62,6 +62,16 @@ void screen_play::play() {
 		DrawBGEmbedded((unsigned char*)bg_1x1);
 	}
 	Bdisp_PutDisp_DD();
+}
+
+void screen_play::postStateChange() {
+	drawPlayBG();
+}
+
+void screen_play::play() {
+	mbcFileUpdate();
+
+	drawPlayBG();
 
 	// Apply settings
 	bool doOverclock = (Ptune2_GetSetting() == PT2_DEFAULT && emulator.settings.overclock);

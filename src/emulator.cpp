@@ -286,6 +286,10 @@ void emulator_type::saveState() {
 	Bfile_CloseFile_OS(hFile);
 
 	CompatSwaps();
+
+	mbcFileUpdate();
+
+	screens[curScreen]->postStateChange();
 }
 
 bool emulator_type::loadState() {
@@ -347,6 +351,10 @@ bool emulator_type::loadState() {
 	for (unsigned short addr = 0x8000; addr < 0x9800; addr++) {
 		updateTile(addr, vram[addr - 0x8000]);
 	}
+
+	mbcFileUpdate();
+
+	screens[curScreen]->postStateChange();
 
 	return false;
 }
