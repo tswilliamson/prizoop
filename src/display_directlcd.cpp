@@ -371,11 +371,10 @@ void drawFramebufferMain(void) {
 	}
 
 	// TODO : not the best... only clamps speed to 64 FPS (7% too high)
-	bool waited = false;
 	if (emulator.settings.clampSpeed) {
 		static int lastClampTicks = 0;
 		int curTicks = RTC_GetTicks();
-		while (curTicks == lastClampTicks || curTicks == lastClampTicks + 1) { waited = true;  curTicks = RTC_GetTicks(); }
+		while (curTicks == lastClampTicks || curTicks == lastClampTicks + 1) { curTicks = RTC_GetTicks(); }
 		lastClampTicks = curTicks;
 	}
 

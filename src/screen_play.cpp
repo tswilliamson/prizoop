@@ -4,16 +4,9 @@
 #include "rom.h"
 #include "memory.h"
 #include "cgb_bootstrap.h"
+#include "ptune2_simple/Ptune2_direct.h"
 
 #include "screen_play.h"
-
-#if !TARGET_WINSIM
-#include "Prizm_SafeOverClock.h"
-#else
-#define SetSafeClockSpeed(...) {}
-#endif
-
-bool overclocked = false;
 
 void screen_play::setup() {
 	loadedROM[0] = 0;
@@ -37,12 +30,6 @@ void screen_play::select() {
 }
 
 void screen_play::deselect() {
-	// shouldn't happen, but just in case:
-	// undo overclock
-	if (overclocked) {
-		SetSafeClockSpeed(SCS_Normal);
-		overclocked = false;
-	}
 }
 
 void screen_play::handleSelect() {
@@ -77,19 +64,14 @@ void screen_play::play() {
 	Bdisp_PutDisp_DD();
 
 	// Apply settings
-	if (emulator.settings.overclock) {
+	bool doOverclock = (Ptune2_GetSetting() == PT2_DEFAULT && emulator.settings.overclock);
+	if (doOverclock) {
 		// clock up and apply the quit handler
 		if (emulator.settings.scaleToScreen) {
-			SetSafeClockSpeed(SCS_Double);
+			Ptune2_LoadSetting(PT2_DOUBLE);
+		} else {
+			Ptune2_LoadSetting(PT2_HALFINC);
 		}
-		else {
-			SetSafeClockSpeed(SCS_Fast);
-		}
-
-		overclocked = true;
-	} else {
-		// just in case
-		SetSafeClockSpeed(SCS_Normal);
 	}
 
 	// look for gameboy color palette override
@@ -127,9 +109,8 @@ void screen_play::play() {
 	saveRAM();
 
 	// undo overclock
-	if (overclocked) {
-		SetSafeClockSpeed(SCS_Normal);
-		overclocked = false;
+	if (doOverclock) {
+		Ptune2_LoadSetting(PT2_DEFAULT);
 	}
 
 #if DEBUG

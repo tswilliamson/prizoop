@@ -42,9 +42,6 @@
     <ClCompile Include="..\src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Prizm_SafeOverClock.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\winsim\winmain.cpp">
       <Filter>winsim</Filter>
     </ClCompile>
@@ -132,9 +129,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tmu.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Prizm_SafeOverClock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\winsim\prizmsim.h">

@@ -2,6 +2,7 @@
 
 #include "emulator.h"
 #include "rom.h"
+#include "ptune2_simple\Ptune2_direct.h"
 
 bool shouldExit = false;
 

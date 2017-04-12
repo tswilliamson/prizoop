@@ -17,6 +17,7 @@
 #define FLFMAX      2048-1
 
 #define PLL_64x 0b111111 // 
+#define PLL_48x 0b101111 //
 #define PLL_36x 0b100011 //
 #define PLL_32x 0b011111 // 
 #define PLL_26x 0b011001 // 
@@ -73,196 +74,168 @@
 #define CS6aWCR_default 0x000302C0
 #define CS6bWCR_default 0x000302C0
 
+// these mirror the PT2 defines
+static const PTuneRegs sets[5] = {
+	// PT2_DEFAULT
+	{{
+		FLLFRQ_default,
+		FRQCRA_default,
+		CS0BCR_default,
+		CS2BCR_default,
+		CS0WCR_default,
+		CS2WCR_default,
+		CS5aBCR_default,
+		CS5aWCR_default
+	}},
+	// PT2_NOMEMWAIT
+	{{
+		0x00004000 + 900,		// FLL:900		 59MHz
+		(PLL_32x << 24) + (DIV_8 << 20) + (DIV16 << 12) + (DIV16 << 8) + DIV32,
+		0x04900400,				// IWW:0 IWRRS:0
+		0x04903400,				// IWW:0 IWRRS:0
+		0x00000140,				// wait:2
+		0x000100C0,				// wait:1 WW:0
+		CS5aBCR_default,
+		CS5aWCR_default
+	}},
+	// PT2_HALFINC
+	{{
+		0x00004000 + 900,		// FLL:900		 59MHz
+		(PLL_48x << 24) + (DIV_8 << 20) + (DIV16 << 12) + (DIV16 << 8) + DIV32,
+		0x14900400,				// IWW:1 IWRRS:0
+		0x04903400,				// IWW:0 IWRRS:0
+		0x000001C0,				// wait:3
+		0x00020140,				// wait:2 WW:1
+		CS5aBCR_default,
+		CS5aWCR_default
+	}},
+	// PT2_DOUBLE
+	{{
+		0x00004000 + 900,		// FLL:900		118MHz
+		(PLL_32x << 24) + (DIV_4 << 20) + (DIV_8 << 12) + (DIV_8 << 8) + DIV32,
+		0x14900400,				// IWW:1 IWRRS:0
+		0x04903400,				// IWW:0 IWRRS:0
+		0x000002C0,				// wait:5
+		0x000201C0,				// wait:3 WW:1
+		CS5aBCR_default,
+		CS5aWCR_default
+	}},
+	// PT2_TRIPLE
+	{{
+		0x00004000 + 900,		// FLL:900		191MHz
+		(PLL_26x << 24) + (DIV_2 << 20) + (DIV_4 << 12) + (DIV_4 << 8) + DIV16,
+		0x24900400,			// IWW:2 IWRRS:0
+		0x04903400,			// IWW:0 IWRRS:0
+		0x000003C0,			// wait:8
+		0x000402C0,			// wait:5 WW:3
+		CS5aBCR_default,		
+		CS5aWCR_default		
+	}},
+};
+
 //---------------------------------------------------------------------------------------------
-unsigned int	SaveDataF0_FLLFRQ=FLLFRQ_default;		// FLL:900		default
-unsigned int	SaveDataF0_FRQCR =FRQCRA_default;		// PLL:x16 IFC:1/4 SFC:1/8 BFC:1/8 PFC:1/16
-unsigned int	SaveDataF0_CS0BCR=CS0BCR_default;		// IWW:2 IWRRS:2
-unsigned int	SaveDataF0_CS2BCR=CS2BCR_default;		// IWW:2 IWRRS:2
-unsigned int	SaveDataF0_CS0WCR=CS0WCR_default;		// wait:3
-unsigned int	SaveDataF0_CS2WCR=CS2WCR_default;		// wati:2
-unsigned int	SaveDataF0_CS5aBCR=CS5aBCR_default;		//
-unsigned int	SaveDataF0_CS5aWCR=CS5aWCR_default;		//
-
-unsigned int	SaveDataF1_FLLFRQ=FLLFRQ_default;		// FLL:900		default
-unsigned int	SaveDataF1_FRQCR =FRQCRA_default;		// PLL:x16 IFC:1/4 SFC:1/8 BFC:1/8 PFC:1/16
-unsigned int	SaveDataF1_CS0BCR=CS0BCR_default;		// IWW:2 IWRRS:2
-unsigned int	SaveDataF1_CS2BCR=CS2BCR_default;		// IWW:2 IWRRS:2
-unsigned int	SaveDataF1_CS0WCR=CS0WCR_default;		// wait:3
-unsigned int	SaveDataF1_CS2WCR=CS2WCR_default;		// wati:2
-unsigned int	SaveDataF1_CS5aBCR=CS5aBCR_default;		//
-unsigned int	SaveDataF1_CS5aWCR=CS5aWCR_default;		//
-
-unsigned int	SaveDataF2_FLLFRQ=0x00004000+900;		// FLL:900		 59MHz
-unsigned int	SaveDataF2_FRQCR =(PLL_32x<<24)+(DIV_8<<20)+(DIV16<<12)+(DIV16<<8)+DIV32;
-unsigned int	SaveDataF2_CS0BCR=0x04900400;			// IWW:0 IWRRS:0
-unsigned int	SaveDataF2_CS2BCR=0x04903400;			// IWW:0 IWRRS:0
-unsigned int	SaveDataF2_CS0WCR=0x00000140;			// wait:2
-unsigned int	SaveDataF2_CS2WCR=0x000100C0;			// wait:1 WW:0
-unsigned int	SaveDataF2_CS5aBCR=CS5aBCR_default;		//
-unsigned int	SaveDataF2_CS5aWCR=CS5aWCR_default;		//
-
-unsigned int	SaveDataF3_FLLFRQ=0x00004000+900;		// FLL:900		118MHz
-unsigned int	SaveDataF3_FRQCR =(PLL_32x<<24)+(DIV_4<<20)+(DIV_8<<12)+(DIV_8<<8)+DIV32;
-unsigned int	SaveDataF3_CS0BCR=0x14900400;			// IWW:1 IWRRS:0
-unsigned int	SaveDataF3_CS2BCR=0x04903400;			// IWW:0 IWRRS:0
-unsigned int	SaveDataF3_CS0WCR=0x000002C0;			// wait:5
-unsigned int	SaveDataF3_CS2WCR=0x000201C0;			// wait:3 WW:1
-unsigned int	SaveDataF3_CS5aBCR=CS5aBCR_default;		//
-unsigned int	SaveDataF3_CS5aWCR=CS5aWCR_default;		//
-
-unsigned int	SaveDataF4_FLLFRQ=0x00004000+900;		// FLL:900		118MHz
-unsigned int	SaveDataF4_FRQCR =(PLL_32x<<24)+(DIV_4<<20)+(DIV_4<<12)+(DIV_4<<8)+DIV32;
-unsigned int	SaveDataF4_CS0BCR=0x24900400;			// IWW:2 IWRRS:0
-unsigned int	SaveDataF4_CS2BCR=0x04903400;			// IWW:0 IWRRS:0
-unsigned int	SaveDataF4_CS0WCR=0x00000440;			// wait:10
-unsigned int	SaveDataF4_CS2WCR=0x00040340;			// wait:6 WW:3
-unsigned int	SaveDataF4_CS5aBCR=CS5aBCR_default;		//
-unsigned int	SaveDataF4_CS5aWCR=CS5aWCR_default;		//
-
-unsigned int	SaveDataF5_FLLFRQ=0x00004000+900;		// FLL:900		191MHz
-unsigned int	SaveDataF5_FRQCR =(PLL_26x<<24)+(DIV_2<<20)+(DIV_4<<12)+(DIV_4<<8)+DIV16;
-unsigned int	SaveDataF5_CS0BCR=0x24900400;			// IWW:2 IWRRS:0
-unsigned int	SaveDataF5_CS2BCR=0x04903400;			// IWW:0 IWRRS:0
-unsigned int	SaveDataF5_CS0WCR=0x000003C0;			// wait:8
-unsigned int	SaveDataF5_CS2WCR=0x000402C0;			// wait:5 WW:3
-unsigned int	SaveDataF5_CS5aBCR=CS5aBCR_default;		//
-unsigned int	SaveDataF5_CS5aWCR=CS5aWCR_default;		//
-
-//---------------------------------------------------------------------------------------------
-void FRQCR_kick(void) { 
+static void FRQCR_kick(void) {
     CPG.FRQCRA.BIT.KICK = 1 ;
     while((CPG.LSTATS & 1)!=0);
 }
-void change_FRQCRs( unsigned int value) { 
+static void change_FRQCRs( unsigned int value) {
     CPG.FRQCRA.LONG = value ;
     FRQCR_kick();
 }
+static int IsSupported() {
+#if TARGET_WINSIM
+	return 0;
+#else
+	return 1;
+#endif
+}
 //---------------------------------------------------------------------------------------------
 
-void LoadDataF0(){				// default 
-	BSC.CS0WCR.BIT.WR = WAIT18 ;
-	BSC.CS2WCR.BIT.WR = WAIT18 ;
-	CPG.FLLFRQ.LONG   = FLLFRQ_default ;
-	change_FRQCRs(      FRQCRA_default ) ;
-	BSC.CS0BCR.LONG   = CS0BCR_default ;
-	BSC.CS2BCR.LONG   = CS2BCR_default ;
-	BSC.CS0WCR.LONG   = CS0WCR_default ;
-	BSC.CS2WCR.LONG   = CS2WCR_default ;
-	BSC.CS5ABCR.LONG  = CS5aBCR_default ;
-	BSC.CS5AWCR.LONG  = CS5aWCR_default ;
-}
-void LoadDataF1(){
-	BSC.CS0WCR.BIT.WR = WAIT18 ;
-	BSC.CS2WCR.BIT.WR = WAIT18 ;
-	CPG.FLLFRQ.LONG   = SaveDataF1_FLLFRQ ;
-	change_FRQCRs(      SaveDataF1_FRQCR ) ;
-	BSC.CS0BCR.LONG   = SaveDataF1_CS0BCR ;
-	BSC.CS2BCR.LONG   = SaveDataF1_CS2BCR ;
-	BSC.CS0WCR.LONG   = SaveDataF1_CS0WCR ;
-	BSC.CS2WCR.LONG   = SaveDataF1_CS2WCR ;
-	BSC.CS5ABCR.LONG  = SaveDataF1_CS5aBCR ;
-	BSC.CS5AWCR.LONG  = SaveDataF1_CS5aWCR ;
-}
-void LoadDataF2(){
-	BSC.CS0WCR.BIT.WR = WAIT18 ;
-	BSC.CS2WCR.BIT.WR = WAIT18 ;
-	CPG.FLLFRQ.LONG   = SaveDataF2_FLLFRQ ;
-	change_FRQCRs(      SaveDataF2_FRQCR ) ;
-	BSC.CS0BCR.LONG   = SaveDataF2_CS0BCR ;
-	BSC.CS2BCR.LONG   = SaveDataF2_CS2BCR ;
-	BSC.CS0WCR.LONG   = SaveDataF2_CS0WCR ;
-	BSC.CS2WCR.LONG   = SaveDataF2_CS2WCR ;
-	BSC.CS5ABCR.LONG  = SaveDataF2_CS5aBCR ;
-	BSC.CS5AWCR.LONG  = SaveDataF2_CS5aWCR ;
-}
-void LoadDataF3(){
-	BSC.CS0WCR.BIT.WR = WAIT18 ;
-	BSC.CS2WCR.BIT.WR = WAIT18 ;
-	CPG.FLLFRQ.LONG   = SaveDataF3_FLLFRQ ;
-	change_FRQCRs(      SaveDataF3_FRQCR ) ;
-	BSC.CS0BCR.LONG   = SaveDataF3_CS0BCR ;
-	BSC.CS2BCR.LONG   = SaveDataF3_CS2BCR ;
-	BSC.CS0WCR.LONG   = SaveDataF3_CS0WCR ;
-	BSC.CS2WCR.LONG   = SaveDataF3_CS2WCR ;
-	BSC.CS5ABCR.LONG  = SaveDataF3_CS5aBCR ;
-	BSC.CS5AWCR.LONG  = SaveDataF3_CS5aWCR ;
-}
-void LoadDataF4(){
-	BSC.CS0WCR.BIT.WR = WAIT18 ;
-	BSC.CS2WCR.BIT.WR = WAIT18 ;
-	CPG.FLLFRQ.LONG   = SaveDataF4_FLLFRQ ;
-	change_FRQCRs(      SaveDataF4_FRQCR ) ;
-	BSC.CS0BCR.LONG   = SaveDataF4_CS0BCR ;
-	BSC.CS2BCR.LONG   = SaveDataF4_CS2BCR ;
-	BSC.CS0WCR.LONG   = SaveDataF4_CS0WCR ;
-	BSC.CS2WCR.LONG   = SaveDataF4_CS2WCR ;
-	BSC.CS5ABCR.LONG  = SaveDataF4_CS5aBCR ;
-	BSC.CS5AWCR.LONG  = SaveDataF4_CS5aWCR ;
-}
-void LoadDataF5(){
-	BSC.CS0WCR.BIT.WR = WAIT18 ;
-	BSC.CS2WCR.BIT.WR = WAIT18 ;
-	CPG.FLLFRQ.LONG   = SaveDataF5_FLLFRQ ;
-	change_FRQCRs(      SaveDataF5_FRQCR ) ;
-	BSC.CS0BCR.LONG   = SaveDataF5_CS0BCR ;
-	BSC.CS2BCR.LONG   = SaveDataF5_CS2BCR ;
-	BSC.CS0WCR.LONG   = SaveDataF5_CS0WCR ;
-	BSC.CS2WCR.LONG   = SaveDataF5_CS2WCR ;
-	BSC.CS5ABCR.LONG  = SaveDataF5_CS5aBCR ;
-	BSC.CS5AWCR.LONG  = SaveDataF5_CS5aWCR ;
+static void Ptune2_SetWithRegs(const PTuneRegs* regs) {
+	if (IsSupported()) {
+		BSC.CS0WCR.BIT.WR = WAIT18;
+		BSC.CS2WCR.BIT.WR = WAIT18;
+		CPG.FLLFRQ.LONG = regs->FLLFRQ;
+		change_FRQCRs(	  regs->FRQCR);
+		BSC.CS0BCR.LONG = regs->CS0BCR;
+		BSC.CS2BCR.LONG = regs->CS2BCR;
+		BSC.CS0WCR.LONG = regs->CS0WCR;
+		BSC.CS2WCR.LONG = regs->CS2WCR;
+		BSC.CS5ABCR.LONG = regs->CS5aBCR;
+		BSC.CS5AWCR.LONG = regs->CS5aWCR;
+	}
 }
 
+PTuneRegs Ptune2_CurrentRegs(){
+	PTuneRegs ret;
 
-void SaveDataF1(){
-	SaveDataF1_FLLFRQ =CPG.FLLFRQ.LONG ;
-	SaveDataF1_FRQCR  =CPG.FRQCRA.LONG ;
-	SaveDataF1_CS0BCR =BSC.CS0BCR.LONG ;
-	SaveDataF1_CS2BCR =BSC.CS2BCR.LONG ;
-	SaveDataF1_CS0WCR =BSC.CS0WCR.LONG ;
-	SaveDataF1_CS2WCR =BSC.CS2WCR.LONG ;
-	SaveDataF1_CS5aBCR=BSC.CS5ABCR.LONG  ;
-	SaveDataF1_CS5aWCR=BSC.CS5AWCR.LONG;
-}
-void SaveDataF2(){
-	SaveDataF2_FLLFRQ =CPG.FLLFRQ.LONG ;
-	SaveDataF2_FRQCR  =CPG.FRQCRA.LONG ;
-	SaveDataF2_CS0BCR =BSC.CS0BCR.LONG ;
-	SaveDataF2_CS2BCR =BSC.CS2BCR.LONG ;
-	SaveDataF2_CS0WCR =BSC.CS0WCR.LONG ;
-	SaveDataF2_CS2WCR =BSC.CS2WCR.LONG ;
-	SaveDataF2_CS5aBCR=BSC.CS5ABCR.LONG  ;
-	SaveDataF2_CS5aWCR=BSC.CS5AWCR.LONG;
-}
-void SaveDataF3(){
-	SaveDataF3_FLLFRQ =CPG.FLLFRQ.LONG ;
-	SaveDataF3_FRQCR  =CPG.FRQCRA.LONG ;
-	SaveDataF3_CS0BCR =BSC.CS0BCR.LONG ;
-	SaveDataF3_CS2BCR =BSC.CS2BCR.LONG ;
-	SaveDataF3_CS0WCR =BSC.CS0WCR.LONG ;
-	SaveDataF3_CS2WCR =BSC.CS2WCR.LONG ;
-	SaveDataF3_CS5aBCR=BSC.CS5ABCR.LONG ;
-	SaveDataF3_CS5aWCR=BSC.CS5AWCR.LONG ;
-}
-void SaveDataF4(){
-	SaveDataF4_FLLFRQ =CPG.FLLFRQ.LONG ;
-	SaveDataF4_FRQCR  =CPG.FRQCRA.LONG ;
-	SaveDataF4_CS0BCR =BSC.CS0BCR.LONG ;
-	SaveDataF4_CS2BCR =BSC.CS2BCR.LONG ;
-	SaveDataF4_CS0WCR =BSC.CS0WCR.LONG ;
-	SaveDataF4_CS2WCR =BSC.CS2WCR.LONG ;
-	SaveDataF4_CS5aBCR=BSC.CS5ABCR.LONG ;
-	SaveDataF4_CS5aWCR=BSC.CS5AWCR.LONG ;
-}
-void SaveDataF5(){
-	SaveDataF5_FLLFRQ =CPG.FLLFRQ.LONG ;
-	SaveDataF5_FRQCR  =CPG.FRQCRA.LONG ;
-	SaveDataF5_CS0BCR =BSC.CS0BCR.LONG ;
-	SaveDataF5_CS2BCR =BSC.CS2BCR.LONG ;
-	SaveDataF5_CS0WCR =BSC.CS0WCR.LONG ;
-	SaveDataF5_CS2WCR =BSC.CS2WCR.LONG ;
-	SaveDataF5_CS5aBCR=BSC.CS5ABCR.LONG ;
-	SaveDataF5_CS5aWCR=BSC.CS5AWCR.LONG ;
+	if (IsSupported()) {
+		ret.FLLFRQ = CPG.FLLFRQ.LONG;
+		ret.FRQCR = CPG.FRQCRA.LONG;
+		ret.CS0BCR = BSC.CS0BCR.LONG;
+		ret.CS2BCR = BSC.CS2BCR.LONG;
+		ret.CS0WCR = BSC.CS0WCR.LONG;
+		ret.CS2WCR = BSC.CS2WCR.LONG;
+		ret.CS5aBCR = BSC.CS5ABCR.LONG;
+		ret.CS5aWCR = BSC.CS5AWCR.LONG;
+	} else {
+		ret = sets[PT2_DEFAULT];
+	}
+
+	return ret;
 }
 
+void Ptune2_LoadSetting(int setting) {
+	switch (setting) {
+	case PT2_DEFAULT:
+	case PT2_NOMEMWAIT:
+	case PT2_HALFINC:
+	case PT2_DOUBLE:
+	case PT2_TRIPLE:
+		Ptune2_SetWithRegs(&sets[setting]);
+		break;
+	}
+}
+
+int Ptune2_GetSetting() {
+	int ret = PT2_UNKNOWN;
+	int i, set, same;
+
+	PTuneRegs curRegs = Ptune2_CurrentRegs();
+	for (i = 0; i < 5; i++) {
+		same = 1;
+		for (set = 0; set < 8; set++) {
+			if (curRegs.regs[set] != sets[i].regs[set]) {
+				same = 0;
+				break;
+			}
+		}
+
+		if (same) {
+			ret = i;
+			break;
+		}
+	}
+
+	return ret;
+}
+
+// back up regs start with cpu defaults
+static PTuneRegs backup = {{
+	FLLFRQ_default,
+	FRQCRA_default,
+	CS0BCR_default,
+	CS2BCR_default,
+	CS0WCR_default,
+	CS2WCR_default,
+	CS5aBCR_default,
+	CS5aWCR_default
+}};
+void Ptune2_LoadBackup() {
+	Ptune2_SetWithRegs(&backup);
+}
+void Ptune2_SaveBackup() {
+	backup = Ptune2_CurrentRegs();
+}
 //---------------------------------------------------------------------------------------------
 

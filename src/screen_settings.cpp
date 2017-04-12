@@ -3,6 +3,7 @@
 #include "keys.h"
 
 #include "screen_settings.h"
+#include "ptune2_simple/Ptune2_direct.h"
 
 struct option_type {
 	const char* name;
@@ -36,8 +37,9 @@ void screen_settings::select() {
 	SaveVRAM_1();
 	DrawPausePreview();
 
-	// disable overclock on non CG-20 devices
-	options[0].disabled = getDeviceType() != DT_CG20;
+	// disable overclock on non CG-20 devices and when already overclocked (such as when using Ptune2)
+	int currentPtuneSetting = Ptune2_GetSetting();
+	options[0].disabled = getDeviceType() != DT_CG20 || currentPtuneSetting != PT2_DEFAULT;
 
 	// can't select disabled option
 	while (options[curOption].disabled) curOption = (curOption + 1) % NumOptions();
