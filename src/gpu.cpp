@@ -8,8 +8,6 @@
 
 #include "gpu.h"
 
-tilestype* tiles = NULL;
-
 void(*gpuStep)(void) = NULL;
 
 bool invalidFrame = false;
@@ -195,22 +193,5 @@ void stepLCDOn_VBLANK(void) {
 				cpu.gpuTick += 456;
 				break;
 		}
-	}
-}
-
-void updateTile(unsigned short address, unsigned char value) {
-	TIME_SCOPE();
-
-	address &= 0x1ffe;
-	
-	unsigned short tile = (address >> 4) & 511;
-	unsigned short y = (address >> 1) & 7;
-	
-	unsigned char x, bitIndex;
-	for(x = 0; x < 8; x++) {
-		bitIndex = 1 << (7 - x);
-		
-		//((unsigned char (*)[8][8])tiles)[tile][y][x] = ((vram[address] & bitIndex) ? 1 : 0) + ((vram[address + 1] & bitIndex) ? 2 : 0);
-		tiles->data[tile][y][x] = ((vram[address] & bitIndex) ? 1 : 0) + ((vram[address + 1] & bitIndex) ? 2 : 0);
 	}
 }

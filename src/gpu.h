@@ -50,12 +50,6 @@ struct sprite {
 #define OAM_ATTR_BANK(x) (x & 0x08)			// currently unused, CGB only
 #define OAM_ATTR_PAL_NUM(x) (x & 07)			// currently unused, CGB only
 
-struct tilestype {
-	unsigned char data[384][8][8];
-};
-
-extern tilestype* tiles;
-
 extern void(*gpuStep)(void);
 
 // different gpu steps based on LCD status
@@ -65,7 +59,5 @@ extern void stepLCDOn_HBLANK(void);
 extern void stepLCDOn_VBLANK(void);
 
 void hblank(void);
-
-void updateTile(unsigned short address, unsigned char value);
 
 void enablePausePreview();

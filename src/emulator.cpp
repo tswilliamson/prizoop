@@ -212,17 +212,6 @@ int getSaveStateSize(unsigned int& withRAMSize) {
 	return spaceNeeded;
 }
 
-#ifdef LITTLE_E
-void EndianSwap(unsigned short& s) {
-	s = ((s & 0xFF00) >> 8) | ((s & 0x00FF) << 8);
-}
-void EndianSwap(unsigned int& i) {
-	i = ((i & 0xFF000000) >> 24) | ((i & 0x00FF0000) >> 8) | ((i & 0x0000FF00) << 8) | ((i & 0x000000FF) << 24);
-}
-#else
-#define EndianSwap(...) 
-#endif
-
 static void CompatSwaps() {
 	EndianSwap(cpu.registers.pc);
 	EndianSwap(cpu.registers.sp);
@@ -346,11 +335,6 @@ bool emulator_type::loadState() {
 
 	// memory bus controller has to invalidate some stuff, etc
 	mbcOnStateLoad();
-
-	// "touch" all of tile memory until we nix that cache
-	for (unsigned short addr = 0x8000; addr < 0x9800; addr++) {
-		updateTile(addr, vram[addr - 0x8000]);
-	}
 
 	mbcFileUpdate();
 

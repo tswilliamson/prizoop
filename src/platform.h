@@ -20,6 +20,17 @@
 #define override
 #endif
 
+#ifdef LITTLE_E
+static inline void EndianSwap(unsigned short& s) {
+	s = ((s & 0xFF00) >> 8) | ((s & 0x00FF) << 8);
+}
+static inline void EndianSwap(unsigned int& i) {
+	i = ((i & 0xFF000000) >> 24) | ((i & 0x00FF0000) >> 8) | ((i & 0x0000FF00) << 8) | ((i & 0x000000FF) << 24);
+}
+#else
+#define EndianSwap(...) 
+#endif
+
 // compile time assert, will throw negative subscript error
 #ifdef __GNUC__
 #define CT_ASSERT(cond) typedef char __attribute__((error("assertion failure: '" #cond "' not true"))) badCompileTimeAssertion [(cond) ? 1 : -1];

@@ -126,7 +126,8 @@ typedef int(*sc_ipiii)(int,int,unsigned int*);
 const unsigned int sc1DAA[] = { SCA, SCB, SCE, 0x1DAA };
 #define Bfile_GetBlockAddress (*(sc_ipiii)sc1DAA)
 
-static unsigned int BlockAddresses[512] = { 0 };
+// support up to a 4 MB ROM 
+static unsigned int BlockAddresses[1024] = { 0 };
 void mbcFileUpdate() {
 	int numBlocks = mbc.numRomBanks * 4; // 16k ROM banks means 4 4k blocks a piece
 	for (int i = 0; i < numBlocks; i++) {
@@ -199,7 +200,7 @@ mbc_bankcache* cacheBank(unsigned int index) {
 }
 
 // total number of rom banks calculation (16k per bank)
-unsigned char numSwitchableBanksFromType(unsigned char romSizeByte) {
+unsigned short numSwitchableBanksFromType(unsigned char romSizeByte) {
 	unsigned int numTotalBanks = 2 << romSizeByte;
 	return numTotalBanks;
 }

@@ -19,12 +19,14 @@ unsigned char loadROM(const char *filename) {
 	
 	unsigned char header[0x180];
 
+	unsigned char isColor = filename[strlen(filename) - 1] == 'c' ? 1 : 0;
+
 	strcpy(curRomFile, "\\\\fls0\\");
 	strcat(curRomFile, filename);
 
 	strcpy(curSaveFile, "\\\\fls0\\");
 	strcat(curSaveFile, filename);
-	curSaveFile[strlen(curSaveFile) - 2] = 0;
+	curSaveFile[strlen(curSaveFile) - 2 - isColor] = 0;
 	strcat(curSaveFile, "SAV");
 
 	int hFile;
@@ -40,6 +42,13 @@ unsigned char loadROM(const char *filename) {
 	length = Bfile_GetFileSize_OS(hFile);
 	if(length < 0x180) {
 		printf("ROM is too small! (%d bytes)\n", length);
+		Bfile_CloseFile_OS(hFile);
+		return 0;
+	}
+
+	if (length > 4 * 1024 * 1024) {
+		// 4 MB max
+		printf("ROM is too big! (%d kbytes)\n", length / 1024);
 		Bfile_CloseFile_OS(hFile);
 		return 0;
 	}

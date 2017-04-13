@@ -75,11 +75,6 @@ inline void writeByte(unsigned short address, unsigned char value) {
 	else if ((address & 0x8000) == 0) {
 		mbcWrite(address, value);
 	}
-	// tile update.. possibly removed soon
-	else if (specialMap[address >> 8] & 0x04) {
-		memoryMap[address >> 8][address & 0xFF] = value;
-		updateTile(address, value);
-	}
 	// else a normal byte write
 	else {
 		memoryMap[address >> 8][address & 0xFF] = value;

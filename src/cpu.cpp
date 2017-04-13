@@ -81,12 +81,6 @@ void reset(void) {
 	keys.k2.left = 1;
 	keys.k2.up = 1;
 	keys.k2.down = 1;
-
-	if (tiles == NULL) {
-		tiles = (tilestype*)malloc(sizeof(tilestype));
-	}
-
-	memset(tiles, 0, sizeof(tilestype));
 	
 	cpu.gpuTick = 0;
 	
