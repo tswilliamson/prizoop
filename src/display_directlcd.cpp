@@ -45,6 +45,7 @@ unsigned short colorPalette[12] = {
 	COLOR_DARKCYAN
 };
 
+unsigned char const* lineBuffer = (unsigned char*) 0xE5017000;
 #include "gpu_scanline.inl"
 
 void SetupDisplayDriver(bool withStretch, char withFrameskip) {
@@ -143,9 +144,10 @@ void renderScanline1x1(void) {
 
 	TIME_SCOPE();
 
-	void* scanlineStart = &scanGroup[160 * curScan + curScanBuffer*scanBufferSize];
+	RenderScanline();
 
-	RenderScanline<unsigned short, 1>(scanlineStart);
+	void* scanlineStart = &scanGroup[160 * curScan + curScanBuffer*scanBufferSize];
+	ResolveScanline<unsigned short>(scanlineStart);
 
 	// blit every SCANLINE_BUFFER # lines
 	curScan++;
@@ -249,26 +251,27 @@ void renderScanlineFit(void) {
 		6, 7, 9, 10,
 	};
 
+	RenderScanline();
 
-	void* scanlineStart =
+	unsigned short* scanlineStart =
 #if !USEMEMCPY
 		&scanGroup[320 * scanBufferOffset[curScan] + curScanBuffer*scanBufferSize];
 #else
 		&scanGroup[320 * curScan + curScanBuffer*scanBufferSize];
 #endif
 
-	RenderScanline<unsigned int, 1>(scanlineStart);
-
 #if !USEMEMCPY
 #if SCANLINE_BUFFER == 2
 	// special optimization doing 2 lines at a time, flush with each:
+	ResolveScanline<unsigned int>(scanlineStart);
 	curScan++;
 	scanlineFlushFit();
 	return;
 #else
 	if ((curScan & 1) == 1) {
-		scanlineStart = &scanGroup[320 * (scanBufferOffset[curScan] + 1) + curScanBuffer*scanBufferSize];
-		RenderScanline<unsigned int, 1>(scanlineStart);
+		DoubleResolveScanline<unsigned int>(scanlineStart, scanlineStart + 320);
+	} else {
+		ResolveScanline<unsigned int>(scanlineStart);
 	}
 #endif
 #endif

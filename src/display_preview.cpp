@@ -12,13 +12,15 @@ static unsigned short colorPalette[12] = {
 	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
 };
 
-#include "gpu_scanline.inl"
+static unsigned char lineBuffer[176];
 
+#include "gpu_scanline.inl"
 
 static void renderPreviewLine() {
 	if ((cpu.memory.LY_lcdline & 1) == 0) {
 		unsigned short line[160];
-		RenderScanline<unsigned short, 0>(line);
+		RenderScanline();
+		ResolveScanline<unsigned short>(line);
 
 		unsigned char* previewLine = &emulator.pausePreview[80 * cpu.memory.LY_lcdline / 4];
 		// every other pixel goes into the preview line, packed at 4 bpp

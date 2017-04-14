@@ -29,6 +29,8 @@ unsigned short colorPalette[12] = {
 	COLOR_DARKCYAN
 };
 
+static unsigned char lineBuffer[176] ALIGN(32) = { 0 };
+
 #include "gpu_scanline.inl"
 
 void renderEmu() {
@@ -37,18 +39,20 @@ void renderEmu() {
 
 	TIME_SCOPE();
 
+	RenderScanline();
+
 	// stretch across screen?
 	if (stretch) {
 		unsigned short* scanlineStart = &((unsigned short*)GetVRAMAddress())[32 + LCD_WIDTH_PX * ((cpu.memory.LY_lcdline * 3) / 2)];
-		RenderScanline<unsigned int, 1>(scanlineStart);
+		ResolveScanline<unsigned int>(scanlineStart);
 
 		if (cpu.memory.LY_lcdline & 1) {
-			RenderScanline<unsigned int, 1>(scanlineStart + LCD_WIDTH_PX);
+			ResolveScanline<unsigned int>(scanlineStart + LCD_WIDTH_PX);
 		}
 	}
 	else {
 		void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * (cpu.memory.LY_lcdline + 36)];
-		RenderScanline<unsigned short, 1>(scanlineStart);
+		ResolveScanline<unsigned short>(scanlineStart);
 	}
 }
 
