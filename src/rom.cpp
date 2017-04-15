@@ -4,6 +4,7 @@
 #include "memory.h"
 #include "debug.h"
 #include "mbc.h"
+#include "cgb.h"
 
 #include "rom.h"
 
@@ -61,7 +62,21 @@ unsigned char loadROM(const char *filename) {
 		if(header[i + ROM_OFFSET_NAME] == 0x80 || header[i + ROM_OFFSET_NAME] == 0xc0) name[i] = '\0';
 		else name[i] = header[i + ROM_OFFSET_NAME];
 	}
-	printf("ROM name: %s\n", name);
+
+	bool isCGB = header[ROM_OFFSET_GBC] == 0x80 || header[ROM_OFFSET_GBC] == 0xc0;
+	if (isCGB) {
+		printf("CGB ROM name: %s\n", name);
+	} else {
+		printf("GB ROM name: %s\n", name);
+	}
+
+	resetMemoryMaps(isCGB);
+	cpuReset();
+
+	if (isCGB) {
+		// init CGB mode
+		cgbInitROM();
+	}
 
 	// determine mbc controller support and initialize
 	type = (mbcType) header[ROM_OFFSET_TYPE];
@@ -102,6 +117,17 @@ void unloadROM(void) {
 	}
 
 	saveRAM();
+
+	// free up vram
+	if (vram) {
+		free((void*)vram);
+		vram = NULL;
+	}
+
+	if (cgb.isCGB) {
+		// clean up CGB mode stuff
+		cgbCleanup();
+	}
 }
 
 void saveRAM(void) {

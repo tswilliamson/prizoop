@@ -10,6 +10,14 @@
 
 void(*gpuStep)(void) = NULL;
 
+unsigned int gpuTimes[5] = {
+	204,		// HBLANK
+	456,		// VBLANK
+	80,			// OAM
+	172,		// VRAM
+	56,			// VBLANK_SPECIAL
+};
+
 bool invalidFrame = false;
 
 void stepLCDOff(void) {
@@ -17,9 +25,9 @@ void stepLCDOff(void) {
 		//  LCD was re-enabled
 		gpuStep = stepLCDOn_OAM;
 		invalidFrame = true;
-		cpu.gpuTick = cpu.clocks + 80;
+		cpu.gpuTick = cpu.clocks + gpuTimes[GPU_MODE_OAM];
 	} else {
-		cpu.gpuTick = cpu.clocks + 456;
+		cpu.gpuTick = cpu.clocks + gpuTimes[GPU_MODE_VBLANK];
 
 		// good time to refresh the keys
 		extern void refresh();
@@ -63,7 +71,7 @@ void stepLCDOn_OAM(void) {
 	}
 
 	if (cpu.clocks >= cpu.gpuTick) {
-		setMode(GPU_MODE_VRAM, 172, stepLCDOn_VRAM);
+		setMode(GPU_MODE_VRAM, gpuTimes[GPU_MODE_VRAM], stepLCDOn_VRAM);
 	}
 }
 
@@ -89,7 +97,7 @@ void stepLCDOn_VRAM(void) {
 			cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
 		}
 
-		setMode(GPU_MODE_HBLANK, 204, stepLCDOn_HBLANK);
+		setMode(GPU_MODE_HBLANK, gpuTimes[GPU_MODE_HBLANK], stepLCDOn_HBLANK);
 	}
 }
 
@@ -130,7 +138,7 @@ void stepLCDOn_HBLANK(void) {
 				cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
 			}
 
-			setMode(GPU_MODE_VBLANK, 456, stepLCDOn_VBLANK);
+			setMode(GPU_MODE_VBLANK, gpuTimes[GPU_MODE_VBLANK], stepLCDOn_VBLANK);
 		} else {
 			// lyc check or hblank check disables stat OAM interrupt
 			if ((cpu.memory.STAT_lcdstatus & STAT_OAMCHECK) &&
@@ -140,7 +148,7 @@ void stepLCDOn_HBLANK(void) {
 				cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
 			}
 
-			setMode(GPU_MODE_OAM, 80, stepLCDOn_OAM);
+			setMode(GPU_MODE_OAM, gpuTimes[GPU_MODE_OAM], stepLCDOn_OAM);
 		}
 	}
 }
@@ -161,7 +169,7 @@ void stepLCDOn_VBLANK(void) {
 				// check if lcd was disabled:
 				if (cpu.memory.LCDC_ctl & 0x80) {
 					invalidFrame = false;
-					setMode(GPU_MODE_OAM, 80, stepLCDOn_OAM);
+					setMode(GPU_MODE_OAM, gpuTimes[GPU_MODE_OAM], stepLCDOn_OAM);
 
 					// vlank check disables stat OAM interrupt
 					if ((cpu.memory.STAT_lcdstatus & STAT_OAMCHECK) && !(cpu.memory.STAT_lcdstatus & STAT_VBLANKCHECK)) {
@@ -177,20 +185,20 @@ void stepLCDOn_VBLANK(void) {
 					drawFramebuffer();
 
 					// set the LCD step off (and technically, HBLANK mode, which indicates allowing write to all display memory)
-					setMode(0, 456, stepLCDOff);
+					setMode(0, gpuTimes[GPU_MODE_VBLANK], stepLCDOff);
 				}
 				break;
 			case 0x98:
 				SetLY(cpu.memory.LY_lcdline + 1);
-				cpu.gpuTick += 56;
+				cpu.gpuTick += gpuTimes[4];
 				break;
 			case 0x99:
 				SetLY(0);
-				cpu.gpuTick += 400;
+				cpu.gpuTick += gpuTimes[GPU_MODE_VBLANK] - gpuTimes[4];
 				break;
 			default:
 				SetLY(cpu.memory.LY_lcdline + 1);
-				cpu.gpuTick += 456;
+				cpu.gpuTick += gpuTimes[GPU_MODE_VBLANK];
 				break;
 		}
 	}

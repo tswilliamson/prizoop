@@ -9,6 +9,7 @@
 #include "gpu.h"
 #include "display.h"
 #include "main.h"
+#include "cgb.h"
 
 cpu_type cpu ALIGN(256);
 
@@ -53,12 +54,12 @@ int iter = 0;
 // number of batches to do between system checks
 #define BATCHES 1024
 
-void reset(void) {
+void cpuReset(void) {
 	memset(sram, 0, sizeof(sram));
 	memcpy(&cpu.memory, ioReset, sizeof(cpu.memory));
-	memset(vram, 0, sizeof(vram));
 	memset(oam, 0, sizeof(oam));
-	memset(wram, 0, sizeof(wram));
+	memset(wram_perm, 0, sizeof(wram_perm));
+	memset(wram_gb, 0, sizeof(wram_gb));
 	
 	cpu.registers.a = 0x01;
 	cpu.registers.f = 0xb0;
@@ -350,7 +351,14 @@ inline void rrca(void) {
 }
 
 // 0x10
-inline void stop(unsigned char operand) { cpu.stopped = 1; }
+inline void stop(unsigned char operand) {
+	// are we attempting a speed switch?
+	if (cgb.isCGB && (cpu.memory.KEY1_cgbspeed & 1)) {
+		cgbSpeedSwitch();
+	} else {
+		cpu.stopped = 1;
+	}
+}
 
 // 0x11
 inline void ld_de_nn(unsigned short operand) { cpu.registers.de = operand; }

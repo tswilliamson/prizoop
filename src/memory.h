@@ -13,9 +13,10 @@ extern const unsigned char ioReset[0x100];
 
 // various memory areas
 extern unsigned char cart[0x4000] ALIGN(256);			// cartridge permanent ROM area
-extern unsigned char vram[0x2000] ALIGN(256);			// video ram, on gameboy
+extern unsigned char* vram;								// video ram, variable size: 0x2000 on DMG, 0x4000 on CGB
 extern unsigned char sram[0x2000] ALIGN(256);			// cartridge RAM area, may be disabled
-extern unsigned char wram[0x2000] ALIGN(256);			// work RAM, on gameboy
+extern unsigned char wram_perm[0x1000] ALIGN(256);		// permanent work RAM (same on CGB and DMG)
+extern unsigned char wram_gb[0x1000] ALIGN(256);		// GB permanent page, page 1 of 7 for CGB
 extern unsigned char oam[0x100] ALIGN(256);				// sprite memory, on gameboy
 
 // disabled RAM/ROM area
@@ -31,7 +32,7 @@ extern unsigned char* memoryMap[256] ALIGN(256);
 // Bit 4 : for most significant memory byte, whether a read must validate the area first (switched bank)
 extern unsigned int specialMap[256] ALIGN(256);
 
-void resetMemoryMaps();
+void resetMemoryMaps(bool isCGB);
 
 void copy(unsigned short destination, unsigned short source, size_t length);
 

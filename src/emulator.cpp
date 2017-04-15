@@ -1,6 +1,7 @@
 
 #include "emulator.h"
 #include "memory.h"
+#include "cgb.h"
 
 #include "screen_rom.h"
 #include "screen_settings.h"
@@ -196,7 +197,15 @@ void fillSaveStatePath(unsigned short* pFile) {
 
 int getSaveStateSize(unsigned int& withRAMSize) {
 	int spaceNeeded = 2 + sizeof(cpu_type) + sizeof(mbc_state);			// main types
-	spaceNeeded += sizeof(wram) + sizeof(oam) + sizeof(vram);			// various work RAMS
+	spaceNeeded += sizeof(wram_perm) + sizeof(wram_gb) + sizeof(oam); // various permanent work RAMS
+
+	// video and additional work ram based on cgb type
+	if (cgb.isCGB) {
+		spaceNeeded += 0x4000 + sizeof(cgbworkram_type) * 6;
+	} else {
+		spaceNeeded += 0x2000;
+	}
+
 
 	withRAMSize = getRAMSize();
 	// we only save state RAMS <= 8 KB to save space
@@ -262,8 +271,22 @@ void emulator_type::saveState() {
 	Bfile_WriteFile_OS(hFile, &mbc, sizeof(mbc_state));
 
 	// write various work rams
-	Bfile_WriteFile_OS(hFile, &wram[0], sizeof(wram));
-	Bfile_WriteFile_OS(hFile, &vram[0], sizeof(vram));
+	Bfile_WriteFile_OS(hFile, &wram_perm[0], sizeof(wram_perm));
+	Bfile_WriteFile_OS(hFile, &wram_gb[0], sizeof(wram_gb));
+
+	if (cgb.isCGB) {
+		for (int i = 0; i < 6; i++) {
+			Bfile_WriteFile_OS(hFile, &cgb_wram[i][0], sizeof(cgbworkram_type));
+		}
+	}
+
+	// video RAM
+	if (cgb.isCGB) {
+		Bfile_WriteFile_OS(hFile, &vram[0], sizeof(0x4000));
+	} else {
+		Bfile_WriteFile_OS(hFile, &vram[0], sizeof(0x2000));
+	}
+
 	Bfile_WriteFile_OS(hFile, &oam[0], sizeof(oam));
 
 	// only write sram for small ram sizes
@@ -322,8 +345,22 @@ bool emulator_type::loadState() {
 	CompatSwaps();
 
 	// write various work rams
-	Bfile_ReadFile_OS(hFile, &wram[0], sizeof(wram), -1);
-	Bfile_ReadFile_OS(hFile, &vram[0], sizeof(vram), -1);
+	Bfile_ReadFile_OS(hFile, &wram_perm[0], sizeof(wram_perm), -1);
+	Bfile_ReadFile_OS(hFile, &wram_gb[0], sizeof(wram_gb), -1);
+
+	if (cgb.isCGB) {
+		for (int i = 0; i < 6; i++) {
+			Bfile_ReadFile_OS(hFile, &cgb_wram[i][0], sizeof(cgbworkram_type), -1);
+		}
+	}
+
+	// video RAM
+	if (cgb.isCGB) {
+		Bfile_ReadFile_OS(hFile, &vram[0], sizeof(0x4000), -1);
+	} else {
+		Bfile_ReadFile_OS(hFile, &vram[0], sizeof(0x2000), -1);
+	}
+
 	Bfile_ReadFile_OS(hFile, &oam[0], sizeof(oam), -1);
 
 	// only write sram for small ram sizes

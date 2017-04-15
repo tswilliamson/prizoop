@@ -37,7 +37,19 @@ struct cpu_type {
 						unsigned char OBP1_spritepal1;		// sprite palette 1, same as above except bit 0 is always transparent
 						unsigned char WY_windowy;			// window y position, visibility requires 0 <= WY <= 143
 						unsigned char WX_windowx;			// window x position, offset by 7, visibility req 0 <= WX <= 166
-						unsigned char _unused4C7F[0x34];
+						unsigned char _unused4C;
+						unsigned char KEY1_cgbspeed;		// speed switch for GBC
+						unsigned char _unused4E;
+						unsigned char VBK_cgbvram;			// vram select for GBC
+						unsigned char _unused50;
+						unsigned char HDMA1_cgbsrchigh;		// Source hugh byte for CGB DMA, write only
+						unsigned char HDMA2_cgbsrclow;		// Source low byte for CGB DMA, write only
+						unsigned char HDMA3_cgbsrchigh;		// Dest hugh byte for CGB DMA, write only
+						unsigned char HDMA4_cgbsrclow;		// Dest low byte for CGB DMA, write only
+						unsigned char HDMA5_cgbstat;		// Status/operation byte for CGB DMA, R/W, bit 7 = mode, bit 0-6 = length / remaining
+						unsigned char _unused566F[0x1A];	
+						unsigned char SVBK_cgbram;			// ram select for GBC
+						unsigned char _unused717F[0x0F];
 					};
 				};
 				unsigned char hram[0x7F];
@@ -89,7 +101,9 @@ extern cpu_type cpu ALIGN(256);
 #define FLAGS_SET(x) (cpu.registers.f |= (x))
 #define FLAGS_CLEAR(x) (cpu.registers.f &= ~(x))
 
-void reset(void);
+// resets CPU to default GB settings
+void cpuReset(void);
+
 void cpuStep(void);
 void updateDiv();
 

@@ -3,6 +3,7 @@
 #include "keys.h"
 #include "rom.h"
 #include "memory.h"
+#include "cgb.h"
 #include "cgb_bootstrap.h"
 #include "ptune2_simple/Ptune2_direct.h"
 
@@ -17,8 +18,7 @@ void screen_play::select() {
 	if (loadedROM[0]) {
 		if (strcmp(loadedROM, emulator.settings.selectedRom)) {
 			unloadROM();
-		}
-		else {
+		} else {
 			// still playing the same game
 			play();
 			return;
@@ -43,9 +43,6 @@ void screen_play::initRom() {
 
 	reset_printf();
 	printf("Loading file \"%s\"...\n", emulator.settings.selectedRom);
-
-	resetMemoryMaps();
-	reset();
 
 	if (!loadROM(emulator.settings.selectedRom)) {
 		printf("Failed!\n");
