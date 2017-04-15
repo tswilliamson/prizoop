@@ -12,7 +12,7 @@ static unsigned short colorPalette[12] = {
 	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
 };
 
-static unsigned char lineBuffer[176];
+static int lineBuffer[176];
 
 #include "gpu_scanline.inl"
 

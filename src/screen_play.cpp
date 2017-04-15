@@ -74,28 +74,38 @@ void screen_play::play() {
 	drawPlayBG();
 
 	// Apply settings
-	bool doOverclock = (Ptune2_GetSetting() == PT2_DEFAULT && emulator.settings.overclock);
+	bool doOverclock = Ptune2_GetSetting() == PT2_DEFAULT;
 	if (doOverclock) {
-		// clock up and apply the quit handler
-		if (emulator.settings.scaleToScreen) {
-			Ptune2_LoadSetting(PT2_DOUBLE);
+		if (emulator.settings.overclock) {
+			// clock up and apply the quit handler
+			if (emulator.settings.scaleToScreen) {
+				Ptune2_LoadSetting(PT2_DOUBLE);
+			} else {
+				Ptune2_LoadSetting(PT2_HALFINC);
+			}
 		} else {
-			Ptune2_LoadSetting(PT2_HALFINC);
+			Ptune2_LoadSetting(PT2_NOMEMWAIT);
 		}
 	}
 
 	// look for gameboy color palette override
-	unsigned short palette[12];
+	unsigned int palette[12];
 	if (!emulator.settings.useCGBColors || !getCGBTableEntry(&memoryMap[0][ROM_OFFSET_NAME], palette)) {
 		colorpalette_type pal;
 		emulator.getPalette(emulator.settings.bgColorPalette, pal);
-		memcpy(&palette[0], pal.colors, sizeof(pal.colors));
+		for (int i = 0; i < 4; i++) {
+			palette[i] = pal.colors[i] | (pal.colors[i] << 16);
+		}
 
 		emulator.getPalette(emulator.settings.obj1ColorPalette, pal);
-		memcpy(&palette[4], pal.colors, sizeof(pal.colors));
+		for (int i = 0; i < 4; i++) {
+			palette[i+4] = pal.colors[i] | (pal.colors[i] << 16);
+		}
 
 		emulator.getPalette(emulator.settings.obj2ColorPalette, pal);
-		memcpy(&palette[8], pal.colors, sizeof(pal.colors));
+		for (int i = 0; i < 4; i++) {
+			palette[i+8] = pal.colors[i] | (pal.colors[i] << 16);
+		}
 	}
 
 	SetupDisplayPalette(palette);

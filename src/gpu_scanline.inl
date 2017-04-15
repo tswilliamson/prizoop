@@ -4,16 +4,8 @@
 // (we speed up 2x scaling by directly rendering a scanline to unsigned long)
 
 template <class Type>
-inline Type ToScanType(unsigned short color) {
-	return color;
-}
-
-inline unsigned short ToScanType(unsigned short color) {
-	return color;
-}
-
-inline unsigned int ToScanType(unsigned int color) {
-	return color | (color << 16);
+inline Type ToScanType(unsigned int color) {
+	return (Type) color;
 }
 
 inline void RenderScanline() {
@@ -33,14 +25,14 @@ inline void RenderScanline() {
 			mapOffset += (((cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 255) >> 3) << 5;
 
 			// start to the left of pixel 7 (our leftmost linebuffer pixel) based on scrollx
-			unsigned char* scanline = &lineBuffer[7 - (cpu.memory.SCX_bgscrollx & 7)];
+			int* scanline = (int*) &lineBuffer[7 - (cpu.memory.SCX_bgscrollx & 7)];
 
 			for (i = 0; i < 168; i += 8) {
 				int lineOffset = ((unsigned char)(cpu.memory.SCX_bgscrollx + i)) >> 3;
-				unsigned short tile = vram[mapOffset + lineOffset];
+				int tile = vram[mapOffset + lineOffset];
 				if (!(tile & 0x80)) tile += tileOffset;
-				unsigned short tileRow = *((unsigned short*)&vram[tile * 16 + y * 2]);
-				EndianSwap(tileRow);
+				int tileRow = *((unsigned short*)&vram[tile * 16 + y * 2]);
+				ShortSwap(tileRow);
 
 				scanline[0] = (tileRow >> 15) | ((tileRow >> 6) & 2);
 				scanline[1] = ((tileRow >> 14) & 1) | ((tileRow >> 5) & 2);
@@ -68,23 +60,23 @@ inline void RenderScanline() {
 				int lineOffset = -1;
 				y &= 0x07;
 
-				unsigned char* scanline = &lineBuffer[wx];
+				int* scanline = (int*) &lineBuffer[wx];
 
 				for (; wx < 167; wx += 8) {
 					lineOffset = lineOffset + 1;
-					unsigned short tile = vram[mapOffset + lineOffset];
+					int tile = vram[mapOffset + lineOffset];
 					if (!(tile & 0x80)) tile += tileOffset;
-					unsigned short tileRow = *((unsigned short*)&vram[tile * 16 + y * 2]);
-					EndianSwap(tileRow);
+					int tileRow = *((unsigned short*)&vram[tile * 16 + y * 2]);
+					ShortSwap(tileRow);
 
-					scanline[0] = (tileRow >> 15) | ((tileRow >> 6) & 2);
+					scanline[0] = ((tileRow >> 15) & 1) | ((tileRow >> 6) & 2);
 					scanline[1] = ((tileRow >> 14) & 1) | ((tileRow >> 5) & 2);
 					scanline[2] = ((tileRow >> 13) & 1) | ((tileRow >> 4) & 2);
 					scanline[3] = ((tileRow >> 12) & 1) | ((tileRow >> 3) & 2);
 					scanline[4] = ((tileRow >> 11) & 1) | ((tileRow >> 2) & 2);
 					scanline[5] = ((tileRow >> 10) & 1) | ((tileRow >> 1) & 2);
-					scanline[6] = ((tileRow >> 9) & 1) | ((tileRow >> 0) & 2);
-					scanline[7] = ((tileRow >> 8) & 1) | ((tileRow << 1) & 2);
+					scanline[6] = ((tileRow >> 9) & 1)  | ((tileRow >> 0) & 2);
+					scanline[7] = ((tileRow >> 8) & 1)  | ((tileRow << 1) & 2);
 					scanline += 8;
 				}
 			}
@@ -104,9 +96,9 @@ inline void RenderScanline() {
 
 				if (sy <= cpu.memory.LY_lcdline && (sy + spriteSize) > cpu.memory.LY_lcdline) {
 					// sprite position
-					unsigned char* scanline = &lineBuffer[sprite.x - 1];
+					int* scanline = (int*) &lineBuffer[sprite.x - 1];
 
-					unsigned char y;
+					int y;
 					int tile = sprite.tile;
 					if (cpu.memory.LCDC_ctl & LCDC_SPRITEVDOUBLE) {
 						if (OAM_ATTR_YFLIP(sprite.attr)) y = 15 - (cpu.memory.LY_lcdline - sy);
@@ -118,32 +110,32 @@ inline void RenderScanline() {
 						else y = cpu.memory.LY_lcdline - sy;
 					}
 
-					unsigned short tileRow = *((unsigned short*)&vram[tile * 16 + y * 2]);
-					EndianSwap(tileRow);
+					int tileRow = *((unsigned short*)&vram[tile * 16 + y * 2]);
+					ShortSwap(tileRow);
 
-					unsigned char colors[8];
+					int colors[8];
 					if (!OAM_ATTR_XFLIP(sprite.attr)) {
-						colors[0] = (tileRow >> 15) | ((tileRow >> 6) & 2);
+						colors[0] = ((tileRow >> 15) & 1) | ((tileRow >> 6) & 2);
 						colors[1] = ((tileRow >> 14) & 1) | ((tileRow >> 5) & 2);
 						colors[2] = ((tileRow >> 13) & 1) | ((tileRow >> 4) & 2);
 						colors[3] = ((tileRow >> 12) & 1) | ((tileRow >> 3) & 2);
 						colors[4] = ((tileRow >> 11) & 1) | ((tileRow >> 2) & 2);
 						colors[5] = ((tileRow >> 10) & 1) | ((tileRow >> 1) & 2);
-						colors[6] = ((tileRow >> 9) & 1) | ((tileRow >> 0) & 2);
-						colors[7] = ((tileRow >> 8) & 1) | ((tileRow << 1) & 2);
+						colors[6] = ((tileRow >> 9) & 1)  | ((tileRow >> 0) & 2);
+						colors[7] = ((tileRow >> 8) & 1)  | ((tileRow << 1) & 2);
 					}
 					else {
-						colors[0] = ((tileRow >> 8) & 1) | ((tileRow << 1) & 2);
-						colors[1] = ((tileRow >> 9) & 1) | ((tileRow >> 0) & 2);
+						colors[0] = ((tileRow >> 8) & 1)  | ((tileRow << 1) & 2);
+						colors[1] = ((tileRow >> 9) & 1)  | ((tileRow >> 0) & 2);
 						colors[2] = ((tileRow >> 10) & 1) | ((tileRow >> 1) & 2);
 						colors[3] = ((tileRow >> 11) & 1) | ((tileRow >> 2) & 2);
 						colors[4] = ((tileRow >> 12) & 1) | ((tileRow >> 3) & 2);
 						colors[5] = ((tileRow >> 13) & 1) | ((tileRow >> 4) & 2);
 						colors[6] = ((tileRow >> 14) & 1) | ((tileRow >> 5) & 2);
-						colors[7] = (tileRow >> 15) | ((tileRow >> 6) & 2);
+						colors[7] = ((tileRow >> 15) & 1) | ((tileRow >> 6) & 2);
 					}
 
-					unsigned char paletteBase = OAM_ATTR_PALETTE(sprite.attr) ? 8 : 4;
+					int paletteBase = OAM_ATTR_PALETTE(sprite.attr) ? 8 : 4;
 					if (OAM_ATTR_PRIORITY(sprite.attr)) {
 						if (!scanline[0] && colors[0]) scanline[0] = paletteBase | colors[0];
 						if (!scanline[1] && colors[1]) scanline[1] = paletteBase | colors[1];
@@ -173,18 +165,18 @@ inline void RenderScanline() {
 template<class Type> inline void ResolveScanline(void* scanlineStart) {
 	// resolve to colors
 	const Type palette[12] = {
-		ToScanType((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x03) >> 0]),
-		ToScanType((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x0C) >> 2]),
-		ToScanType((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x30) >> 4]),
-		ToScanType((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0xC0) >> 6]),
-		ToScanType((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x03) >> 0)]),
-		ToScanType((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x0C) >> 2)]),
-		ToScanType((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x30) >> 4)]),
-		ToScanType((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0xC0) >> 6)]),
-		ToScanType((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x03) >> 0)]),
-		ToScanType((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x0C) >> 2)]),
-		ToScanType((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x30) >> 4)]),
-		ToScanType((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0xC0) >> 6)]),
+		ToScanType<Type>((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x03) >> 0]),
+		ToScanType<Type>((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x0C) >> 2]),
+		ToScanType<Type>((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x30) >> 4]),
+		ToScanType<Type>((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0xC0) >> 6]),
+		ToScanType<Type>((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x03) >> 0)]),
+		ToScanType<Type>((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x0C) >> 2)]),
+		ToScanType<Type>((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x30) >> 4)]),
+		ToScanType<Type>((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0xC0) >> 6)]),
+		ToScanType<Type>((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x03) >> 0)]),
+		ToScanType<Type>((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x0C) >> 2)]),
+		ToScanType<Type>((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x30) >> 4)]),
+		ToScanType<Type>((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0xC0) >> 6)]),
 	};
 	Type* scanline = (Type*)scanlineStart;
 	// middle 160 bytes of linebuffer go into scanline
@@ -195,18 +187,18 @@ template<class Type> inline void ResolveScanline(void* scanlineStart) {
 template<class Type> inline void DoubleResolveScanline(void* scanlineStart1, void* scanlineStart2) {
 	// resolve to colors
 	const Type palette[12] = {
-		ToScanType((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x03) >> 0]),
-		ToScanType((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x0C) >> 2]),
-		ToScanType((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x30) >> 4]),
-		ToScanType((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0xC0) >> 6]),
-		ToScanType((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x03) >> 0)]),
-		ToScanType((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x0C) >> 2)]),
-		ToScanType((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x30) >> 4)]),
-		ToScanType((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0xC0) >> 6)]),
-		ToScanType((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x03) >> 0)]),
-		ToScanType((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x0C) >> 2)]),
-		ToScanType((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x30) >> 4)]),
-		ToScanType((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0xC0) >> 6)]),
+		ToScanType<Type>((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x03) >> 0]),
+		ToScanType<Type>((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x0C) >> 2]),
+		ToScanType<Type>((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x30) >> 4]),
+		ToScanType<Type>((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0xC0) >> 6]),
+		ToScanType<Type>((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x03) >> 0)]),
+		ToScanType<Type>((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x0C) >> 2)]),
+		ToScanType<Type>((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x30) >> 4)]),
+		ToScanType<Type>((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0xC0) >> 6)]),
+		ToScanType<Type>((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x03) >> 0)]),
+		ToScanType<Type>((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x0C) >> 2)]),
+		ToScanType<Type>((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x30) >> 4)]),
+		ToScanType<Type>((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0xC0) >> 6)]),
 	};
 	Type* scanline1 = (Type*)scanlineStart1;
 	Type* scanline2 = (Type*)scanlineStart2;

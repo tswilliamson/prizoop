@@ -48,12 +48,12 @@ struct cpu_type {
 
 	// main cpu cpu.registers
 	registers_type registers;
-	unsigned char IME;							// master interrupt enable (di, ei)
+	unsigned int IME;							// master interrupt enable (di, ei)
 
 	// misc cpu info
-	unsigned int clocks;		// according to clock frequency (4 MHz)
-	unsigned char halted;
-	unsigned char stopped;
+	unsigned int clocks;						// according to clock frequency (4 MHz)
+	unsigned int halted;
+	unsigned int stopped;
 
 	// cpu div
 	unsigned int div;

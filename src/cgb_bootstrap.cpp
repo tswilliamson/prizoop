@@ -105,7 +105,7 @@ cgbEntry entries[] = {
 	{ 0xf4, 0x2d, { 0xffff, 0x7fe6, 0x0318, 0x0000, 0xffff, 0xfc30, 0x91c7, 0x0000, 0xffff, 0x653f, 0x001f, 0x0000 } },
 };
 
-bool getCGBTableEntry(unsigned char* romInternalName, unsigned short* allPalettes) {
+bool getCGBTableEntry(unsigned char* romInternalName, unsigned int* allPalettes) {
 	// compute rom name hash
 	unsigned char hash = 0;
 	for (int i = 0x00; i < 0x10; i++) {
@@ -127,7 +127,9 @@ bool getCGBTableEntry(unsigned char* romInternalName, unsigned short* allPalette
 	}
 
 	if (best != -1) {
-		memcpy(allPalettes, entries[best].palette, sizeof(unsigned short) * 12);
+		for (int i = 0; i < 12; i++) {
+			allPalettes[i] = entries[best].palette[i] | (entries[best].palette[i] << 16);
+		}
 		return true;
 	}
 

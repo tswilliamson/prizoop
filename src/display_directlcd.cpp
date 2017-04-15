@@ -30,22 +30,22 @@ void renderScanlineFit(void);
 void renderBlankScanlineFit(void);
 void drawFramebufferMain(void);
 
-unsigned short colorPalette[12] = {
-	COLOR_WHITE,
-	COLOR_LIGHTCYAN,
-	COLOR_CYAN,
-	COLOR_DARKCYAN,
-	COLOR_WHITE,
-	COLOR_LIGHTCYAN,
-	COLOR_CYAN,
-	COLOR_DARKCYAN,
-	COLOR_WHITE,
-	COLOR_LIGHTCYAN,
-	COLOR_CYAN,
-	COLOR_DARKCYAN
+unsigned int colorPalette[12] = {
+	(unsigned int)COLOR_WHITE | (COLOR_WHITE << 16),
+	(unsigned int)COLOR_LIGHTCYAN | (COLOR_LIGHTCYAN << 16),
+	(unsigned int)COLOR_CYAN | (COLOR_CYAN << 16),
+	(unsigned int)COLOR_DARKCYAN | (COLOR_DARKCYAN << 16),
+	(unsigned int)COLOR_WHITE | (COLOR_WHITE << 16),
+	(unsigned int)COLOR_LIGHTCYAN | (COLOR_LIGHTCYAN << 16),
+	(unsigned int)COLOR_CYAN | (COLOR_CYAN << 16),
+	(unsigned int)COLOR_DARKCYAN | (COLOR_DARKCYAN << 16),
+	(unsigned int)COLOR_WHITE | (COLOR_WHITE << 16),
+	(unsigned int)COLOR_LIGHTCYAN | (COLOR_LIGHTCYAN << 16),
+	(unsigned int)COLOR_CYAN | (COLOR_CYAN << 16),
+	(unsigned int)COLOR_DARKCYAN | (COLOR_DARKCYAN << 16),
 };
 
-unsigned char const* lineBuffer = (unsigned char*) 0xE5017000;
+const int* lineBuffer = (int*) 0xE5017000;
 #include "gpu_scanline.inl"
 
 void SetupDisplayDriver(bool withStretch, char withFrameskip) {
@@ -56,7 +56,7 @@ void SetupDisplayDriver(bool withStretch, char withFrameskip) {
 	renderBlankScanline = withStretch ? renderBlankScanlineFit : renderBlankScanline1x1;
 }
 
-void SetupDisplayPalette(unsigned short pal[12]) {
+void SetupDisplayPalette(unsigned int pal[12]) {
 	memcpy(colorPalette, pal, sizeof(colorPalette));
 }
 
