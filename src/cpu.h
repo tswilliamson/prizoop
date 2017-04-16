@@ -47,7 +47,12 @@ struct cpu_type {
 						unsigned char HDMA3_cgbsrchigh;		// Dest hugh byte for CGB DMA, write only
 						unsigned char HDMA4_cgbsrclow;		// Dest low byte for CGB DMA, write only
 						unsigned char HDMA5_cgbstat;		// Status/operation byte for CGB DMA, R/W, bit 7 = mode, bit 0-6 = length / remaining
-						unsigned char _unused566F[0x1A];	
+						unsigned char _unused5667[0x12];
+						unsigned char BGPI_bgpalindex;		// BG palette index / increment for CGB, bits 0-5 : palette address, bit 7 : auto increment
+						unsigned char BGPD_bgpaldata;		// data byte to bg palette index, writes may increment index based on auto increment
+						unsigned char OBPI_objpalindex;		// OBJ palette index / increment for CGB, bits 0-5 : palette address, bit 7: auto increment
+						unsigned char OBPD_objpaldata;		// data byte to obj palette index, writes may increment index based on auto increment
+						unsigned char _unused6C6F[0x04];
 						unsigned char SVBK_cgbram;			// ram select for GBC
 						unsigned char _unused717F[0x0F];
 					};

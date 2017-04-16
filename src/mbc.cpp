@@ -165,10 +165,7 @@ mbc_bankcache* cacheBank(unsigned int index) {
 		}
 	}
 
-#if TARGET_WINSIM
-	extern int cacheMisses;
-	cacheMisses++;
-#else
+#if !TARGET_WINSIM
 	// flush DMA call since we are making a serious system call
 	extern void DmaWaitNext();
 	DmaWaitNext();

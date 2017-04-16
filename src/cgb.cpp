@@ -46,18 +46,22 @@ void cgbInitROM() {
 	// dma always targets vram
 	cgb.dmaDest = 0x8000;
 
+	// initially all cgb colors are white
+	memset(cgb.palette, 0xFF, sizeof(cgb.palette));
+	memset(cgb.paletteMemory, 0xFF, sizeof(cgb.paletteMemory));
+
 	// we are now in cgb mode!
 	cgb.isCGB = true;
 }
 
-void cgbSelectWRAM(int ramBank) {
+void cgbSelectWRAM(int ramBank, bool force) {
 	DebugAssert(ramBank >= 0 && ramBank <= 7);
 
 	if (ramBank == 0) {
 		ramBank = 1;
 	}
 
-	if (ramBank != cgb.selectedWRAM) {
+	if (ramBank != cgb.selectedWRAM || force) {
 		cgb.selectedWRAM = ramBank;
 
 		unsigned char* selected;
@@ -78,10 +82,10 @@ void cgbSelectWRAM(int ramBank) {
 	}
 }
 
-void cgbSelectVRAM(int ramBank) {
+void cgbSelectVRAM(int ramBank, bool force) {
 	DebugAssert(ramBank == 0 || ramBank == 1);
 
-	if (ramBank != cgb.selectedVRAM) {
+	if (ramBank != cgb.selectedVRAM || force) {
 		cgb.selectedVRAM = ramBank;
 
 		for (int i = 0x80; i <= 0x9f; i++) {
@@ -109,12 +113,18 @@ void cgbSpeedSwitch() {
 inline void cgbDmaCopyBits() {
 	DebugAssert(cgb.dmaDest >= 0x8000 && cgb.dmaDest <= 0x9FF0);
 
-	if (cgb.dmaSrc >= 0xE000) {
+	int source = cgb.dmaSrc;
+	if (source >= 0xE000) {
 		// maps 0xe000 to sram instead:
-		memcpy(&memoryMap[cgb.dmaDest >> 8][cgb.dmaDest & 0xFF], &memoryMap[(cgb.dmaSrc - 0x4000) >> 8][cgb.dmaSrc & 0xFF], 16);
-	} else {
-		memcpy(&memoryMap[cgb.dmaDest >> 8][cgb.dmaDest & 0xFF], &memoryMap[cgb.dmaSrc >> 8][cgb.dmaSrc & 0xFF], 16);
+		source -= 0x4000;
 	}
+
+	if (specialMap[source >> 8] & 0x10) {
+		// needs mbc validation
+		mbcRead(source);
+	}
+
+	memcpy(&memoryMap[cgb.dmaDest >> 8][cgb.dmaDest & 0xFF], &memoryMap[source >> 8][source & 0xFF], 16);
 
 	cgb.dmaLeft -= 16;
 	cgb.dmaSrc += 16;
@@ -128,8 +138,21 @@ inline void cgbDmaCopyBits() {
 
 void cgbDMAOp(unsigned char value) {
 	// only support general DMA right now:
-	DebugAssert((value & 80) == 0);
 	if (value & 0x80) {
+		cgb.hblankDmaActive = true;
+		cpu.memory.HDMA5_cgbstat = value & 0x7F;
+		cgb.dmaLeft = ((value & 0x7F) + 1) << 4;
+
+		// do first copy if during hblank
+		// and some weird behavior.. when LCD is turned off, it'll immediately do at least one:
+		if (cpu.memory.STAT_lcdstatus & 3 == GPU_MODE_HBLANK || !(cpu.memory.LCDC_ctl & 0x80)) {
+			cgbHBlankDMA();
+		}
+	} else if (cgb.hblankDmaActive) {
+		// just cancel the dma
+		cpu.memory.HDMA5_cgbstat = 0x80 | value;
+		cgb.hblankDmaActive = false;
+		cgb.dmaLeft = 0;
 	} else {
 		// general purpose DMA
 		cgb.dmaLeft = (value + 1) << 4;
@@ -143,11 +166,61 @@ void cgbDMAOp(unsigned char value) {
 		} else {
 			cpu.clocks += 8 + 32 * value;
 		}
+
+		// HDMA5 reads 0xFF after completing a general dma
+		cpu.memory.HDMA5_cgbstat = 0xFF;
 	}
 }
 
 void cgbHBlankDMA() {
-	DebugAssert(false);
+	cgbDmaCopyBits();
+	cpu.memory.HDMA5_cgbstat--;
+
+	// cpu clocks cost varies based on cpu speed
+	if (cgb.isDouble) {
+		cpu.clocks += 68;
+	} else {
+		cpu.clocks += 36;
+	}
+
+	// did the dma finish?
+	if (cpu.memory.HDMA5_cgbstat == 0xFF) {
+		DebugAssert(cgb.dmaLeft == 0);
+		cgb.hblankDmaActive = false;
+	}
+}
+
+const int translateColor[32] = 
+{
+	0, 2, 3, 5, 6, 8, 9, 11,
+	12, 13, 15, 16, 18, 19, 21, 23,
+	25, 26, 26, 26, 27, 27, 27, 28,
+	28, 28, 29, 29, 29, 30, 30, 30
+};
+
+void cgbResolvePalette() {
+	for (int i = 0; i < 64; i++) {
+		// simply shuffling the high bit to the bottom for now
+		int palColor = cgb.paletteMemory[i * 2] | (cgb.paletteMemory[i * 2 + 1] << 8);
+		int trx = 
+			(translateColor[palColor & 0x001F] << 11) |			// red
+			(translateColor[(palColor & 0x03E0) >> 5] << 6) |			// green
+			(translateColor[(palColor & 0x7C00) >> 10]);			// blue
+
+		cgb.palette[i] = trx | (trx << 16);
+	}
+
+	cgb.dirtyPalette = false;
+}
+
+void cgbOnStateLoad() {
+	if (cgb.isDouble) {
+		cgb.isDouble = false;
+		cgbSpeedSwitch();
+	}
+
+	cgbSelectVRAM(cgb.selectedVRAM, true);
+	cgbSelectWRAM(cgb.selectedWRAM, true);
 }
 
 void cgbCleanup() {

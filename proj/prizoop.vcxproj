@@ -98,8 +98,9 @@
     <None Include="..\Makefile" />
     <None Include="..\src\cb_impl.inl" />
     <None Include="..\src\cb_instructions.inl" />
+    <None Include="..\src\cgb_scanline.inl" />
     <None Include="..\src\cpu_instructions.inl" />
-    <None Include="..\src\gpu_scanline.inl" />
+    <None Include="..\src\dmg_scanline.inl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\src\zx7\zx7.txt" />

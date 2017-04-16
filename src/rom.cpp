@@ -76,6 +76,8 @@ unsigned char loadROM(const char *filename) {
 	if (isCGB) {
 		// init CGB mode
 		cgbInitROM();
+	} else {
+		cgb.isCGB = false;
 	}
 
 	// determine mbc controller support and initialize

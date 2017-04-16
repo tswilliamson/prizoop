@@ -3,12 +3,7 @@
 // Shared between platforms, renders a scanline based on the unsigned short color palette to different types
 // (we speed up 2x scaling by directly rendering a scanline to unsigned long)
 
-template <class Type>
-inline Type ToScanType(unsigned int color) {
-	return (Type) color;
-}
-
-inline void RenderScanline() {
+inline void RenderDMGScanline() {
 	// background/window
 	{
 		int i;
@@ -162,21 +157,21 @@ inline void RenderScanline() {
 	}
 }
 	
-template<class Type> inline void ResolveScanline(void* scanlineStart) {
+template<class Type> inline void ResolveDMGScanline(void* scanlineStart) {
 	// resolve to colors
 	const Type palette[12] = {
-		ToScanType<Type>((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x03) >> 0]),
-		ToScanType<Type>((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x0C) >> 2]),
-		ToScanType<Type>((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x30) >> 4]),
-		ToScanType<Type>((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0xC0) >> 6]),
-		ToScanType<Type>((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x03) >> 0)]),
-		ToScanType<Type>((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x0C) >> 2)]),
-		ToScanType<Type>((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x30) >> 4)]),
-		ToScanType<Type>((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0xC0) >> 6)]),
-		ToScanType<Type>((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x03) >> 0)]),
-		ToScanType<Type>((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x0C) >> 2)]),
-		ToScanType<Type>((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x30) >> 4)]),
-		ToScanType<Type>((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0xC0) >> 6)]),
+		ToScanType<Type>((Type)dmgPalette[(cpu.memory.BGP_bgpalette & 0x03) >> 0]),
+		ToScanType<Type>((Type)dmgPalette[(cpu.memory.BGP_bgpalette & 0x0C) >> 2]),
+		ToScanType<Type>((Type)dmgPalette[(cpu.memory.BGP_bgpalette & 0x30) >> 4]),
+		ToScanType<Type>((Type)dmgPalette[(cpu.memory.BGP_bgpalette & 0xC0) >> 6]),
+		ToScanType<Type>((Type)dmgPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x03) >> 0)]),
+		ToScanType<Type>((Type)dmgPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x0C) >> 2)]),
+		ToScanType<Type>((Type)dmgPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x30) >> 4)]),
+		ToScanType<Type>((Type)dmgPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0xC0) >> 6)]),
+		ToScanType<Type>((Type)dmgPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x03) >> 0)]),
+		ToScanType<Type>((Type)dmgPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x0C) >> 2)]),
+		ToScanType<Type>((Type)dmgPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x30) >> 4)]),
+		ToScanType<Type>((Type)dmgPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0xC0) >> 6)]),
 	};
 	Type* scanline = (Type*)scanlineStart;
 	// middle 160 bytes of linebuffer go into scanline
@@ -184,21 +179,21 @@ template<class Type> inline void ResolveScanline(void* scanlineStart) {
 		*(scanline++) = palette[lineBuffer[i]];
 	}
 }
-template<class Type> inline void DoubleResolveScanline(void* scanlineStart1, void* scanlineStart2) {
+template<class Type> inline void DoubleResolveDMGScanline(void* scanlineStart1, void* scanlineStart2) {
 	// resolve to colors
 	const Type palette[12] = {
-		ToScanType<Type>((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x03) >> 0]),
-		ToScanType<Type>((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x0C) >> 2]),
-		ToScanType<Type>((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0x30) >> 4]),
-		ToScanType<Type>((Type)colorPalette[(cpu.memory.BGP_bgpalette & 0xC0) >> 6]),
-		ToScanType<Type>((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x03) >> 0)]),
-		ToScanType<Type>((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x0C) >> 2)]),
-		ToScanType<Type>((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x30) >> 4)]),
-		ToScanType<Type>((Type)colorPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0xC0) >> 6)]),
-		ToScanType<Type>((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x03) >> 0)]),
-		ToScanType<Type>((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x0C) >> 2)]),
-		ToScanType<Type>((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x30) >> 4)]),
-		ToScanType<Type>((Type)colorPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0xC0) >> 6)]),
+		ToScanType<Type>((Type)dmgPalette[(cpu.memory.BGP_bgpalette & 0x03) >> 0]),
+		ToScanType<Type>((Type)dmgPalette[(cpu.memory.BGP_bgpalette & 0x0C) >> 2]),
+		ToScanType<Type>((Type)dmgPalette[(cpu.memory.BGP_bgpalette & 0x30) >> 4]),
+		ToScanType<Type>((Type)dmgPalette[(cpu.memory.BGP_bgpalette & 0xC0) >> 6]),
+		ToScanType<Type>((Type)dmgPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x03) >> 0)]),
+		ToScanType<Type>((Type)dmgPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x0C) >> 2)]),
+		ToScanType<Type>((Type)dmgPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0x30) >> 4)]),
+		ToScanType<Type>((Type)dmgPalette[4 + ((cpu.memory.OBP0_spritepal0 & 0xC0) >> 6)]),
+		ToScanType<Type>((Type)dmgPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x03) >> 0)]),
+		ToScanType<Type>((Type)dmgPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x0C) >> 2)]),
+		ToScanType<Type>((Type)dmgPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0x30) >> 4)]),
+		ToScanType<Type>((Type)dmgPalette[8 + ((cpu.memory.OBP1_spritepal1 & 0xC0) >> 6)]),
 	};
 	Type* scanline1 = (Type*)scanlineStart1;
 	Type* scanline2 = (Type*)scanlineStart2;

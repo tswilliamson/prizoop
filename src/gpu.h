@@ -49,8 +49,8 @@ struct sprite {
 #define OAM_ATTR_YFLIP(x) (x & 0x40)
 #define OAM_ATTR_XFLIP(x) (x & 0x20)
 #define OAM_ATTR_PALETTE(x) (x & 0x10)
-#define OAM_ATTR_BANK(x) (x & 0x08)			// currently unused, CGB only
-#define OAM_ATTR_PAL_NUM(x) (x & 07)			// currently unused, CGB only
+#define OAM_ATTR_BANK(x) (x & 0x08)			    // CGB only
+#define OAM_ATTR_PAL_NUM(x) (x & 07)			// CGB only
 
 extern void(*gpuStep)(void);
 
@@ -59,6 +59,14 @@ extern void stepLCDOn_OAM(void);
 extern void stepLCDOn_VRAM(void);
 extern void stepLCDOn_HBLANK(void);
 extern void stepLCDOn_VBLANK(void);
+
+// palette (the colors are two pixels wide to make stretching code faster)
+extern unsigned int dmgPalette[12];
+
+template <class Type>
+inline Type ToScanType(unsigned int color) {
+	return (Type)color;
+}
 
 void hblank(void);
 

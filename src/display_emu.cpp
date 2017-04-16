@@ -14,24 +14,10 @@ bool stretch = false;
 int framecounter = 0;
 int frameSkip = 0;
 
-unsigned int colorPalette[12] = {
-	(unsigned int) COLOR_WHITE | (COLOR_WHITE << 16),
-	(unsigned int) COLOR_LIGHTCYAN | (COLOR_LIGHTCYAN << 16),
-	(unsigned int) COLOR_CYAN | (COLOR_CYAN << 16),
-	(unsigned int) COLOR_DARKCYAN | (COLOR_DARKCYAN << 16),
-	(unsigned int) COLOR_WHITE | (COLOR_WHITE << 16),
-	(unsigned int) COLOR_LIGHTCYAN | (COLOR_LIGHTCYAN << 16),
-	(unsigned int) COLOR_CYAN | (COLOR_CYAN << 16),
-	(unsigned int) COLOR_DARKCYAN | (COLOR_DARKCYAN << 16),
-	(unsigned int) COLOR_WHITE | (COLOR_WHITE << 16),
-	(unsigned int) COLOR_LIGHTCYAN | (COLOR_LIGHTCYAN << 16),
-	(unsigned int) COLOR_CYAN | (COLOR_CYAN << 16),
-	(unsigned int) COLOR_DARKCYAN | (COLOR_DARKCYAN << 16),
-};
-
 static int lineBuffer[176] ALIGN(32) = { 0 };
 
-#include "gpu_scanline.inl"
+#include "dmg_scanline.inl"
+#include "cgb_scanline.inl"
 
 void renderEmu() {
 	if (skippingFrame)
@@ -39,20 +25,38 @@ void renderEmu() {
 
 	TIME_SCOPE();
 
-	RenderScanline();
+	if (cgb.isCGB) {
+		RenderCGBScanline();
 
-	// stretch across screen?
-	if (stretch) {
-		unsigned short* scanlineStart = &((unsigned short*)GetVRAMAddress())[32 + LCD_WIDTH_PX * ((cpu.memory.LY_lcdline * 3) / 2)];
-		ResolveScanline<unsigned int>(scanlineStart);
+		// stretch across screen?
+		if (stretch) {
+			unsigned short* scanlineStart = &((unsigned short*)GetVRAMAddress())[32 + LCD_WIDTH_PX * ((cpu.memory.LY_lcdline * 3) / 2)];
 
-		if (cpu.memory.LY_lcdline & 1) {
-			ResolveScanline<unsigned int>(scanlineStart + LCD_WIDTH_PX);
+			if (cpu.memory.LY_lcdline & 1) {
+				DoubleResolveCGBScanline<unsigned int>(scanlineStart, scanlineStart + LCD_WIDTH_PX);
+			} else {
+				ResolveCGBScanline<unsigned int>(scanlineStart);
+			}
+		} else {
+			void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * (cpu.memory.LY_lcdline + 36)];
+			ResolveCGBScanline<unsigned short>(scanlineStart);
 		}
-	}
-	else {
-		void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * (cpu.memory.LY_lcdline + 36)];
-		ResolveScanline<unsigned short>(scanlineStart);
+	} else {
+		RenderDMGScanline();
+
+		// stretch across screen?
+		if (stretch) {
+			unsigned short* scanlineStart = &((unsigned short*)GetVRAMAddress())[32 + LCD_WIDTH_PX * ((cpu.memory.LY_lcdline * 3) / 2)];
+
+			if (cpu.memory.LY_lcdline & 1) {
+				DoubleResolveDMGScanline<unsigned int>(scanlineStart, scanlineStart + LCD_WIDTH_PX);
+			} else {
+				ResolveDMGScanline<unsigned int>(scanlineStart);
+			}
+		} else {
+			void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * (cpu.memory.LY_lcdline + 36)];
+			ResolveDMGScanline<unsigned short>(scanlineStart);
+		}
 	}
 }
 
@@ -65,29 +69,24 @@ void renderBlankEmu() {
 
 		unsigned int* curScan = (unsigned int*)scanlineStart;
 		for (int i = 0; i < 160; i++) {
-			*(curScan++) = colorPalette[0] | (colorPalette[0] << 16);
+			*(curScan++) = dmgPalette[0] | (dmgPalette[0] << 16);
 		}
 
 		if (cpu.memory.LY_lcdline & 1) {
 			curScan = (unsigned int*) (scanlineStart + LCD_WIDTH_PX);
 			for (int i = 0; i < 160; i++) {
-				*(curScan++) = colorPalette[0] | (colorPalette[0] << 16);
+				*(curScan++) = dmgPalette[0] | (dmgPalette[0] << 16);
 			}
 		}
-	}
-	else {
+	} else {
 		void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * (cpu.memory.LY_lcdline + 36)];
 
 		unsigned short* curScan = (unsigned short*)scanlineStart;
 		for (int i = 0; i < 160; i++) {
-			*(curScan++) = colorPalette[0];
+			*(curScan++) = dmgPalette[0];
 		}
 	}
 }
-
-
-int cacheMisses = 0;
-
 
 void drawEmu() {
 
@@ -163,10 +162,6 @@ void SetupDisplayDriver(bool withStretch, char withFrameskip) {
 	drawFramebuffer = drawEmu;
 	renderScanline = renderEmu;
 	renderBlankScanline = renderBlankEmu;
-}
-
-void SetupDisplayPalette(unsigned int pal[12]) {
-	memcpy(colorPalette, pal, sizeof(colorPalette));
 }
 
 #endif

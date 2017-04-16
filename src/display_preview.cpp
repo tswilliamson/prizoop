@@ -8,24 +8,23 @@
 #include "memory.h"
 #include "keys.h"
 
-static unsigned short colorPalette[12] = {
-	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
-};
-
 static int lineBuffer[176];
 
-#include "gpu_scanline.inl"
+#include "dmg_scanline.inl"
+#include "cgb_scanline.inl"
 
 static void renderPreviewLine() {
 	if ((cpu.memory.LY_lcdline & 1) == 0) {
-		unsigned short line[160];
-		RenderScanline();
-		ResolveScanline<unsigned short>(line);
+		if (cgb.isCGB) {
+			RenderCGBScanline();
+		} else {
+			RenderDMGScanline();
+		}
 
 		unsigned char* previewLine = &emulator.pausePreview[80 * cpu.memory.LY_lcdline / 4];
 		// every other pixel goes into the preview line, packed at 4 bpp
 		for (int i = 0; i < 160; i += 4) {
-			*(previewLine++) = ((line[i] & 0xF) << 4) | (line[i + 2] & 0xF);
+			*(previewLine++) = ((lineBuffer[i] & 0xF) << 4) | (lineBuffer[i + 2] & 0xF);
 		}
 	}
 }

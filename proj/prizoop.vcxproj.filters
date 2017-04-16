@@ -209,7 +209,10 @@
     <None Include="..\src\cpu_instructions.inl">
       <Filter>Source Files\core</Filter>
     </None>
-    <None Include="..\src\gpu_scanline.inl">
+    <None Include="..\src\cgb_scanline.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="..\src\dmg_scanline.inl">
       <Filter>Source Files\core</Filter>
     </None>
   </ItemGroup>

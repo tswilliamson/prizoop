@@ -4,11 +4,27 @@
 #include "display.h"
 #include "memory.h"
 #include "cpu.h"
+#include "cgb.h"
 #include "interrupts.h"
 
 #include "gpu.h"
 
 void(*gpuStep)(void) = NULL;
+
+unsigned int dmgPalette[12] = {
+	(unsigned int)COLOR_WHITE | (COLOR_WHITE << 16),
+	(unsigned int)COLOR_LIGHTCYAN | (COLOR_LIGHTCYAN << 16),
+	(unsigned int)COLOR_CYAN | (COLOR_CYAN << 16),
+	(unsigned int)COLOR_DARKCYAN | (COLOR_DARKCYAN << 16),
+	(unsigned int)COLOR_WHITE | (COLOR_WHITE << 16),
+	(unsigned int)COLOR_LIGHTCYAN | (COLOR_LIGHTCYAN << 16),
+	(unsigned int)COLOR_CYAN | (COLOR_CYAN << 16),
+	(unsigned int)COLOR_DARKCYAN | (COLOR_DARKCYAN << 16),
+	(unsigned int)COLOR_WHITE | (COLOR_WHITE << 16),
+	(unsigned int)COLOR_LIGHTCYAN | (COLOR_LIGHTCYAN << 16),
+	(unsigned int)COLOR_CYAN | (COLOR_CYAN << 16),
+	(unsigned int)COLOR_DARKCYAN | (COLOR_DARKCYAN << 16),
+};
 
 unsigned int gpuTimes[5] = {
 	204,		// HBLANK
@@ -97,6 +113,10 @@ void stepLCDOn_VRAM(void) {
 			cpu.memory.IF_intflag |= INTERRUPTS_LCDSTAT;
 		}
 
+		if (cgb.isCGB && cgb.hblankDmaActive) {
+			cgbHBlankDMA();
+		}
+
 		setMode(GPU_MODE_HBLANK, gpuTimes[GPU_MODE_HBLANK], stepLCDOn_HBLANK);
 	}
 }
@@ -123,7 +143,7 @@ void stepLCDOn_HBLANK(void) {
 			cpu.memory.IF_intflag |= INTERRUPTS_VBLANK;
 
 			// joypad interrupt here (though I don't think many games used it)
-			if (cpu.halted || cpu.stopped || cpu.memory.IE_intenable & INTERRUPTS_JOYPAD) {
+			if (!cgb.isCGB && (cpu.halted || cpu.stopped || cpu.memory.IE_intenable & INTERRUPTS_JOYPAD)) {
 				unsigned char jPad = readByteSpecial(0xFF00);
 				if ((jPad & 0x0F) != 0x0F) {
 					cpu.memory.IF_intflag |= INTERRUPTS_JOYPAD;
@@ -184,6 +204,11 @@ void stepLCDOn_VBLANK(void) {
 					cpu.memory.LY_lcdline = 0;
 					drawFramebuffer();
 
+					// send one hblank dma off if there is one
+					if (cgb.isCGB && cgb.hblankDmaActive) {
+						cgbHBlankDMA();
+					}
+
 					// set the LCD step off (and technically, HBLANK mode, which indicates allowing write to all display memory)
 					setMode(0, gpuTimes[GPU_MODE_VBLANK], stepLCDOff);
 				}
@@ -202,4 +227,8 @@ void stepLCDOn_VBLANK(void) {
 				break;
 		}
 	}
+}
+
+void SetupDisplayPalette(unsigned int pal[12]) {
+	memcpy(dmgPalette, pal, sizeof(dmgPalette));
 }

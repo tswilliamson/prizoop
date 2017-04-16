@@ -189,7 +189,7 @@ void fillSaveStatePath(unsigned short* pFile) {
 	char filepath[256];
 	strcpy(filepath, "\\\\fls0\\");
 	strcat(filepath, emulator.settings.selectedRom);
-	filepath[strlen(filepath) - 2] = 0;
+	filepath[strlen(filepath) - 2 - (cgb.isCGB ? 1 : 0)] = 0;
 	strcat(filepath, "prz");
 
 	Bfile_StrToName_ncpy(pFile, (const char*)filepath, strlen(filepath) + 2);
@@ -201,7 +201,7 @@ int getSaveStateSize(unsigned int& withRAMSize) {
 
 	// video and additional work ram based on cgb type
 	if (cgb.isCGB) {
-		spaceNeeded += 0x4000 + sizeof(cgbworkram_type) * 6;
+		spaceNeeded += sizeof(cgb_type) + 0x4000 + sizeof(cgbworkram_type) * 6;
 	} else {
 		spaceNeeded += 0x2000;
 	}
@@ -233,6 +233,15 @@ static void CompatSwaps() {
 	EndianSwap(cpu.gpuTick);
 	EndianSwap((unsigned int&)mbc.type);
 	EndianSwap((unsigned int&)mbc.ramType);
+
+	if (cgb.isCGB) {
+		EndianSwap((unsigned int&)cgb.selectedWRAM);
+		EndianSwap((unsigned int&)cgb.selectedVRAM);
+		EndianSwap(cgb.dmaSrc);
+		EndianSwap(cgb.dmaDest);
+		EndianSwap(cgb.dmaLeft);
+		EndianSwap(cgb.curPalTarget);
+	}
 }
 
 void emulator_type::saveState() {
@@ -269,6 +278,10 @@ void emulator_type::saveState() {
 	// write cpu and mbc state
 	Bfile_WriteFile_OS(hFile, &cpu, sizeof(cpu_type));
 	Bfile_WriteFile_OS(hFile, &mbc, sizeof(mbc_state));
+
+	if (cgb.isCGB) {
+		Bfile_WriteFile_OS(hFile, &cgb, sizeof(cgb_type));
+	}
 
 	// write various work rams
 	Bfile_WriteFile_OS(hFile, &wram_perm[0], sizeof(wram_perm));
@@ -336,11 +349,20 @@ bool emulator_type::loadState() {
 		return false;
 	}
 
+	// switch back to normal speed before continuing (cgb state loading expects it)
+	if (cgb.isCGB && cgb.isDouble) {
+		cgbSpeedSwitch();
+	}
+
 	// write cpu and mbc state (preserve mbc rom file handle)
 	int romFile = mbc.romFile;
 	Bfile_ReadFile_OS(hFile, &cpu, sizeof(cpu_type), -1);
 	Bfile_ReadFile_OS(hFile, &mbc, sizeof(mbc_state), -1);
 	mbc.romFile = romFile;
+
+	if (cgb.isCGB) {
+		Bfile_ReadFile_OS(hFile, &cgb, sizeof(cgb_type), -1);
+	}
 
 	CompatSwaps();
 
@@ -372,6 +394,11 @@ bool emulator_type::loadState() {
 
 	// memory bus controller has to invalidate some stuff, etc
 	mbcOnStateLoad();
+
+	// color gameboy needs to fix some stuff too
+	if (cgb.isCGB) {
+		cgbOnStateLoad();
+	}
 
 	mbcFileUpdate();
 

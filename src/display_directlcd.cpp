@@ -24,40 +24,30 @@ void(*renderScanline)(void) = 0;
 void(*renderBlankScanline)(void) = 0;
 void(*drawFramebuffer)(void) = 0;
 
-void renderScanline1x1(void);
+void renderScanline1x1_DMG(void);
+void renderScanline1x1_CGB(void);
 void renderBlankScanline1x1(void);
-void renderScanlineFit(void);
+void renderScanlineFit_DMG(void);
+void renderScanlineFit_CGB(void);
 void renderBlankScanlineFit(void);
 void drawFramebufferMain(void);
 
-unsigned int colorPalette[12] = {
-	(unsigned int)COLOR_WHITE | (COLOR_WHITE << 16),
-	(unsigned int)COLOR_LIGHTCYAN | (COLOR_LIGHTCYAN << 16),
-	(unsigned int)COLOR_CYAN | (COLOR_CYAN << 16),
-	(unsigned int)COLOR_DARKCYAN | (COLOR_DARKCYAN << 16),
-	(unsigned int)COLOR_WHITE | (COLOR_WHITE << 16),
-	(unsigned int)COLOR_LIGHTCYAN | (COLOR_LIGHTCYAN << 16),
-	(unsigned int)COLOR_CYAN | (COLOR_CYAN << 16),
-	(unsigned int)COLOR_DARKCYAN | (COLOR_DARKCYAN << 16),
-	(unsigned int)COLOR_WHITE | (COLOR_WHITE << 16),
-	(unsigned int)COLOR_LIGHTCYAN | (COLOR_LIGHTCYAN << 16),
-	(unsigned int)COLOR_CYAN | (COLOR_CYAN << 16),
-	(unsigned int)COLOR_DARKCYAN | (COLOR_DARKCYAN << 16),
-};
-
 const int* lineBuffer = (int*) 0xE5017000;
-#include "gpu_scanline.inl"
+
+#include "dmg_scanline.inl"
+#include "cgb_scanline.inl"
 
 void SetupDisplayDriver(bool withStretch, char withFrameskip) {
 	frameSkip = withFrameskip;
 
 	drawFramebuffer = drawFramebufferMain;
-	renderScanline = withStretch ? renderScanlineFit : renderScanline1x1;
-	renderBlankScanline = withStretch ? renderBlankScanlineFit : renderBlankScanline1x1;
-}
 
-void SetupDisplayPalette(unsigned int pal[12]) {
-	memcpy(colorPalette, pal, sizeof(colorPalette));
+	if (cgb.isCGB) {
+		renderScanline = withStretch ? renderScanlineFit_CGB : renderScanline1x1_CGB;
+	} else {
+		renderScanline = withStretch ? renderScanlineFit_DMG : renderScanline1x1_DMG;
+	}
+	renderBlankScanline = withStretch ? renderBlankScanlineFit : renderBlankScanline1x1;
 }
 
 // number of scanlines to buffer, 2, 4, 6, or 8. Only supports up to 4 when using DMA
@@ -136,7 +126,7 @@ inline void scanlineFlush1x1() {
 	curScan = 0;
 }
 
-void renderScanline1x1(void) {
+void renderScanline1x1_DMG(void) {
 	const int scanBufferSize = SCANLINE_BUFFER * 160 * 2;
 
 	if (skippingFrame)
@@ -144,10 +134,32 @@ void renderScanline1x1(void) {
 
 	TIME_SCOPE();
 
-	RenderScanline();
+	RenderDMGScanline();
 
 	void* scanlineStart = &scanGroup[160 * curScan + curScanBuffer*scanBufferSize];
-	ResolveScanline<unsigned short>(scanlineStart);
+	ResolveDMGScanline<unsigned short>(scanlineStart);
+
+	// blit every SCANLINE_BUFFER # lines
+	curScan++;
+	if (curScan == SCANLINE_BUFFER)
+	{
+		TIME_SCOPE_NAMED(Scanline_Flush);
+		scanlineFlush1x1();
+	}
+}
+
+void renderScanline1x1_CGB(void) {
+	const int scanBufferSize = SCANLINE_BUFFER * 160 * 2;
+
+	if (skippingFrame)
+		return;
+
+	TIME_SCOPE();
+
+	RenderCGBScanline();
+
+	void* scanlineStart = &scanGroup[160 * curScan + curScanBuffer*scanBufferSize];
+	ResolveCGBScanline<unsigned short>(scanlineStart);
 
 	// blit every SCANLINE_BUFFER # lines
 	curScan++;
@@ -168,8 +180,9 @@ void renderBlankScanline1x1(void) {
 	void* scanlineStart = &scanGroup[160 * curScan + curScanBuffer*scanBufferSize];
 
 	unsigned short* curScanLine = (unsigned short*) scanlineStart;
+	unsigned short blank = cgb.isCGB ? 0xFFFF : (unsigned short)dmgPalette[0];
 	for (int i = 0; i < 160; i++) {
-		*(curScanLine++) = colorPalette[0];
+		*(curScanLine++) = blank;
 	}
 
 	// blit every SCANLINE_BUFFER # lines
@@ -238,7 +251,7 @@ inline void scanlineFlushFit() {
 	curScan = 0;
 }
 
-void renderScanlineFit(void) {
+void renderScanlineFit_DMG(void) {
 	const int scanBufferSize = SCANLINE_BUFFER * 160 * 4 * 3 / 2;
 
 	if (skippingFrame)
@@ -251,7 +264,7 @@ void renderScanlineFit(void) {
 		6, 7, 9, 10,
 	};
 
-	RenderScanline();
+	RenderDMGScanline();
 
 	unsigned short* scanlineStart =
 #if !USEMEMCPY
@@ -269,9 +282,56 @@ void renderScanlineFit(void) {
 	return;
 #else
 	if ((curScan & 1) == 1) {
-		DoubleResolveScanline<unsigned int>(scanlineStart, scanlineStart + 320);
+		DoubleResolveDMGScanline<unsigned int>(scanlineStart, scanlineStart + 320);
 	} else {
-		ResolveScanline<unsigned int>(scanlineStart);
+		ResolveDMGScanline<unsigned int>(scanlineStart);
+	}
+#endif
+#endif
+
+	// blit every SCANLINE_BUFFER # lines
+	curScan++;
+	if (curScan == SCANLINE_BUFFER)
+	{
+		TIME_SCOPE_NAMED(Scanline_Flush);
+		scanlineFlushFit();
+	}
+}
+
+void renderScanlineFit_CGB(void) {
+	const int scanBufferSize = SCANLINE_BUFFER * 160 * 4 * 3 / 2;
+
+	if (skippingFrame)
+		return;
+
+	TIME_SCOPE();
+
+	const int scanBufferOffset[8] = {
+		0, 1, 3, 4,
+		6, 7, 9, 10,
+	};
+
+	RenderCGBScanline();
+
+	unsigned short* scanlineStart =
+#if !USEMEMCPY
+		&scanGroup[320 * scanBufferOffset[curScan] + curScanBuffer*scanBufferSize];
+#else
+		&scanGroup[320 * curScan + curScanBuffer*scanBufferSize];
+#endif
+
+#if !USEMEMCPY
+#if SCANLINE_BUFFER == 2
+	// special optimization doing 2 lines at a time, flush with each:
+	ResolveScanline<unsigned int>(scanlineStart);
+	curScan++;
+	scanlineFlushFit();
+	return;
+#else
+	if ((curScan & 1) == 1) {
+		DoubleResolveCGBScanline<unsigned int>(scanlineStart, scanlineStart + 320);
+	} else {
+		ResolveCGBScanline<unsigned int>(scanlineStart);
 	}
 #endif
 #endif
@@ -306,8 +366,9 @@ void renderBlankScanlineFit() {
 #endif
 
 	unsigned int* curScanInt = (unsigned int*)scanlineStart;
+	unsigned int blank = cgb.isCGB ? 0xFFFFFFFF : dmgPalette[0];
 	for (int i = 0; i < 160; i++) {
-		*(curScanInt++) = colorPalette[0] | (colorPalette[0] << 16);
+		*(curScanInt++) = blank;
 	}
 
 #if !USEMEMCPY
@@ -321,7 +382,7 @@ void renderBlankScanlineFit() {
 		scanlineStart = &scanGroup[320 * (scanBufferOffset[curScan] + 1) + curScanBuffer*scanBufferSize];
 		curScanInt = (unsigned int*)scanlineStart;
 		for (int i = 0; i < 160; i++) {
-			*(curScanInt++) = colorPalette[0] | (colorPalette[0] << 16);
+			*(curScanInt++) = blank;
 		}
 	}
 #endif
