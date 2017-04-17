@@ -8,6 +8,7 @@
 #include "interrupts.h"
 
 #include "gpu.h"
+#include "snd.h"
 
 void(*gpuStep)(void) = NULL;
 
@@ -45,6 +46,9 @@ void stepLCDOff(void) {
 	} else {
 		cpu.gpuTick = cpu.clocks + gpuTimes[GPU_MODE_VBLANK];
 
+		// good time for sound update
+		sndUpdate();
+
 		// good time to refresh the keys
 		extern void refresh();
 		refresh();
@@ -71,6 +75,11 @@ static inline void SetLY(unsigned int ly) {
 		}
 	} else {
 		cpu.memory.STAT_lcdstatus &= ~STAT_LYCSIGNAL;
+	}
+
+	// update sound system about 20 times per frame
+	if (ly % 20 == 0) {
+		sndUpdate();
 	}
 }
 

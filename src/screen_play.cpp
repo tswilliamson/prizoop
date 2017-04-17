@@ -4,6 +4,7 @@
 #include "rom.h"
 #include "memory.h"
 #include "cgb.h"
+#include "snd.h"
 #include "cgb_bootstrap.h"
 #include "ptune2_simple/Ptune2_direct.h"
 
@@ -48,6 +49,8 @@ void screen_play::initRom() {
 		printf("Failed!\n");
 	}
 
+	sndStartup();
+
 	strcpy(loadedROM, emulator.settings.selectedRom);
 }
 
@@ -69,6 +72,8 @@ void screen_play::play() {
 	mbcFileUpdate();
 
 	drawPlayBG();
+
+	bool soundInitted = sndInit();
 
 	// Apply settings
 	bool doOverclock = Ptune2_GetSetting() == PT2_DEFAULT;
@@ -128,6 +133,10 @@ void screen_play::play() {
 	// undo overclock
 	if (doOverclock) {
 		Ptune2_LoadSetting(PT2_DEFAULT);
+	}
+
+	if (soundInitted) {
+		sndCleanup();
 	}
 
 #if DEBUG

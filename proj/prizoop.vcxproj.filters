@@ -51,9 +51,6 @@
     <ClCompile Include="..\src\emulator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\timer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cgb_bootstrap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -121,6 +118,18 @@
       <Filter>ptune2_simple</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgb.cpp">
+      <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\snd_main.cpp">
+      <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\snd_winsim.cpp">
+      <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\snd_prizm.cpp">
+      <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\timer.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
   </ItemGroup>
@@ -195,6 +204,9 @@
       <Filter>ptune2_simple</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgb.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\snd.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
   </ItemGroup>

@@ -24,7 +24,21 @@ struct cpu_type {
 						unsigned char TAC_timerctl;			// timer control: bit2=enable, bit1-0=freq div
 						unsigned char _unused080E[7];
 						unsigned char IF_intflag;			// flag bit 4-0 set when interrupt triggered
-						unsigned char _sound103F[48];		// sound registers (Prizoop doesn't currently support sound)
+						unsigned char NR10_snd1sweep;		// sound channel 1 sweep, bits 6-4: sweep time, bit 3: pos/neg, bit 2-0: sweep amt
+						unsigned char NR11_snd1len;			// sound channel 1 length, bit 7-6: wave duty, bit 5-0 : length
+						unsigned char NR12_snd1env;			// sound channel 1 enveloper, bits 7-4: vol, bit 3: pos/neg, bit 2-0: delta amt
+						unsigned char NR13_snd1frqlo;		// sound channel 1 frequency (low 8 bits)
+						unsigned char NR14_snd1ctl;			// sound channel 1 ctrl, bits 7: restart, bit 6: use len, bits 2-0: high 3 freq bits
+						unsigned char _unused15;
+						unsigned char NR21_snd2len;			// sound channel 2 length (same bits as 1)
+						unsigned char NR22_snd2env;			// sound channel 2 enveloper (same bits as 1)
+						unsigned char NR23_snd2frqlo;		// sound channel 2 freq (lower 8 bits)
+						unsigned char NR24_snd2ctl;			// sound channel 2 ctrl (same bits as 1)
+						unsigned char _unused1A23[10];
+						unsigned char NR50_spkvol;			// speaker volume, bit 6-4 : left vol, bit 2-0: right vol
+						unsigned char NR51_chselect;		// sound to speaker channel select (bit = 4*speaker+channel active)
+						unsigned char NR52_soundmast;		// sound master enable (bit 7) and sound on flag (bits 3-0)
+						unsigned char _unused273F[25];		
 						unsigned char LCDC_ctl;				// lcd control, bits: 7=enable,6=wdwmap,5=wdwon,4=bgtiledata,3=bgmap,2=sprsize,1=spron,0=spr/bgon
 						unsigned char STAT_lcdstatus;		// lcd status bits 6-3:interrupt select, bit2=lyc flag, bit1-0=lcd state (hblank,vblank,oam,trx)
 						unsigned char SCY_bgscrolly;		// y value scroll for background

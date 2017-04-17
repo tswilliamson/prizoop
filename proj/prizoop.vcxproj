@@ -60,6 +60,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\src\snd_main.cpp" />
+    <ClCompile Include="..\src\snd_prizm.cpp" />
+    <ClCompile Include="..\src\snd_winsim.cpp" />
     <ClCompile Include="..\src\timer.cpp" />
     <ClCompile Include="..\src\zx7\compress.c" />
     <ClCompile Include="..\src\zx7\dzx7.c" />
@@ -90,6 +93,7 @@
     <ClInclude Include="..\src\platform.h" />
     <ClInclude Include="..\src\registers.h" />
     <ClInclude Include="..\src\rom.h" />
+    <ClInclude Include="..\src\snd.h" />
     <ClInclude Include="..\src\tmu.h" />
     <ClInclude Include="..\src\zx7\zx7.h" />
     <ClInclude Include="..\winsim\prizmsim.h" />
