@@ -8,8 +8,13 @@ struct sound_status {
 	int ch1EnvCounter;
 	int ch1SweepCounter;
 	int ch1Volume;
+
 	int ch2EnvCounter;
 	int ch2Volume;
+
+	int ch4EnvCounter;
+	int ch4Volume;
+	int ch4LFSR;
 };
 
 sound_status snd;
@@ -70,6 +75,19 @@ void sndFrame(unsigned char* buffer, int buffSize) {
 		snd.ch2EnvCounter = 0;										// reset envelope counter
 		snd.ch2Volume = ((cpu.memory.NR22_snd2env & 0xF0) >> 4);	// use initial volume
 	}
+	if (cpu.memory.NR34_snd3ctl & 0x80) {
+		// init channel 3
+		cpu.memory.NR52_soundmast |= 0x04;							// set not out of length
+		cpu.memory.NR34_snd3ctl &= 0x7F;							// disable init flag
+	}
+	if (cpu.memory.NR44_snd4ctl & 0x80) {
+		// init channel 4
+		cpu.memory.NR52_soundmast |= 0x08;							// set not out of length
+		cpu.memory.NR44_snd4ctl &= 0x7F;							// disable init flag
+		snd.ch4EnvCounter = 0;										// reset envelope counter
+		snd.ch4Volume = ((cpu.memory.NR42_snd4env & 0xF0) >> 4);	// use initial volume
+		snd.ch4LFSR = cpu.clocks >> 4;
+	}
 
 	// sound channel 1
 	int ch1UseLength = cpu.memory.NR14_snd1ctl & 0x40;
@@ -125,7 +143,7 @@ void sndFrame(unsigned char* buffer, int buffSize) {
 		// fill our sound buffer
 		int j = sndIter;
 		for (int i = 0; i < buffSize; j++, i++) {
-			buffer[i] += vol * (1-duty[((j * invFreqFactor) >> 10) % 8]);
+			buffer[i] += vol * duty[((j * invFreqFactor) >> 10) % 8];
 		}
 
 		// if length is in use, "decrement" it until sound is done
@@ -138,6 +156,95 @@ void sndFrame(unsigned char* buffer, int buffSize) {
 				cpu.memory.NR52_soundmast &= ~0x02;
 			}
 			cpu.memory.NR21_snd2len = (cpu.memory.NR21_snd2len & 0xC0) | length;
+		}
+	}
+
+	// sound channel 3 (wave RAM)
+	int ch3UseLength = cpu.memory.NR34_snd3ctl & 0x40;
+	if ((!ch3UseLength || (cpu.memory.NR52_soundmast & 0x04)) && (cpu.memory.NR30_snd3enable & 0x80)) {	// not using or not out of length yet, AND enabled
+		// determine rate to frequency conversion
+		int freq = 2048 - (cpu.memory.NR33_snd3frqlo | ((cpu.memory.NR34_snd3ctl & 0x07) << 8));
+		int invFreqFactor = 1024 * FREQ_FACTOR / freq;
+
+		// volume is master volume since we use a bitshift w/ pattern RAM
+		int vol = masterVol;
+		int volBit = (cpu.memory.NR32_snd3vol & 0x60) >> 5;
+
+		// kill volume if no speakers are used or 0 bit shift is selected
+		vol = ((cpu.memory.NR51_chselect & 0x04) || (cpu.memory.NR51_chselect & 0x40)) && volBit ? vol : 0;
+
+		// fill our sound buffer
+		int j = sndIter;
+		volBit += 1;			// 1/4th per channel
+		for (int i = 0; i < buffSize; j += 2, i += 2) {
+			int samp = ((j * invFreqFactor) >> 9) % 32;
+			buffer[i] += (vol * ((samp & 1) ? (cpu.memory.WAVE_ptr[samp/2] & 0x0F) : ((cpu.memory.WAVE_ptr[samp/2] & 0xF0) >> 4))) >> volBit;
+		}
+
+		// if length is in use, "decrement" it until sound is done
+		if (ch2UseLength) {
+			int length = cpu.memory.NR31_snd3len;
+			length++;
+			if (length == 256) {
+				// length finished!
+				length = 0;
+				cpu.memory.NR52_soundmast &= ~0x04;
+			}
+			cpu.memory.NR31_snd3len = length;
+		}
+	}
+
+	// sound channel 4
+	int ch4UseLength = cpu.memory.NR44_snd4ctl & 0x40;
+	if (!ch4UseLength || (cpu.memory.NR52_soundmast & 0x08)) {	// not using or not out of length yet
+		// determine rate to frequency conversion
+		const int divTable[8] = { 8, 16, 32, 48, 64, 80, 96, 112 };
+		int freq = divTable[cpu.memory.NR43_snd4cnt & 7] << ((cpu.memory.NR43_snd4cnt & 0xF0) >> 4);
+		int invFreqFactor = 512 * FREQ_FACTOR / freq;
+
+		// volume is mult of current channel volume and master volume
+		int vol = ((snd.ch4Volume & 0xF) * masterVol) >> 3;
+
+		// kill volume if no speakers are used
+		vol = ((cpu.memory.NR51_chselect & 0x08) || (cpu.memory.NR51_chselect & 0x80)) ? vol : 0;
+
+		// fill our sound buffer
+		int j = sndIter;
+		int last = ((j * invFreqFactor) >> 7);
+		if (cpu.memory.NR43_snd4cnt & 0x80) {
+			// 7 bit shift
+			for (int i = 0; i < buffSize; j++, i++) {
+				int cur = ((j * invFreqFactor) >> 7);
+				if (last != cur) {
+					int xor = ((snd.ch4LFSR & 0x02) >> 1) ^ (snd.ch4LFSR & 0x01);
+					snd.ch4LFSR = ((snd.ch4LFSR >> 1) && 0x7F7F) | (xor << 15) | (xor << 7);
+					last = cur;
+				}
+				buffer[i] += ((snd.ch4LFSR & 0xF) * vol) >> 4;
+			}
+		} else {
+			// 15 bit shift
+			for (int i = 0; i < buffSize; j++, i++) {
+				int cur = ((j * invFreqFactor) >> 7);
+				if (last != cur) {
+					int xor = ((snd.ch4LFSR & 0x02) >> 1) ^ (snd.ch4LFSR & 0x01);
+					snd.ch4LFSR = (snd.ch4LFSR >> 1) | (xor << 15);
+					last = cur;
+				}
+				buffer[i] += ((snd.ch4LFSR & 0xF) * vol) >> 4;
+			}
+		}
+
+		// if length is in use, "decrement" it until sound is done
+		if (ch4UseLength) {
+			int length = cpu.memory.NR41_snd4len;
+			length++;
+			if (length == 256) {
+				// length finished!
+				length = 0;
+				cpu.memory.NR52_soundmast &= ~0x08;
+			}
+			cpu.memory.NR41_snd4len = length;
 		}
 	}
 
@@ -200,6 +307,19 @@ void sndFrame(unsigned char* buffer, int buffSize) {
 				} else {
 					// decrease
 					if (snd.ch2Volume) snd.ch2Volume--;
+				}
+			}
+		}
+
+		int ch4Envelope = cpu.memory.NR42_snd4env & 0x07;
+		if (ch4Envelope) {
+			if (++snd.ch4EnvCounter >= ch4Envelope) {
+				snd.ch4EnvCounter = 0;
+				if (cpu.memory.NR42_snd4env & 0x08) {
+					if (snd.ch4Volume < 15) snd.ch4Volume++;
+				} else {
+					// decrease
+					if (snd.ch4Volume) snd.ch4Volume--;
 				}
 			}
 		}

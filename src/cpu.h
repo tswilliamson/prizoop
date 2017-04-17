@@ -34,11 +34,21 @@ struct cpu_type {
 						unsigned char NR22_snd2env;			// sound channel 2 enveloper (same bits as 1)
 						unsigned char NR23_snd2frqlo;		// sound channel 2 freq (lower 8 bits)
 						unsigned char NR24_snd2ctl;			// sound channel 2 ctrl (same bits as 1)
-						unsigned char _unused1A23[10];
+						unsigned char NR30_snd3enable;		// sound channel 3 enable (bit 7)
+						unsigned char NR31_snd3len;			// sound channel 3 length (all bits)
+						unsigned char NR32_snd3vol;			// sound channel 3 volume (bits 6-5)
+						unsigned char NR33_snd3frqlo;		// sound channel 3 freq (lower 8 bits)
+						unsigned char NR34_snd3ctl;			// sound channel 3 ctrl, bit 7: restart, bit 6: use len, bits 2-0 : high 3 freq bits
+						unsigned char _unused1F;
+						unsigned char NR41_snd4len;			// sound channel 4 (noise) length
+						unsigned char NR42_snd4env;			// sound channel 4 enveloper (same bits as 1)
+						unsigned char NR43_snd4cnt;			// sound channel 4 polynomial noise thingy (bits 7-4: bitshift, bit3: 16/8 counter, bit2-0: div ratio
+						unsigned char NR44_snd4ctl;			// sound channel 4 ctrl, bit 7: restart, bit 6: use len
 						unsigned char NR50_spkvol;			// speaker volume, bit 6-4 : left vol, bit 2-0: right vol
 						unsigned char NR51_chselect;		// sound to speaker channel select (bit = 4*speaker+channel active)
 						unsigned char NR52_soundmast;		// sound master enable (bit 7) and sound on flag (bits 3-0)
-						unsigned char _unused273F[25];		
+						unsigned char _unused272F[9];	
+						unsigned char WAVE_ptr[16];			// sound channel 3's wave pattern RAM
 						unsigned char LCDC_ctl;				// lcd control, bits: 7=enable,6=wdwmap,5=wdwon,4=bgtiledata,3=bgmap,2=sprsize,1=spron,0=spr/bgon
 						unsigned char STAT_lcdstatus;		// lcd status bits 6-3:interrupt select, bit2=lyc flag, bit1-0=lcd state (hblank,vblank,oam,trx)
 						unsigned char SCY_bgscrolly;		// y value scroll for background
