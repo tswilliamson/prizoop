@@ -47,7 +47,7 @@ void sndFrame(unsigned char* buffer, int buffSize) {
 
 	memset(buffer, 0, buffSize);
 
-	if (cpu.memory.NR52_soundmast & 0x80 == 0) {
+	if ((cpu.memory.NR52_soundmast & 0x80) == 0) {
 		cpu.memory.NR52_soundmast = 0;	// make sure channel on flags are reset
 		return;
 	}
@@ -203,7 +203,7 @@ void sndFrame(unsigned char* buffer, int buffSize) {
 		int invFreqFactor = 512 * FREQ_FACTOR / freq;
 
 		// volume is mult of current channel volume and master volume
-		int vol = ((snd.ch4Volume & 0xF) * masterVol) >> 3;
+		int vol = ((snd.ch4Volume & 0xF) * masterVol) >> 2;
 
 		// kill volume if no speakers are used
 		vol = ((cpu.memory.NR51_chselect & 0x08) || (cpu.memory.NR51_chselect & 0x80)) ? vol : 0;
@@ -216,8 +216,8 @@ void sndFrame(unsigned char* buffer, int buffSize) {
 			for (int i = 0; i < buffSize; j++, i++) {
 				int cur = ((j * invFreqFactor) >> 7);
 				if (last != cur) {
-					int xor = ((snd.ch4LFSR & 0x02) >> 1) ^ (snd.ch4LFSR & 0x01);
-					snd.ch4LFSR = ((snd.ch4LFSR >> 1) && 0x7F7F) | (xor << 15) | (xor << 7);
+					int xorBit = ((snd.ch4LFSR & 0x02) >> 1) ^ (snd.ch4LFSR & 0x01);
+					snd.ch4LFSR = ((snd.ch4LFSR >> 1) && 0x7F7F) | (xorBit << 15) | (xorBit << 7);
 					last = cur;
 				}
 				buffer[i] += ((snd.ch4LFSR & 0xF) * vol) >> 4;
@@ -227,8 +227,8 @@ void sndFrame(unsigned char* buffer, int buffSize) {
 			for (int i = 0; i < buffSize; j++, i++) {
 				int cur = ((j * invFreqFactor) >> 7);
 				if (last != cur) {
-					int xor = ((snd.ch4LFSR & 0x02) >> 1) ^ (snd.ch4LFSR & 0x01);
-					snd.ch4LFSR = (snd.ch4LFSR >> 1) | (xor << 15);
+					int xorBit = ((snd.ch4LFSR & 0x02) >> 1) ^ (snd.ch4LFSR & 0x01);
+					snd.ch4LFSR = (snd.ch4LFSR >> 1) | (xorBit << 15);
 					last = cur;
 				}
 				buffer[i] += ((snd.ch4LFSR & 0xF) * vol) >> 4;
@@ -249,7 +249,7 @@ void sndFrame(unsigned char* buffer, int buffSize) {
 	}
 
 	// sweep step every 2 frames
-	if (propIter & 1 == 0) {
+	if ((propIter & 1) == 0) {
 		int ch1Sweep = (cpu.memory.NR10_snd1sweep & 0x70) >> 4;
 		if (ch1Sweep) {
 			if (++snd.ch1SweepCounter >= ch1Sweep) {

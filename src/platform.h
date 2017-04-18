@@ -10,6 +10,7 @@
 #include "fxcg\registers.h"
 #include "fxcg\rtc.h"
 #include "fxcg\system.h"
+#include "fxcg\serial.h"
 
 #if TARGET_WINSIM
 #define ALIGN(x) alignas(x)

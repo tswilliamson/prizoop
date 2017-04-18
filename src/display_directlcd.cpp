@@ -13,7 +13,7 @@
 
 #include "display.h"
 
-#include "fxcg\display.h"
+#include "snd.h"
 
 static int frameSkip = 0;
 static int framecounter = 0;
@@ -438,7 +438,10 @@ void drawFramebufferMain(void) {
 	if (emulator.settings.clampSpeed) {
 		static int lastClampTicks = 0;
 		int curTicks = RTC_GetTicks();
-		while (curTicks == lastClampTicks || curTicks == lastClampTicks + 1) { curTicks = RTC_GetTicks(); }
+		while (curTicks == lastClampTicks || curTicks == lastClampTicks + 1) { 
+			condSoundUpdate();
+			curTicks = RTC_GetTicks();
+		}
 		lastClampTicks = curTicks;
 	}
 
@@ -461,6 +464,7 @@ void drawFramebufferMain(void) {
 	// this doesn't happen often.. scan lines sometimes get lost
 	while (curScan) {
 		renderScanline();
+		condSoundUpdate();
 	}
 
 	// draw frame buffer here

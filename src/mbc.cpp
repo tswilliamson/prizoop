@@ -165,12 +165,6 @@ mbc_bankcache* cacheBank(unsigned int index) {
 		}
 	}
 
-#if !TARGET_WINSIM
-	// flush DMA call since we are making a serious system call
-	extern void DmaWaitNext();
-	DmaWaitNext();
-#endif
-
 	// uncached! using minimum cache request index, read into slot from file and return
 	unsigned int instrOverlap = index == (mbc.numRomBanks * 4 - 1) ? 0 : 2;
 #if !TARGET_WINSIM

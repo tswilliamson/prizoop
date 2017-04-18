@@ -20,7 +20,7 @@ namespace emu_button {
 }
 
 // Emulation settings
-#define SETTINGS_VERSION 1
+#define SETTINGS_VERSION 2
 struct emulator_settings {
 	int version;
 	char selectedRom[32];
@@ -33,6 +33,8 @@ struct emulator_settings {
 	unsigned char bgColorPalette;
 	unsigned char obj1ColorPalette;
 	unsigned char obj2ColorPalette;
+	unsigned char sound;
+	unsigned char padding[2];
 };
 
 // color palette colors

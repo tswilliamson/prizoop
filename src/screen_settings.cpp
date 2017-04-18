@@ -22,6 +22,7 @@ static option_type options[] = {
 	{ "Sprite 1 Colors", 3, &emulator.settings.obj1ColorPalette, false },
 	{ "Sprite 2 Colors", 3, &emulator.settings.obj2ColorPalette, false },
 	{ "Map Keys", 1, NULL },
+	{ "Sound", 0, &emulator.settings.sound, false}
 };
 
 static inline int NumOptions() {
