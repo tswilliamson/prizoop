@@ -25,10 +25,7 @@ static int sndIter = 0;
 // sound properties iterator
 static int propIter = 0;
 
-const int LENGTH_STEP = (SOUND_RATE / 256);
-const int SWEEP_STEP = LENGTH_STEP * 2;
-const int ENV_STEP = SWEEP_STEP * 2;
-const int FREQ_FACTOR = 131072 * 8 / SOUND_RATE;
+const int FREQ_FACTOR = 131072 * 64 / SOUND_RATE;
 
 const int waveduty[4][8] = {
 	{ 1, 0, 0, 0, 0, 0, 0, 0 },
@@ -42,10 +39,10 @@ void sndStartup() {
 }
 
 // called from the platform sound system to fill a buffer based on current sound values
-void sndFrame(unsigned char* buffer, int buffSize) {
+void sndFrame(int* buffer, int buffSize) {
 	propIter = (propIter + 1) % 4;
 
-	memset(buffer, 0, buffSize);
+	memset(buffer, 0, buffSize * 4);
 
 	if ((cpu.memory.NR52_soundmast & 0x80) == 0) {
 		cpu.memory.NR52_soundmast = 0;	// make sure channel on flags are reset
@@ -53,11 +50,14 @@ void sndFrame(unsigned char* buffer, int buffSize) {
 	}
 
 	// master volume 0-14
-	const int masterVol = (cpu.memory.NR50_spkvol & 0x07) + ((cpu.memory.NR50_spkvol & 0x70) >> 4);
+	int masterVol = (cpu.memory.NR50_spkvol & 0x07) + ((cpu.memory.NR50_spkvol & 0x70) >> 4);
 
 	// skip if nothing will output
 	if (masterVol == 0 || cpu.memory.NR51_chselect == 0)
 		return;
+
+	// normalize master volume to 17 (makes output range to 1020)
+	masterVol = (masterVol * 17) / 14;
 
 	// check for channel inits
 	if (cpu.memory.NR14_snd1ctl & 0x80) {
@@ -97,10 +97,10 @@ void sndFrame(unsigned char* buffer, int buffSize) {
 		
 		// determine rate to frequency conversion
 		int freq = (cpu.memory.NR13_snd1frqlo | ((cpu.memory.NR14_snd1ctl & 0x07) << 8));
-		int invFreqFactor = 1024 * FREQ_FACTOR / (2048 - freq);
+		int invFreqFactor = 128 * FREQ_FACTOR / (2048 - freq);
 
-		// volume is multiple of channel and master volume (divided by 4 to allow 4 channels)
-		int vol = (snd.ch1Volume * masterVol) >> 2;
+		// volume is multiple of channel and master volume
+		int vol = snd.ch1Volume * masterVol;
 
 		// kill volume if no speakers are used
 		vol = ((cpu.memory.NR51_chselect & 0x01) || (cpu.memory.NR51_chselect & 0x10)) ? vol : 0;
@@ -132,10 +132,10 @@ void sndFrame(unsigned char* buffer, int buffSize) {
 
 		// determine rate to frequency conversion
 		int freq = 2048 - (cpu.memory.NR23_snd2frqlo | ((cpu.memory.NR24_snd2ctl & 0x07) << 8));
-		int invFreqFactor = 1024 * FREQ_FACTOR / freq;
+		int invFreqFactor = 128 * FREQ_FACTOR / freq;
 
 		// volume is mult of current channel volume and master volume
-		int vol = ((snd.ch2Volume & 0xF) * masterVol) >> 2;
+		int vol = (snd.ch2Volume & 0xF) * masterVol;
 
 		// kill volume if no speakers are used
 		vol = ((cpu.memory.NR51_chselect & 0x02) || (cpu.memory.NR51_chselect & 0x20)) ? vol : 0;
@@ -164,18 +164,17 @@ void sndFrame(unsigned char* buffer, int buffSize) {
 	if ((!ch3UseLength || (cpu.memory.NR52_soundmast & 0x04)) && (cpu.memory.NR30_snd3enable & 0x80)) {	// not using or not out of length yet, AND enabled
 		// determine rate to frequency conversion
 		int freq = 2048 - (cpu.memory.NR33_snd3frqlo | ((cpu.memory.NR34_snd3ctl & 0x07) << 8));
-		int invFreqFactor = 1024 * FREQ_FACTOR / freq;
+		int invFreqFactor = 128 * FREQ_FACTOR / freq;
 
 		// volume is master volume since we use a bitshift w/ pattern RAM
 		int vol = masterVol;
 		int volBit = (cpu.memory.NR32_snd3vol & 0x60) >> 5;
 
 		// kill volume if no speakers are used or 0 bit shift is selected
-		vol = ((cpu.memory.NR51_chselect & 0x04) || (cpu.memory.NR51_chselect & 0x40)) && volBit ? vol : 0;
+		vol = ((cpu.memory.NR51_chselect & 0x04) || (cpu.memory.NR51_chselect & 0x40)) && volBit ? vol * 2 : 0;
 
 		// fill our sound buffer
 		int j = sndIter;
-		volBit += 1;			// 1/4th per channel
 		for (int i = 0; i < buffSize; j += 2, i += 2) {
 			int samp = ((j * invFreqFactor) >> 9) % 32;
 			buffer[i] += (vol * ((samp & 1) ? (cpu.memory.WAVE_ptr[samp/2] & 0x0F) : ((cpu.memory.WAVE_ptr[samp/2] & 0xF0) >> 4))) >> volBit;
@@ -200,10 +199,10 @@ void sndFrame(unsigned char* buffer, int buffSize) {
 		// determine rate to frequency conversion
 		const int divTable[8] = { 8, 16, 32, 48, 64, 80, 96, 112 };
 		int freq = divTable[cpu.memory.NR43_snd4cnt & 7] << ((cpu.memory.NR43_snd4cnt & 0xF0) >> 4);
-		int invFreqFactor = 512 * FREQ_FACTOR / freq;
+		int invFreqFactor = 128 * FREQ_FACTOR / freq;
 
 		// volume is mult of current channel volume and master volume
-		int vol = ((snd.ch4Volume & 0xF) * masterVol) >> 2;
+		int vol = (snd.ch4Volume & 0xF) * masterVol;
 
 		// kill volume if no speakers are used
 		vol = ((cpu.memory.NR51_chselect & 0x08) || (cpu.memory.NR51_chselect & 0x80)) ? vol : 0;

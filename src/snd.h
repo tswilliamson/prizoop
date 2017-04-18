@@ -2,7 +2,7 @@
 
 // sound baud rate
 #if TARGET_PRIZM
-#define SOUND_RATE 7168 * 2
+#define SOUND_RATE (7168 * 4)
 #else
 #define SOUND_RATE 8192
 #endif
@@ -19,7 +19,7 @@ void sndCleanup();
 // called on rom start up to initialize sound registers
 void sndStartup();
 
-// called from the platform sound system to fill a 1/256 second buffer based on current sound values
-void sndFrame(unsigned char* buffer, int length);
+// called from the platform sound system to fill a 1/256 second buffer (0-1020) based on current sound values
+void sndFrame(int* buffer, int length);
 
 #define condSoundUpdate() if (emulator.settings.sound) sndUpdate()

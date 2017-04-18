@@ -145,7 +145,7 @@ void cgbDMAOp(unsigned char value) {
 
 		// do first copy if during hblank
 		// and some weird behavior.. when LCD is turned off, it'll immediately do at least one:
-		if (cpu.memory.STAT_lcdstatus & 3 == GPU_MODE_HBLANK || !(cpu.memory.LCDC_ctl & 0x80)) {
+		if ((cpu.memory.STAT_lcdstatus & 3) == GPU_MODE_HBLANK || !(cpu.memory.LCDC_ctl & 0x80)) {
 			cgbHBlankDMA();
 		}
 	} else if (cgb.hblankDmaActive) {

@@ -4,10 +4,7 @@
 #include "platform.h"
 #include "snd.h"
 #include "ptune2_simple\Ptune2_direct.h"
-
-#define BUFF_SIZE (SOUND_RATE / 256)
-static unsigned char curSoundBuffer[BUFF_SIZE];
-static int bytesLeft = 0;
+#include "keys.h"
 
 struct st_scif0 {                                      /* struct SCIF0 */
        union {                                         /* SCSMR        */
@@ -95,7 +92,12 @@ struct st_scif0 {                                      /* struct SCIF0 */
 
 #define SCIF2 (*(volatile struct st_scif0 *)0xA4410000)/* SCIF0 Address */
 
-static int freqSpeed = 4;
+#define BUFF_SIZE (SOUND_RATE / 256)
+
+static int curSoundBuffer[BUFF_SIZE];
+static int sampleNum = 0;
+
+
 // initializes the platform sound system, called when emulation begins. Returns false on error
 bool sndInit() {
 	unsigned char settings[5] = { 0,9,0,0,0 };//115200,1xstop bits
@@ -104,24 +106,27 @@ bool sndInit() {
 		return false;
 	}
 
-	SCIF2.SCSMR.BIT.CKS = 1;	//1/4
+	SCIF2.SCSMR.BIT.CKS = 0;	//1/1
 	SCIF2.SCSMR.BIT.CA = 1;		//Synchronous mode is 16 times faster
-	SCIF2.SCBRR = 4;			//!override speed to 1836000 bps (for 9860)
 
-	bytesLeft = 0;
+	sampleNum = 0;
 
-	freqSpeed = 8;
-	switch (Ptune2_GetSetting()) {
-		case PT2_DEFAULT:
-		case PT2_NOMEMWAIT:
-			freqSpeed = 4;
-			break;
-		case PT2_HALFINC:
-			freqSpeed = 6;
-			break;
-		case PT2_DOUBLE:
-			freqSpeed = 8;
-			break;
+	// tune bitrate based on clock speed
+	if (getDeviceType() == DT_CG50) {
+		SCIF2.SCBRR = 16;
+	} else {
+		switch (Ptune2_GetSetting()) {
+			case PT2_DEFAULT:
+			case PT2_NOMEMWAIT:
+				SCIF2.SCBRR = 8;
+				break;
+			case PT2_HALFINC:
+				SCIF2.SCBRR = 12;
+				break;
+			case PT2_DOUBLE:
+				SCIF2.SCBRR = 16;
+				break;
+		}
 	}
 
 	return true;
@@ -130,16 +135,8 @@ bool sndInit() {
 static void feed() {
 	TIME_SCOPE();
 
-	unsigned char last = curSoundBuffer[BUFF_SIZE - 1];
 	sndFrame(curSoundBuffer, BUFF_SIZE);
-
-	// smooth result to avoid jerkies/clicks
-	for (int i = BUFF_SIZE - 1; i > 0; i--) {
-		curSoundBuffer[i] = (curSoundBuffer[i - 1] + curSoundBuffer[i]) / 2;
-	}
-	curSoundBuffer[0] = (curSoundBuffer[0] + last) / 2;
-
-	bytesLeft = BUFF_SIZE;
+	sampleNum = 0;
 }
 
 // platform update from emulator for sound system, called 8 times per frame (should be enough!)
@@ -148,40 +145,45 @@ void sndUpdate() {
 
 	{
 		static int curVoltage = 0;
-		static int curSample = 0;
-		static int freqSample = 0;
-		int timeConstantShift = 8;	// 1/128th bits per time constant for good volume
-		int i = BUFF_SIZE - bytesLeft;
+		static int curSample = 2048;
+		const int timeConstantShift = 8;	// 1/128th bits per time constant for good volume
+
 		int toAdd = Serial_PollTX();
 		if (toAdd == 256) curVoltage = 0;	// reset voltage because we missed too many samples
 		while (toAdd > 64)
 		{
 			unsigned char writeBuffer[64];
-			for (int iter = 0; iter < 64; iter++) {
-				if (freqSample % freqSpeed == 0) {
-					if (!bytesLeft) {
-						feed();
-						i = 0;
-					}
-					curSample = ((int)curSoundBuffer[i]) * 16 + 2048;
-					i++;
-					bytesLeft--;
+			for (int iter = 0; iter < 64; iter += 2) {
+				if (sampleNum == BUFF_SIZE) {
+					feed();
+					sampleNum = 0;
 				}
-
+				int lastSample = curSample;
+				curSample = curSoundBuffer[sampleNum] * 2 + 2048;
+				sampleNum++;
+				
 				int byte = 0;
+				int sample = (curSample + lastSample) >> 1;
+				for (int b = 0; b < 8; b++) {
+					if (curVoltage < sample) {
+						curVoltage += (8192 >> timeConstantShift);
+						byte |= (1 << b);
+					} else {
+						curVoltage -= (3072 >> timeConstantShift);
+					}
+				}
+				writeBuffer[iter] = byte;
+
+				byte = 0;
 				for (int b = 0; b < 8; b++) {
 					if (curVoltage < curSample) {
 						curVoltage += (8192 >> timeConstantShift);
 						byte |= (1 << b);
-					}
-					else {
-						curVoltage -= (curVoltage >> timeConstantShift);
+					} else {
+						curVoltage -= (3072 >> timeConstantShift);
 					}
 				}
-
-				writeBuffer[iter] = byte;
-
-				freqSample++;
+				writeBuffer[iter+1] = byte;
 			}
 
 			Serial_Write(writeBuffer, 64);
