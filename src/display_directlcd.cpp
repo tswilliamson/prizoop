@@ -15,8 +15,9 @@
 
 #include "snd.h"
 
+int framecounter = 0;
+
 static int frameSkip = 0;
-static int framecounter = 0;
 static bool skippingFrame = false;			// whether the current frame is being skipped, determined by frameSkip value
 
 // default render callbacks to 0

@@ -71,3 +71,5 @@ inline Type ToScanType(unsigned int color) {
 void hblank(void);
 
 void enablePausePreview();
+
+extern int framecounter;

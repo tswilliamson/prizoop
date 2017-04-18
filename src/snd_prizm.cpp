@@ -96,7 +96,35 @@ struct st_scif0 {                                      /* struct SCIF0 */
 
 static int curSoundBuffer[BUFF_SIZE];
 static int sampleNum = 0;
+static int volDivisor = 384;		// default volume
 
+struct BTCEntry {
+	unsigned char bits;
+	int voltageOffset;
+};
+
+static BTCEntry* btcTable = NULL;
+
+void computeBTCTable(int divisor) {
+	for (int i = 0; i < 1024; i++) {
+		int curVoltage = 2048;
+		int curSample = i * 4;
+
+		unsigned byte = 0;
+		for (int b = 0; b < 8; b++) {
+			if (curVoltage < curSample) {
+				curVoltage += (8192 / divisor);
+				byte |= (1 << b);
+			}
+			else {
+				curVoltage -= (3072 / divisor);
+			}
+		}
+
+		btcTable[i].bits = byte;
+		btcTable[i].voltageOffset = curVoltage - 2048;
+	}
+}
 
 // initializes the platform sound system, called when emulation begins. Returns false on error
 bool sndInit() {
@@ -129,6 +157,9 @@ bool sndInit() {
 		}
 	}
 
+	btcTable = (BTCEntry*) malloc(sizeof(BTCEntry) * 1024);
+	computeBTCTable(volDivisor);
+
 	return true;
 }
 
@@ -141,17 +172,20 @@ static void feed() {
 
 // platform update from emulator for sound system, called 8 times per frame (should be enough!)
 void sndUpdate() {
-	TIME_SCOPE();
-
 	{
-		static int curVoltage = 0;
-		static int curSample = 2048;
-		const int timeConstantShift = 8;	// 1/128th bits per time constant for good volume
-
 		int toAdd = Serial_PollTX();
-		if (toAdd == 256) curVoltage = 0;	// reset voltage because we missed too many samples
 		while (toAdd > 64)
 		{
+			TIME_SCOPE();
+
+			static int curVoltage = 0;
+			static int curSample = 2048;
+
+			if (toAdd == 256) {
+				// reset voltage because we missed too many samples
+				curVoltage = max(curSample - 2047, 0);
+			}
+
 			unsigned char writeBuffer[64];
 			for (int iter = 0; iter < 64; iter += 2) {
 				if (sampleNum == BUFF_SIZE) {
@@ -161,29 +195,20 @@ void sndUpdate() {
 				int lastSample = curSample;
 				curSample = curSoundBuffer[sampleNum] * 2 + 2048;
 				sampleNum++;
-				
-				int byte = 0;
-				int sample = (curSample + lastSample) >> 1;
-				for (int b = 0; b < 8; b++) {
-					if (curVoltage < sample) {
-						curVoltage += (8192 >> timeConstantShift);
-						byte |= (1 << b);
-					} else {
-						curVoltage -= (3072 >> timeConstantShift);
-					}
-				}
-				writeBuffer[iter] = byte;
 
-				byte = 0;
-				for (int b = 0; b < 8; b++) {
-					if (curVoltage < curSample) {
-						curVoltage += (8192 >> timeConstantShift);
-						byte |= (1 << b);
-					} else {
-						curVoltage -= (3072 >> timeConstantShift);
-					}
+				{
+					int tableEntry = ((((curSample + lastSample) >> 1) + 2048 - curVoltage) >> 2) & 0x03FF;
+					const BTCEntry& e = btcTable[tableEntry];
+					curVoltage += e.voltageOffset;
+					writeBuffer[iter] = e.bits;
 				}
-				writeBuffer[iter+1] = byte;
+
+				{
+					int tableEntry = ((curSample + 2048 - curVoltage) >> 2) & 0x03FF;
+					const BTCEntry& e = btcTable[tableEntry];
+					curVoltage += e.voltageOffset;
+					writeBuffer[iter + 1] = e.bits;
+				}
 			}
 
 			Serial_Write(writeBuffer, 64);
@@ -195,6 +220,26 @@ void sndUpdate() {
 // cleans up the platform sound system, called when emulation ends
 void sndCleanup() {
 	Serial_Close(1);
+
+	if (btcTable) {
+		free((void*)btcTable);
+		btcTable = NULL;
+	}
+}
+
+
+void sndVolumeUp() {
+	if (volDivisor < 1024) {
+		volDivisor <<= 1;
+		computeBTCTable(volDivisor);
+	}
+}
+
+void sndVolumeDown() {
+	if (volDivisor > 16) {
+		volDivisor >>= 1;
+		computeBTCTable(volDivisor);
+	}
 }
 
 #endif

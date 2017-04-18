@@ -2,6 +2,7 @@
 #include "emulator.h"
 #include "debug.h"
 #include "gpu.h"
+#include "snd.h"
 
 struct keys_type keys;
 
@@ -47,6 +48,12 @@ void refresh() {
 	if (keyDown_fast(48)) {
 		// this will set keys.exit once a full frame renders
 		enablePausePreview();
+	}
+
+	// sound volume controls
+	if (emulator.settings.sound && framecounter % 8 == 0) {
+		if (keyDown_fast(42)) sndVolumeUp();
+		if (keyDown_fast(32)) sndVolumeDown();
 	}
 
 #if DEBUG

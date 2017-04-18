@@ -9,9 +9,10 @@
 #include "memory.h"
 #include "keys.h"
 
+int framecounter = 0;
+
 bool skippingFrame = false;
 bool stretch = false;
-int framecounter = 0;
 int frameSkip = 0;
 
 static int lineBuffer[176] ALIGN(32) = { 0 };

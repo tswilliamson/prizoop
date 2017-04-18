@@ -168,14 +168,15 @@ void sndFrame(int* buffer, int buffSize) {
 
 		// volume is master volume since we use a bitshift w/ pattern RAM
 		int vol = masterVol;
+
 		int volBit = (cpu.memory.NR32_snd3vol & 0x60) >> 5;
 
 		// kill volume if no speakers are used or 0 bit shift is selected
-		vol = ((cpu.memory.NR51_chselect & 0x04) || (cpu.memory.NR51_chselect & 0x40)) && volBit ? vol * 2 : 0;
+		vol = ((cpu.memory.NR51_chselect & 0x04) || (cpu.memory.NR51_chselect & 0x40)) && volBit ? vol : 0;
 
 		// fill our sound buffer
 		int j = sndIter;
-		for (int i = 0; i < buffSize; j += 2, i += 2) {
+		for (int i = 0; i < buffSize; j++, i++) {
 			int samp = ((j * invFreqFactor) >> 9) % 32;
 			buffer[i] += (vol * ((samp & 1) ? (cpu.memory.WAVE_ptr[samp/2] & 0x0F) : ((cpu.memory.WAVE_ptr[samp/2] & 0xF0) >> 4))) >> volBit;
 		}
@@ -202,7 +203,8 @@ void sndFrame(int* buffer, int buffSize) {
 		int invFreqFactor = 128 * FREQ_FACTOR / freq;
 
 		// volume is mult of current channel volume and master volume
-		int vol = (snd.ch4Volume & 0xF) * masterVol;
+		// noise volume is halved because prizm output struggles with it
+		int vol = (snd.ch4Volume & 0xF) * masterVol / 2;
 
 		// kill volume if no speakers are used
 		vol = ((cpu.memory.NR51_chselect & 0x08) || (cpu.memory.NR51_chselect & 0x80)) ? vol : 0;

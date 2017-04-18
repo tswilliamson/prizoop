@@ -108,4 +108,10 @@ void sndCleanup() {
 	waveOutClose(device);
 }
 
+// no volume controls in windows for now
+void sndVolumeUp() {
+}
+void sndVolumeDown() {
+}
+
 #endif

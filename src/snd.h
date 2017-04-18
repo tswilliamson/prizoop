@@ -16,6 +16,10 @@ void sndUpdate();
 // cleans up the platform sound system, called when emulation ends
 void sndCleanup();
 
+// volume controls (called per 10 frames or so if button pressed, if platform implemented)
+void sndVolumeUp();
+void sndVolumeDown();
+
 // called on rom start up to initialize sound registers
 void sndStartup();
 
