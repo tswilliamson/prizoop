@@ -95,9 +95,7 @@ struct st_scif0 {                                      /* struct SCIF0 */
 
 #define SCIF2 (*(volatile struct st_scif0 *)0xA4410000)/* SCIF0 Address */
 
-#define OLD_WAY 0
-
-static int freqSpeed = 2;
+static int freqSpeed = 4;
 // initializes the platform sound system, called when emulation begins. Returns false on error
 bool sndInit() {
 	unsigned char settings[5] = { 0,9,0,0,0 };//115200,1xstop bits
@@ -106,138 +104,90 @@ bool sndInit() {
 		return false;
 	}
 
-	SCIF2.SCSMR.BIT.CKS = 2;	//1/16
+	SCIF2.SCSMR.BIT.CKS = 1;	//1/4
 	SCIF2.SCSMR.BIT.CA = 1;		//Synchronous mode is 16 times faster
-	SCIF2.SCBRR = 0;			//!override speed to 1836000 bps (for 9860)
+	SCIF2.SCBRR = 4;			//!override speed to 1836000 bps (for 9860)
 
 	bytesLeft = 0;
 
+	freqSpeed = 8;
 	switch (Ptune2_GetSetting()) {
 		case PT2_DEFAULT:
 		case PT2_NOMEMWAIT:
-			freqSpeed = 2;
+			freqSpeed = 4;
 			break;
 		case PT2_HALFINC:
-			freqSpeed = 3;
+			freqSpeed = 6;
 			break;
 		case PT2_DOUBLE:
-			freqSpeed = 4;
+			freqSpeed = 8;
 			break;
 	}
 
 	return true;
 }
 
-//Conversion tables
-#define X 0x10
-#define _ 0x00
+static void feed() {
+	TIME_SCOPE();
 
-static const unsigned char LowTable[4 * 4] =
-{
-	_,_,_,_,//0
-	X,_,_,_,//1
-	X,_,X,_,//2
-	_,X,X,X,//3
-};
+	unsigned char last = curSoundBuffer[BUFF_SIZE - 1];
+	sndFrame(curSoundBuffer, BUFF_SIZE);
 
-										   //0    1    2    3    4    5    6    7
-static const unsigned char HighTable[8] = { 0x00,0x01,0x44,0x45,0x65,0x67,0xE7,0xEF };
+	// smooth result to avoid jerkies/clicks
+	for (int i = BUFF_SIZE - 1; i > 0; i--) {
+		curSoundBuffer[i] = (curSoundBuffer[i - 1] + curSoundBuffer[i]) / 2;
+	}
+	curSoundBuffer[0] = (curSoundBuffer[0] + last) / 2;
 
-static int giTableIndex = 0;
-static int giSubSample = 0;
-static int giFromHighTab = 0;
-
-static const int ditherTable[8] = {
-	0,
-	-4,
-	3,
-	-1,
-	2,
-	-3,
-	1,
-	2,
-};
+	bytesLeft = BUFF_SIZE;
+}
 
 // platform update from emulator for sound system, called 8 times per frame (should be enough!)
 void sndUpdate() {
 	TIME_SCOPE();
 
-	if (!bytesLeft) {
-		unsigned char last = curSoundBuffer[BUFF_SIZE - 1];
-		sndFrame(curSoundBuffer, BUFF_SIZE);
-
-		// smooth result to avoid jerkies/clicks
-		for (int i = BUFF_SIZE-1; i > 0; i--) {
-			curSoundBuffer[i] = (curSoundBuffer[i - 1] + curSoundBuffer[i]) / 2;
-		}
-		curSoundBuffer[0] = (curSoundBuffer[0] + last) / 2;
-
-		bytesLeft = BUFF_SIZE;
-	}
-
-#if OLD_WAY
-	// MPoupe with added dither (to reduce quantization noise) and middle range usage (more predictable voltage curve)
-	{
-		int i = BUFF_SIZE - bytesLeft;
-		int toAdd = 16 - (SCIF2.SCFDR.WORD >> 8);
-		while (toAdd && bytesLeft)
-		{
-			int iTmp;
-			if (giTableIndex >= freqSpeed)
-			{
-				// audio dither
-				giSubSample = (((int) curSoundBuffer[i] + curSoundBuffer[i] * ditherTable[i%8] / 64) + 128) >> 4;
-
-				i++;
-				bytesLeft--;
-				giFromHighTab = HighTable[giSubSample >> 2];
-				giSubSample = (giSubSample & 3) << 2;
-				giTableIndex = 0;
-			}
-
-			
-			iTmp = LowTable[giSubSample | giTableIndex] | giFromHighTab;
-			SCIF2.SCFTDR = (unsigned char)iTmp;
-
-			giTableIndex++;
-			toAdd--;
-		};
-	}
-#else
 	{
 		static int curVoltage = 0;
 		static int curSample = 0;
 		static int freqSample = 0;
-		const int timeConstantShift = 7;	// 1/128th bits per time constant for good volume
+		int timeConstantShift = 8;	// 1/128th bits per time constant for good volume
 		int i = BUFF_SIZE - bytesLeft;
-		int toAdd = 16 - (SCIF2.SCFDR.WORD >> 8);
-		if (toAdd == 16) curVoltage = 0;	// reset voltage because we missed too many samples
-		while (toAdd && bytesLeft)
+		int toAdd = Serial_PollTX();
+		if (toAdd == 256) curVoltage = 0;	// reset voltage because we missed too many samples
+		while (toAdd > 64)
 		{
-			if (freqSample % freqSpeed == 0) {
-				curSample = ((int)curSoundBuffer[i]) + 128;
-				i++;
-				bytesLeft--;
-			}
-
-			int byte = 0;
-			int ditheredSample = curSample + ditherTable[freqSample % 8] * 16;
-			for (int b = 0; b < 8; b++) {
-				if (curVoltage < curSample) {
-					curVoltage += (512 >> timeConstantShift);
-					byte |= (1 << b);
-				} else {
-					curVoltage -= (curVoltage >> timeConstantShift);
+			unsigned char writeBuffer[64];
+			for (int iter = 0; iter < 64; iter++) {
+				if (freqSample % freqSpeed == 0) {
+					if (!bytesLeft) {
+						feed();
+						i = 0;
+					}
+					curSample = ((int)curSoundBuffer[i]) * 16 + 2048;
+					i++;
+					bytesLeft--;
 				}
+
+				int byte = 0;
+				for (int b = 0; b < 8; b++) {
+					if (curVoltage < curSample) {
+						curVoltage += (8192 >> timeConstantShift);
+						byte |= (1 << b);
+					}
+					else {
+						curVoltage -= (curVoltage >> timeConstantShift);
+					}
+				}
+
+				writeBuffer[iter] = byte;
+
+				freqSample++;
 			}
 
-			SCIF2.SCFTDR = (unsigned char)byte;
-
-			toAdd--;
-			freqSample++;
+			Serial_Write(writeBuffer, 64);
+			toAdd -= 64;
 		}
 	}
-#endif
 }
 
 // cleans up the platform sound system, called when emulation ends

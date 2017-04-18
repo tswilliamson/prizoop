@@ -2,7 +2,7 @@
 
 // sound baud rate
 #if TARGET_PRIZM
-#define SOUND_RATE 7168
+#define SOUND_RATE 7168 * 2
 #else
 #define SOUND_RATE 8192
 #endif
