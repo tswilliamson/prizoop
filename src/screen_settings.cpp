@@ -10,19 +10,20 @@ struct option_type {
 	int type;		// 0 = toggle, 1 = keys, 2 = frameskip, 3 = color
 	void* addr;
 	bool disabled;
+	bool noCGB;
 };
 
 static option_type options[] = {
-	{ "Overclock", 0, &emulator.settings.overclock, false },
-	{ "Fit To Screen", 0, &emulator.settings.scaleToScreen, false },
-	{ "CGB Colors", 0, &emulator.settings.useCGBColors, false },
-	{ "Clamp Speed", 0, &emulator.settings.clampSpeed, false },
-	{ "Frameskip", 2, &emulator.settings.frameSkip, false },
-	{ "BG Colors", 3, &emulator.settings.bgColorPalette, false },
-	{ "Sprite 1 Colors", 3, &emulator.settings.obj1ColorPalette, false },
-	{ "Sprite 2 Colors", 3, &emulator.settings.obj2ColorPalette, false },
-	{ "Map Keys", 1, NULL },
-	{ "Sound", 0, &emulator.settings.sound, false}
+	{ "Overclock", 0, &emulator.settings.overclock, false, false },
+	{ "Fit To Screen", 0, &emulator.settings.scaleToScreen, false, false },
+	{ "CGB Colors", 0, &emulator.settings.useCGBColors, false, false },
+	{ "Clamp Speed", 0, &emulator.settings.clampSpeed, false, false },
+	{ "Frameskip", 2, &emulator.settings.frameSkip, false, false },
+	{ "BG Colors", 3, &emulator.settings.bgColorPalette, false, false },
+	{ "Sprite 1 Colors", 3, &emulator.settings.obj1ColorPalette, false, false },
+	{ "Sprite 2 Colors", 3, &emulator.settings.obj2ColorPalette, false, false },
+	{ "Map Keys", 1, NULL, false, false },
+	{ "Sound", 0, &emulator.settings.sound, false, false },
 };
 
 static inline int NumOptions() {
@@ -38,9 +39,26 @@ void screen_settings::select() {
 	SaveVRAM_1();
 	DrawPausePreview();
 
+	for (int i = 0; i < NumOptions(); i++) {
+		options[i].disabled = false;
+		options[i].noCGB = false;
+	}
+
 	// disable overclock on non CG-20 devices and when already overclocked (such as when using Ptune2)
 	int currentPtuneSetting = Ptune2_GetSetting();
 	options[0].disabled = getDeviceType() != DT_CG20 || currentPtuneSetting != PT2_DEFAULT;
+
+	const char* rom = emulator.settings.selectedRom;
+	if (rom[0] && (rom[strlen(rom) - 1] == 'c' || rom[strlen(rom) - 1] == 'C')) {
+		options[2].noCGB = true;
+		options[5].noCGB = true;
+		options[6].noCGB = true;
+		options[7].noCGB = true;
+	}
+
+	for (int i = 0; i < NumOptions(); i++) {
+		if (options[i].noCGB) options[i].disabled = true;
+	}
 
 	// can't select disabled option
 	while (options[curOption].disabled) curOption = (curOption + 1) % NumOptions();
@@ -53,9 +71,13 @@ void screen_settings::deselect() {
 }
 
 void screen_settings::drawOptions() {
+	int row = 0;
 	for (int i = 0; i < NumOptions(); i++) {
 		bool selected = curOption == i;
-		int y = i * 18 + 4;
+		int y = row * 18 + 4;
+
+		if (options[i].noCGB) continue;
+		row++;
 
 		Print(10, y, options[i].name, selected, options[i].disabled ? COLOR_DARKGRAY : COLOR_WHITE);
 

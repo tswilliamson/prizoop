@@ -33,7 +33,7 @@ void renderScanlineFit_CGB(void);
 void renderBlankScanlineFit(void);
 void drawFramebufferMain(void);
 
-const int* lineBuffer = (int*) 0xE5017000;
+#define lineBuffer ((int*)0xE5017000)
 
 #include "dmg_scanline.inl"
 #include "cgb_scanline.inl"

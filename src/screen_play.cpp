@@ -80,7 +80,7 @@ void screen_play::play() {
 	if (doOverclock) {
 		if (emulator.settings.overclock) {
 			// clock up and apply the quit handler
-			if (emulator.settings.scaleToScreen) {
+			if (emulator.settings.scaleToScreen || emulator.settings.sound || cgb.isCGB) {
 				Ptune2_LoadSetting(PT2_DOUBLE);
 			} else {
 				Ptune2_LoadSetting(PT2_HALFINC);

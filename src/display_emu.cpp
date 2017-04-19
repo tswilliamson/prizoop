@@ -15,7 +15,7 @@ bool skippingFrame = false;
 bool stretch = false;
 int frameSkip = 0;
 
-static int lineBuffer[176] ALIGN(32) = { 0 };
+int lineBuffer[176] ALIGN(32) = { 0 };
 
 #include "dmg_scanline.inl"
 #include "cgb_scanline.inl"

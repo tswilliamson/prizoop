@@ -7,6 +7,7 @@
 #include "rom.h"
 #include "cgb_bootstrap.h"
 #include "memory.h"
+#include "cgb.h"
 
 #include "zx7/zx7.h"
 
@@ -131,22 +132,26 @@ void emulator_screen::DrawPausePreview() {
 		return;
 
 	// construct palette
-	unsigned int palette[12];
-	if (!emulator.settings.useCGBColors || !getCGBTableEntry(&memoryMap[0][ROM_OFFSET_NAME], palette)) {
-		colorpalette_type pal;
-		emulator.getPalette(emulator.settings.bgColorPalette, pal);
-		for (int i = 0; i < 4; i++) {
-			palette[i] = pal.colors[i] | (pal.colors[i] << 16);
-		}
+	unsigned int palette[64];
+	if (cgb.isCGB) {
+		memcpy(palette, cgb.palette, sizeof(palette));
+	} else {
+		if (!emulator.settings.useCGBColors || !getCGBTableEntry(&memoryMap[0][ROM_OFFSET_NAME], palette)) {
+			colorpalette_type pal;
+			emulator.getPalette(emulator.settings.bgColorPalette, pal);
+			for (int i = 0; i < 4; i++) {
+				palette[i] = pal.colors[i] | (pal.colors[i] << 16);
+			}
 
-		emulator.getPalette(emulator.settings.obj1ColorPalette, pal);
-		for (int i = 0; i < 4; i++) {
-			palette[i+4] = pal.colors[i] | (pal.colors[i] << 16);
-		}
+			emulator.getPalette(emulator.settings.obj1ColorPalette, pal);
+			for (int i = 0; i < 4; i++) {
+				palette[i + 4] = pal.colors[i] | (pal.colors[i] << 16);
+			}
 
-		emulator.getPalette(emulator.settings.obj2ColorPalette, pal);
-		for (int i = 0; i < 4; i++) {
-			palette[i+8] = pal.colors[i] | (pal.colors[i] << 16);
+			emulator.getPalette(emulator.settings.obj2ColorPalette, pal);
+			for (int i = 0; i < 4; i++) {
+				palette[i + 8] = pal.colors[i] | (pal.colors[i] << 16);
+			}
 		}
 	}
 
@@ -155,11 +160,9 @@ void emulator_screen::DrawPausePreview() {
 	unsigned char* pause = &emulator.pausePreview[0];
 	unsigned short* vramStart = ((unsigned short*)GetVRAMAddress()) + xStart + yStart * LCD_WIDTH_PX;
 	for (int y = 0; y < 72; y++) {
-		for (int x = 0; x < 80; x += 2, pause++) {
-			unsigned int color0 = palette[(pause[0] & 0xF0) >> 4];
-			unsigned int color1 = palette[(pause[0] & 0x0F) >> 0];
-			vramStart[x + y * LCD_WIDTH_PX] = color0;
-			vramStart[x + y * LCD_WIDTH_PX + 1] = color1;
+		for (int x = 0; x < 80; x++, pause++) {
+			unsigned int color = palette[*pause] & 0xFFFF;
+			vramStart[x + y * LCD_WIDTH_PX] = color;
 		}
 	}
 }

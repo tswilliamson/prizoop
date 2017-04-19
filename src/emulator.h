@@ -86,7 +86,7 @@ struct emulator_type {
 	emulator_screen* screens[6];
 
 	// pause preview window (4 bits per pixel)
-	unsigned char pausePreview[80 * 72 / 2];
+	unsigned char pausePreview[80 * 72];
 	bool pausePreviewValid;
 
 	// overall application

@@ -8,7 +8,11 @@
 #include "memory.h"
 #include "keys.h"
 
-static int lineBuffer[176];
+#if TARGET_WINSIM
+extern int lineBuffer[176] ALIGN(32);
+#else
+#define lineBuffer ((int*)0xE5017000)
+#endif
 
 #include "dmg_scanline.inl"
 #include "cgb_scanline.inl"
@@ -21,18 +25,18 @@ static void renderPreviewLine() {
 			RenderDMGScanline();
 		}
 
-		unsigned char* previewLine = &emulator.pausePreview[80 * cpu.memory.LY_lcdline / 4];
+		unsigned char* previewLine = &emulator.pausePreview[80 * cpu.memory.LY_lcdline / 2];
 		// every other pixel goes into the preview line, packed at 4 bpp
-		for (int i = 0; i < 160; i += 4) {
-			*(previewLine++) = ((lineBuffer[i] & 0xF) << 4) | (lineBuffer[i + 2] & 0xF);
+		for (int i = 7; i < 167; i += 2) {
+			*(previewLine++) = lineBuffer[i];
 		}
 	}
 }
 
 static void renderPreviewBlankLine() {
 	if ((cpu.memory.LY_lcdline & 1) == 0) {
-		unsigned char* previewLine = &emulator.pausePreview[80 * cpu.memory.LY_lcdline / 4];
-		memset(previewLine, 0, 40);
+		unsigned char* previewLine = &emulator.pausePreview[80 * cpu.memory.LY_lcdline / 2];
+		memset(previewLine, 0, 80);
 	}
 }
 
