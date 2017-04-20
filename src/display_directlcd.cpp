@@ -15,6 +15,7 @@
 
 #include "snd.h"
 #include "keys.h"
+#include "ptune2_simple/Ptune2_direct.h"
 
 int framecounter = 0;
 
@@ -54,7 +55,7 @@ int* prevLineBuffer = ((int*)0xE5017400);
 
 void DmaWaitNext(void) {
 	// enable burst mode now that we are waiting
-	*DMA0_CHCR_0 |= 0x20;
+	// *DMA0_CHCR_0 |= 0x20;
 
 	while (1) {
 		if ((*DMA0_DMAOR) & 4)//Address error has occurred stop looping
@@ -101,7 +102,7 @@ inline void flushScanBuffer(int startX, int endX, int startY, int endY, int scan
 void resolveScanline_NONE() {
 	TIME_SCOPE();
 
-	const int bufferLines = 12;	// 320 bytes * 12 lines = 3840
+	const int bufferLines = 8;	// 320 bytes * 8 lines = 2560
 	const int scanBufferSize = bufferLines * 160 * 2;
 
 	curScan++;
@@ -313,56 +314,100 @@ void drawFramebufferMain(void) {
 	// frame counter
 	framecounter++;
 
-	// determine frame rate based on last framebuffer call:
-	static int fps = 0;
-	int curfps = fps;
+	// use TMU1 to establish time between frames
+	static unsigned int counterStart = 0x7FFFFFFF;		// max int
+	unsigned int counterRegs = 0x0004;
+	unsigned int tmu1Clocks = 0;
+	if (REG_TMU_TCR_1 != counterRegs || (REG_TMU_TSTR & 2) == 0) {
+		// tmu1 needs to be set up
+		REG_TMU_TSTR &= ~(1 << 1);
 
-	static unsigned int rtc_lastticks = 0;
+		REG_TMU_TCOR_1 = counterStart;   // max int
+		REG_TMU_TCNT_1 = counterStart;
+		REG_TMU_TCR_1 = counterRegs;    // max division, no interrupt needed
+
+		// enable TMU1
+		REG_TMU_TSTR |= (1 << 1);
+
+		tmu1Clocks = 0;
+	} else {
+		// expected TMU1 based sim frame time (for 59.7 FPS)
+		unsigned int simFrameTime = Ptune2_GetPLLFreq() * 244 / 32;
+		tmu1Clocks = counterStart - REG_TMU_TCNT_1;
+
+		// auto frameskip adjustment based on pre clamped time
+		static unsigned int collectedTime = 0;
+		static unsigned int collectedFrames = 0;
+		collectedTime += tmu1Clocks;
+		collectedFrames++;
+		if (frameSkip < 0 && !skippingFrame && collectedFrames > 3) {
+			static int agreeRun = 0;		// must agree for 3 rendered frames in a row
+			int speedUpTime = simFrameTime * 95 / 100;
+			int slowDownTime = simFrameTime * 105 / 100;
+			int avgTime = collectedTime / collectedFrames;
+			collectedTime = 0;
+			collectedFrames = 0;
+
+			if (avgTime < speedUpTime && frameSkip != -1) {
+				agreeRun++;
+				if (agreeRun == 3) {
+					frameSkip++;
+					agreeRun = 0;
+				}
+			} else if (avgTime > slowDownTime && frameSkip != -31) {
+				agreeRun--;
+				if (agreeRun == -3) {
+					frameSkip--;
+					agreeRun = 0;
+				}
+			} else {
+				agreeRun = 0;
+			}
+		}
+
+		// clamp speed by waiting for frame time
+		if (emulator.settings.clampSpeed) {
+			int rtcBackup = RTC_GetTicks();
+			while (tmu1Clocks < simFrameTime && RTC_GetTicks() - rtcBackup < 3) {
+				condSoundUpdate();
+				tmu1Clocks = counterStart - REG_TMU_TCNT_1;
+			}
+		}
+
+		counterStart = REG_TMU_TCNT_1;
+	}
+
+	// determine frame rate based on last framebuffer call:
+#if DEBUG
+	static unsigned int totalClocks = 0;
+	totalClocks += tmu1Clocks;
 	if (framecounter % 32 == 0) {
-		int ticks = RTC_GetTicks();
-		int tickdiff = ticks - rtc_lastticks;
-		curfps = 40960 / tickdiff;
-		rtc_lastticks = ticks;
+		static int fps = 0;
+		int curfps = 145150 * Ptune2_GetPLLFreq() / totalClocks;
 
 		if (curfps != fps) {
 			fps = curfps;
-#if DEBUG
 			// report frame rate:
 			memset(ScopeTimer::debugString, 0, sizeof(ScopeTimer::debugString));
 			sprintf(ScopeTimer::debugString, "FPS:%d.%d, Skip:%d", fps / 10, fps % 10, frameSkip);
+		}
+
+		totalClocks = 0;
+	}
 #endif
-
-			// auto frameskip adjustment
-			if (frameSkip < 0) {
-				if (fps > 638 && frameSkip != -1) {
-					frameSkip++;
-				}
-				else if (fps && fps < 480 && frameSkip != -3) {
-					frameSkip--;
-				}
-			}
-		}
-	}
-
-	// TODO : not the best... only clamps speed to 64 FPS (7% too high)
-	if (emulator.settings.clampSpeed) {
-		static int lastClampTicks = 0;
-		int curTicks = RTC_GetTicks();
-		while (curTicks == lastClampTicks || curTicks == lastClampTicks + 1) { 
-			condSoundUpdate();
-			curTicks = RTC_GetTicks();
-		}
-		lastClampTicks = curTicks;
-	}
 
 	// determine frame skip
 	skippingFrame = false;
 	if (frameSkip && framecounter > 4) {
 		if (frameSkip < 0) {
+			// reverse the bits of the previous frame counter xor'd with this one and
+			// compare against our ratio:
+			int f = (framecounter % 32) ^ ((framecounter + 1) % 32);
+			f = ((f & 0x10) >> 4) | ((f & 0x8) >> 2) | ((f & 0x2) << 2) | ((f & 0x01) << 4);
+
 			// negative is automatic (frame skip amt stored in HOW negative it is)
-			skippingFrame = (framecounter % (-frameSkip)) != 0;
-		}
-		else {
+			skippingFrame = f < -frameSkip;
+		} else {
 			skippingFrame = (framecounter % (frameSkip + 1)) != 0;
 		}
 	}

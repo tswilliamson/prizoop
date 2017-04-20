@@ -206,6 +206,11 @@ int Ptune2_GetSetting() {
 		same = 1;
 		for (set = 0; set < 8; set++) {
 			if (curRegs.regs[set] != sets[i].regs[set]) {
+				// special exception for PTune2-less CPU reset:
+				if (set == 1 && i == 0 && curRegs.regs[1] == 0x0F112213) {
+					continue;
+				}
+
 				same = 0;
 				break;
 			}
@@ -231,11 +236,18 @@ static PTuneRegs backup = {{
 	CS5aBCR_default,
 	CS5aWCR_default
 }};
+
 void Ptune2_LoadBackup() {
 	Ptune2_SetWithRegs(&backup);
 }
+
 void Ptune2_SaveBackup() {
 	backup = Ptune2_CurrentRegs();
 }
+
+int Ptune2_GetPLLFreq() {
+	return (CPG.FRQCRA.LONG >> 24) + 1;
+}
+
 //---------------------------------------------------------------------------------------------
 

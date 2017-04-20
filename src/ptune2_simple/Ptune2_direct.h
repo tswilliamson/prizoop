@@ -44,6 +44,7 @@ void Ptune2_LoadBackup();				//  backup regs  -> CPG Register
 void Ptune2_SaveBackup();				//  CPG Register -> backup regs
 
 PTuneRegs Ptune2_CurrentRegs();			// returns current cpu clock regs directly
+int Ptune2_GetPLLFreq();				// returns PLL frequency, useful for certain timing functions
 
 #ifdef __cplusplus
 }
