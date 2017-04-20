@@ -1,7 +1,7 @@
 #pragma once
 
-void SetupDisplayDriver(bool withStretch, char withFrameskip);
-void SetupDisplayPalette(unsigned int pal[12]);
+void SetupDisplayDriver(char withFrameskip);
+void SetupDisplayPalette();
 
 void DmaWaitNext(void);
 

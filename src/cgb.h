@@ -22,7 +22,6 @@ struct cgb_type {
 
 	// cgb palette is stored here in two forms (one resolved color, one not. A color resolve is necessary since the color values aren't direct RGB)
 	unsigned int curPalTarget;
-	unsigned int palette[64];
 	unsigned char paletteMemory[128];
 };
 

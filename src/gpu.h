@@ -60,16 +60,41 @@ extern void stepLCDOn_VRAM(void);
 extern void stepLCDOn_HBLANK(void);
 extern void stepLCDOn_VBLANK(void);
 
-// palette (the colors are two pixels wide to make stretching code faster)
-extern unsigned int dmgPalette[12];
-
-template <class Type>
-inline Type ToScanType(unsigned int color) {
-	return (Type)color;
-}
+// shared color palette (the colors are two pixels wide to make stretching code faster)
+extern unsigned int ppuPalette[64];
 
 void hblank(void);
 
 void enablePausePreview();
 
 extern int framecounter;
+
+// line buffer rendered too during scanline render functions
+#if TARGET_WINSIM
+extern int lineBuffer[176] ALIGN(32);
+extern int prevLineBuffer[168] ALIGN(32);
+#else
+#define lineBuffer ((int*)0xE5017000)
+#define prevLineBuffer ((int*)0xE5017400)
+#endif
+
+inline void resolveDMGBGPalette() {
+	ppuPalette[0] = ppuPalette[12 + ((cpu.memory.BGP_bgpalette & 0x03) >> 0)];
+	ppuPalette[1] = ppuPalette[12 + ((cpu.memory.BGP_bgpalette & 0x0C) >> 2)];
+	ppuPalette[2] = ppuPalette[12 + ((cpu.memory.BGP_bgpalette & 0x30) >> 4)];
+	ppuPalette[3] = ppuPalette[12 + ((cpu.memory.BGP_bgpalette & 0xC0) >> 6)];
+}
+
+inline void resolveDMGOBJ0Palette() {
+	ppuPalette[4] = ppuPalette[16 + ((cpu.memory.OBP0_spritepal0 & 0x03) >> 0)];
+	ppuPalette[5] = ppuPalette[16 + ((cpu.memory.OBP0_spritepal0 & 0x0C) >> 2)];
+	ppuPalette[6] = ppuPalette[16 + ((cpu.memory.OBP0_spritepal0 & 0x30) >> 4)];
+	ppuPalette[7] = ppuPalette[16 + ((cpu.memory.OBP0_spritepal0 & 0xC0) >> 6)];
+}
+
+inline void resolveDMGOBJ1Palette() {
+	ppuPalette[8] =  ppuPalette[20 + ((cpu.memory.OBP1_spritepal1 & 0x03) >> 0)];
+	ppuPalette[9] =  ppuPalette[20 + ((cpu.memory.OBP1_spritepal1 & 0x0C) >> 2)];
+	ppuPalette[10] = ppuPalette[20 + ((cpu.memory.OBP1_spritepal1 & 0x30) >> 4)];
+	ppuPalette[11] = ppuPalette[20 + ((cpu.memory.OBP1_spritepal1 & 0xC0) >> 6)];
+}

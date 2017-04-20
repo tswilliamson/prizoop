@@ -7,7 +7,7 @@
 
 struct option_type {
 	const char* name;
-	int type;		// 0 = toggle, 1 = keys, 2 = frameskip, 3 = color
+	int type;		// 0 = toggle, 1 = keys, 2 = frameskip, 3 = color, 4 = scale mode
 	void* addr;
 	bool disabled;
 	bool noCGB;
@@ -15,7 +15,7 @@ struct option_type {
 
 static option_type options[] = {
 	{ "Overclock", 0, &emulator.settings.overclock, false, false },
-	{ "Fit To Screen", 0, &emulator.settings.scaleToScreen, false, false },
+	{ "Fit To Screen", 4, &emulator.settings.scaleMode, false, false },
 	{ "CGB Colors", 0, &emulator.settings.useCGBColors, false, false },
 	{ "Clamp Speed", 0, &emulator.settings.clampSpeed, false, false },
 	{ "Frameskip", 2, &emulator.settings.frameSkip, false, false },
@@ -125,6 +125,16 @@ void screen_settings::drawOptions() {
 				area.y2--;
 				Bdisp_AreaClr(&area, 1, pal.colors[j]);
 			}
+		}
+		else if (options[i].type == 4) {
+			unsigned char opt = *((unsigned char*)options[i].addr);
+			const char* modes[] = {
+				"None", "150% LowQ", "150% HighQ", "Fit LowQ", "Fit HighQ"
+			};
+			unsigned short colors[] = {
+				COLOR_WHITE, COLOR_WHITE, COLOR_ORANGE, COLOR_YELLOW, COLOR_ORANGE
+			};
+			Print(200, y, modes[opt], selected, !options[i].disabled ? colors[opt] : COLOR_DARKGRAY);
 		}
 	}
 }
@@ -254,6 +264,12 @@ void screen_settings::handleSelect() {
 			// disable cgb colors
 			emulator.settings.useCGBColors = false;
 
+			break;
+		}
+		case 4:
+		{
+			unsigned char* opt = ((unsigned char*)options[curOption].addr);
+			*opt = ((*opt) + 1) % emu_scale::MAX;
 			break;
 		}
 	}

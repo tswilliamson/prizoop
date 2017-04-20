@@ -13,20 +13,7 @@
 
 void(*gpuStep)(void) = NULL;
 
-unsigned int dmgPalette[12] = {
-	(unsigned int)COLOR_WHITE | (COLOR_WHITE << 16),
-	(unsigned int)COLOR_LIGHTCYAN | (COLOR_LIGHTCYAN << 16),
-	(unsigned int)COLOR_CYAN | (COLOR_CYAN << 16),
-	(unsigned int)COLOR_DARKCYAN | (COLOR_DARKCYAN << 16),
-	(unsigned int)COLOR_WHITE | (COLOR_WHITE << 16),
-	(unsigned int)COLOR_LIGHTCYAN | (COLOR_LIGHTCYAN << 16),
-	(unsigned int)COLOR_CYAN | (COLOR_CYAN << 16),
-	(unsigned int)COLOR_DARKCYAN | (COLOR_DARKCYAN << 16),
-	(unsigned int)COLOR_WHITE | (COLOR_WHITE << 16),
-	(unsigned int)COLOR_LIGHTCYAN | (COLOR_LIGHTCYAN << 16),
-	(unsigned int)COLOR_CYAN | (COLOR_CYAN << 16),
-	(unsigned int)COLOR_DARKCYAN | (COLOR_DARKCYAN << 16),
-};
+unsigned int ppuPalette[64] = { 0 };
 
 unsigned int gpuTimes[5] = {
 	204,		// HBLANK
@@ -234,6 +221,8 @@ void stepLCDOn_VBLANK(void) {
 	}
 }
 
-void SetupDisplayPalette(unsigned int pal[12]) {
-	memcpy(dmgPalette, pal, sizeof(dmgPalette));
+void SetupDisplayPalette() {
+	resolveDMGBGPalette();
+	resolveDMGOBJ0Palette();
+	resolveDMGOBJ1Palette();
 }

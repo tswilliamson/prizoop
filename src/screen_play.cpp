@@ -55,10 +55,9 @@ void screen_play::initRom() {
 }
 
 void screen_play::drawPlayBG() {
-	if (emulator.settings.scaleToScreen) {
+	if (emulator.settings.scaleMode != emu_scale::NONE) {
 		DrawBGEmbedded((unsigned char*)bg_fit);
-	}
-	else {
+	} else {
 		DrawBGEmbedded((unsigned char*)bg_1x1);
 	}
 	Bdisp_PutDisp_DD();
@@ -79,8 +78,8 @@ void screen_play::play() {
 	bool doOverclock = Ptune2_GetSetting() == PT2_DEFAULT;
 	if (doOverclock) {
 		if (emulator.settings.overclock) {
-			// clock up and apply the quit handler
-			if (emulator.settings.scaleToScreen || emulator.settings.sound || cgb.isCGB) {
+			// clock up to double unless not scaling/sound/CGB
+			if (emulator.settings.scaleMode != emu_scale::NONE || emulator.settings.sound || cgb.isCGB) {
 				Ptune2_LoadSetting(PT2_DOUBLE);
 			} else {
 				Ptune2_LoadSetting(PT2_HALFINC);
@@ -91,27 +90,29 @@ void screen_play::play() {
 	}
 
 	// look for gameboy color palette override
-	unsigned int palette[12];
-	if (!emulator.settings.useCGBColors || !getCGBTableEntry(&memoryMap[0][ROM_OFFSET_NAME], palette)) {
-		colorpalette_type pal;
-		emulator.getPalette(emulator.settings.bgColorPalette, pal);
-		for (int i = 0; i < 4; i++) {
-			palette[i] = pal.colors[i] | (pal.colors[i] << 16);
+	if (!cgb.isCGB) {
+		if (!emulator.settings.useCGBColors || !getCGBTableEntry(&memoryMap[0][ROM_OFFSET_NAME], &ppuPalette[12])) {
+			colorpalette_type pal;
+			emulator.getPalette(emulator.settings.bgColorPalette, pal);
+			for (int i = 0; i < 4; i++) {
+				ppuPalette[i + 12] = pal.colors[i] | (pal.colors[i] << 16);
+			}
+
+			emulator.getPalette(emulator.settings.obj1ColorPalette, pal);
+			for (int i = 0; i < 4; i++) {
+				ppuPalette[i + 16] = pal.colors[i] | (pal.colors[i] << 16);
+			}
+
+			emulator.getPalette(emulator.settings.obj2ColorPalette, pal);
+			for (int i = 0; i < 4; i++) {
+				ppuPalette[i + 20] = pal.colors[i] | (pal.colors[i] << 16);
+			}
 		}
 
-		emulator.getPalette(emulator.settings.obj1ColorPalette, pal);
-		for (int i = 0; i < 4; i++) {
-			palette[i+4] = pal.colors[i] | (pal.colors[i] << 16);
-		}
-
-		emulator.getPalette(emulator.settings.obj2ColorPalette, pal);
-		for (int i = 0; i < 4; i++) {
-			palette[i+8] = pal.colors[i] | (pal.colors[i] << 16);
-		}
+		SetupDisplayPalette();
 	}
 
-	SetupDisplayPalette(palette);
-	SetupDisplayDriver(emulator.settings.scaleToScreen, emulator.settings.frameSkip);
+	SetupDisplayDriver(emulator.settings.frameSkip);
 
 #if DEBUG
 	// init debug timing system

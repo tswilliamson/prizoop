@@ -47,7 +47,7 @@ void cgbInitROM() {
 	cgb.dmaDest = 0x8000;
 
 	// initially all cgb colors are white
-	memset(cgb.palette, 0xFF, sizeof(cgb.palette));
+	memset(ppuPalette, 0xFF, sizeof(ppuPalette));
 	memset(cgb.paletteMemory, 0xFF, sizeof(cgb.paletteMemory));
 
 	// we are now in cgb mode!
@@ -207,7 +207,7 @@ void cgbResolvePalette() {
 			(translateColor[(palColor & 0x03E0) >> 5] << 6) |			// green
 			(translateColor[(palColor & 0x7C00) >> 10]);			// blue
 
-		cgb.palette[i] = trx | (trx << 16);
+		ppuPalette[i] = trx | (trx << 16);
 	}
 
 	cgb.dirtyPalette = false;

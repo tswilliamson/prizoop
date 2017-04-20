@@ -17,15 +17,26 @@ namespace emu_button {
 		STATE_LOAD = 9,
 		MAX = 10
 	};
+} 
+
+namespace emu_scale {
+	enum {
+		NONE = 0,
+		LO_150,
+		HI_150,
+		LO_200,
+		HI_200,
+		MAX
+	};
 }
 
 // Emulation settings
-#define SETTINGS_VERSION 2
+#define SETTINGS_VERSION 3
 struct emulator_settings {
 	int version;
 	char selectedRom[32];
 	unsigned char overclock;
-	unsigned char scaleToScreen;
+	unsigned char scaleMode;
 	unsigned char useCGBColors;
 	unsigned char clampSpeed;
 	unsigned char keyMap[12];	// padding past emu_button::MAX to make it 4 byte aligned

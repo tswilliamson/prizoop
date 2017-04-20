@@ -8,12 +8,6 @@
 #include "memory.h"
 #include "keys.h"
 
-#if TARGET_WINSIM
-extern int lineBuffer[176] ALIGN(32);
-#else
-#define lineBuffer ((int*)0xE5017000)
-#endif
-
 #include "dmg_scanline.inl"
 #include "cgb_scanline.inl"
 

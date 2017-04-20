@@ -227,6 +227,9 @@
     <None Include="..\src\dmg_scanline.inl">
       <Filter>Source Files\core</Filter>
     </None>
+    <None Include="..\src\scanline_resolve.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\src\zx7\zx7.txt">

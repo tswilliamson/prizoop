@@ -206,31 +206,3 @@ inline void RenderCGBScanline() {
 		}
 	}
 }
-
-template<class Type> inline void ResolveCGBScanline(void* scanlineStart) {
-	// resolve to colors
-	if (cgb.dirtyPalette) {
-		cgbResolvePalette();
-	}
-
-	Type* scanline = (Type*)scanlineStart;
-	// middle 160 bytes of linebuffer go into scanline
-	for (int i = 7; i < 167; i++) {
-		*(scanline++) = ToScanType<Type>(cgb.palette[lineBuffer[i]]);
-	}
-}
-
-template<class Type> inline void DoubleResolveCGBScanline(void* scanlineStart1, void* scanlineStart2) {
-	// resolve to colors
-	if (cgb.dirtyPalette) {
-		cgbResolvePalette();
-	}
-
-	Type* scanline1 = (Type*)scanlineStart1;
-	Type* scanline2 = (Type*)scanlineStart2;
-	// middle 160 bytes of linebuffer go into scanline
-	for (int i = 7; i < 167; i++) {
-		*(scanline1++) = ToScanType<Type>(cgb.palette[lineBuffer[i]]);
-		*(scanline2++) = ToScanType<Type>(cgb.palette[lineBuffer[i]]);
-	}
-}

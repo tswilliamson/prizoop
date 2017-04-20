@@ -12,13 +12,67 @@
 int framecounter = 0;
 
 bool skippingFrame = false;
-bool stretch = false;
 int frameSkip = 0;
 
 int lineBuffer[176] ALIGN(32) = { 0 };
+int prevLineBuffer[168] ALIGN(32) = { 0 };
 
 #include "dmg_scanline.inl"
 #include "cgb_scanline.inl"
+#include "scanline_resolve.inl"
+
+static void resolveLine() {
+	static unsigned short* const vram = (unsigned short*)GetVRAMAddress();
+	
+	unsigned int* scanline;
+	switch (emulator.settings.scaleMode) {
+		case emu_scale::NONE:
+			scanline = (unsigned int*) (vram + 112 + LCD_WIDTH_PX * (cpu.memory.LY_lcdline + 36));
+			DirectScanline16(scanline);
+			break;
+		case emu_scale::LO_150:
+			scanline = (unsigned int*)(vram + 72 + LCD_WIDTH_PX * ((cpu.memory.LY_lcdline * 3) / 2));
+
+			if (cpu.memory.LY_lcdline & 1) {
+				DirectScanline24(scanline);
+				DirectScanline24(scanline + LCD_WIDTH_PX / 2);
+			} else {
+				DirectScanline24(scanline);
+			}
+			break;
+		case emu_scale::HI_150:
+			scanline = (unsigned int*) (vram + 72 + LCD_WIDTH_PX * ((cpu.memory.LY_lcdline * 3) / 2));
+
+			if (cpu.memory.LY_lcdline & 1) {
+				BlendMixedScanline24(scanline);
+				BlendScanline24(scanline + LCD_WIDTH_PX / 2);
+			} else {
+				BlendScanline24(scanline);
+				memcpy(prevLineBuffer, lineBuffer, sizeof(prevLineBuffer));
+			}
+			break;
+		case emu_scale::LO_200:
+			scanline = (unsigned int*)(vram + 32 + LCD_WIDTH_PX * ((cpu.memory.LY_lcdline * 3) / 2));
+
+			if (cpu.memory.LY_lcdline & 1) {
+				DirectDoubleScanline32(scanline, scanline + LCD_WIDTH_PX / 2);
+			} else {
+				DirectScanline32(scanline);
+			}
+			break;
+		case emu_scale::HI_200:
+			scanline = (unsigned int*)(vram + 32 + LCD_WIDTH_PX * ((cpu.memory.LY_lcdline * 3) / 2));
+
+			if (cpu.memory.LY_lcdline & 1) {
+				BlendMixedScanline32(scanline);
+				DirectScanline32(scanline + LCD_WIDTH_PX / 2);
+			} else {
+				DirectScanline32(scanline);
+				memcpy(prevLineBuffer, lineBuffer, sizeof(prevLineBuffer));
+			}
+			break;
+	}
+}
 
 void renderEmu() {
 	if (skippingFrame)
@@ -29,64 +83,22 @@ void renderEmu() {
 	if (cgb.isCGB) {
 		RenderCGBScanline();
 
-		// stretch across screen?
-		if (stretch) {
-			unsigned short* scanlineStart = &((unsigned short*)GetVRAMAddress())[32 + LCD_WIDTH_PX * ((cpu.memory.LY_lcdline * 3) / 2)];
-
-			if (cpu.memory.LY_lcdline & 1) {
-				DoubleResolveCGBScanline<unsigned int>(scanlineStart, scanlineStart + LCD_WIDTH_PX);
-			} else {
-				ResolveCGBScanline<unsigned int>(scanlineStart);
-			}
-		} else {
-			void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * (cpu.memory.LY_lcdline + 36)];
-			ResolveCGBScanline<unsigned short>(scanlineStart);
+		// resolve to colors
+		if (cgb.dirtyPalette) {
+			cgbResolvePalette();
 		}
 	} else {
 		RenderDMGScanline();
-
-		// stretch across screen?
-		if (stretch) {
-			unsigned short* scanlineStart = &((unsigned short*)GetVRAMAddress())[32 + LCD_WIDTH_PX * ((cpu.memory.LY_lcdline * 3) / 2)];
-
-			if (cpu.memory.LY_lcdline & 1) {
-				DoubleResolveDMGScanline<unsigned int>(scanlineStart, scanlineStart + LCD_WIDTH_PX);
-			} else {
-				ResolveDMGScanline<unsigned int>(scanlineStart);
-			}
-		} else {
-			void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * (cpu.memory.LY_lcdline + 36)];
-			ResolveDMGScanline<unsigned short>(scanlineStart);
-		}
 	}
+
+	resolveLine();
 }
 
 void renderBlankEmu() {
 	TIME_SCOPE();
 
-	// stretch across screen?
-	if (stretch) {
-		unsigned short* scanlineStart = &((unsigned short*)GetVRAMAddress())[32 + LCD_WIDTH_PX * ((cpu.memory.LY_lcdline * 3) / 2)];
-
-		unsigned int* curScan = (unsigned int*)scanlineStart;
-		for (int i = 0; i < 160; i++) {
-			*(curScan++) = dmgPalette[0] | (dmgPalette[0] << 16);
-		}
-
-		if (cpu.memory.LY_lcdline & 1) {
-			curScan = (unsigned int*) (scanlineStart + LCD_WIDTH_PX);
-			for (int i = 0; i < 160; i++) {
-				*(curScan++) = dmgPalette[0] | (dmgPalette[0] << 16);
-			}
-		}
-	} else {
-		void* scanlineStart = &((unsigned short*)GetVRAMAddress())[112 + LCD_WIDTH_PX * (cpu.memory.LY_lcdline + 36)];
-
-		unsigned short* curScan = (unsigned short*)scanlineStart;
-		for (int i = 0; i < 160; i++) {
-			*(curScan++) = dmgPalette[0];
-		}
-	}
+	memset(lineBuffer, 0, sizeof(lineBuffer));
+	resolveLine();
 }
 
 void drawEmu() {
@@ -156,9 +168,8 @@ void(*renderScanline)(void) = renderEmu;
 void(*renderBlankScanline)(void) = renderBlankEmu;
 void(*drawFramebuffer)(void) = drawEmu;
 
-void SetupDisplayDriver(bool withStretch, char withFrameskip) {
+void SetupDisplayDriver(char withFrameskip) {
 	frameSkip = withFrameskip;
-	stretch = withStretch;
 
 	drawFramebuffer = drawEmu;
 	renderScanline = renderEmu;
