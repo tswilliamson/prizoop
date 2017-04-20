@@ -30,6 +30,14 @@ void ScopeTimer::InitSystem() {
 #endif
 
 	memset(debugString, 0, sizeof(debugString));
+
+	// clear timers
+	ScopeTimer* curTimer = firstTimer;
+	while (curTimer) {
+		curTimer->cycleCount = 0;
+		curTimer->numCounts = 0;
+		curTimer = curTimer->nextTimer;
+	}
 }
 
 void ScopeTimer::Shutdown() {

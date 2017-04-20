@@ -74,8 +74,8 @@ extern int framecounter;
 extern int lineBuffer[176] ALIGN(32);
 extern int prevLineBuffer[168] ALIGN(32);
 #else
-#define lineBuffer ((int*)0xE5017000)
-#define prevLineBuffer ((int*)0xE5017400)
+extern int* lineBuffer;
+extern int* prevLineBuffer;
 #endif
 
 inline void resolveDMGBGPalette() {

@@ -49,6 +49,9 @@ static int curScanBuffer = 0;
 // current line within the scanline buffer
 static int curScan = 0;
 
+int* lineBuffer = ((int*)0xE5017000);
+int* prevLineBuffer = ((int*)0xE5017400);
+
 void DmaWaitNext(void) {
 	// enable burst mode now that we are waiting
 	*DMA0_CHCR_0 |= 0x20;
@@ -96,126 +99,177 @@ inline void flushScanBuffer(int startX, int endX, int startY, int endY, int scan
 }
 
 void resolveScanline_NONE() {
+	TIME_SCOPE();
+
 	const int bufferLines = 12;	// 320 bytes * 12 lines = 3840
 	const int scanBufferSize = bufferLines * 160 * 2;
 
-	void* scanlineStart = &scanGroup[160 * curScan + curScanBuffer*scanBufferSize];
-	DirectScanline16((unsigned int*) scanlineStart);
-
-	// blit / switch buffers once we've used all our buffer lines
 	curScan++;
 	if (curScan == bufferLines) {
+		// we've rendered as much as we can buffer, resolve to pixels and DMA it:
+		lineBuffer = ((int*)0xE5017000);
+		unsigned int* scanline = (unsigned int*)&scanGroup[curScanBuffer*scanBufferSize];
+		for (int i = 0; i < bufferLines; i++) {
+			DirectScanline16(scanline);
+			scanline += 80;
+			lineBuffer += 176;
+		}
+
+		// send DMA
 		flushScanBuffer(118, 277, 36 + cpu.memory.LY_lcdline - bufferLines + 1, 36 + cpu.memory.LY_lcdline, scanBufferSize);
+
+		// move line buffer to front
+		lineBuffer = ((int*)0xE5017000);
+	} else {
+		// move line buffer down a line
+		lineBuffer += 176;
 	}
 }
 
-static const int scaledScanline[8] = {
-	0, 1, 3, 4,
-	6, 7, 9, 10,
+static const int scaledScanline[16] = {
+	0,  1,  3, 4,
+	6,  7,  9, 10,
+	12, 13, 15, 16,
+	18, 19, 21, 22
 };
 
 void resolveScanline_LO_200(void) {
-	const int bufferLines = 4;	// 960 bytes * 4 lines = 3840
-	const int scanBufferSize = bufferLines * 160 * 4 * 3 / 2;
-
-	if (skippingFrame)
-		return;
-
 	TIME_SCOPE();
 
-	unsigned int* scanlineStart = (unsigned int*) &scanGroup[320 * scaledScanline[curScan] + curScanBuffer*scanBufferSize];
-
-	if (curScan & 1) {
-		DirectDoubleScanline32(scanlineStart, scanlineStart + 160);
-	} else {
-		DirectScanline32(scanlineStart);
-	}
-
-	// blit / switch buffers once we've used all our buffer lines
+	const int bufferLines = 4;	// 960 bytes * 4 lines = 3840
+	const int scanBufferSize = bufferLines * 160 * 4 * 3 / 2;
+	
 	curScan++;
 	if (curScan == bufferLines) {
+		// we've rendered as much as we can buffer, resolve to pixels and DMA it:
+		lineBuffer = ((int*)0xE5017000);
+		unsigned int* scanline = (unsigned int*)&scanGroup[curScanBuffer*scanBufferSize];
+		for (int i = 0; i < bufferLines; i += 2) {
+			DirectScanline32(scanline);
+			scanline += 160;
+			lineBuffer += 176;
+
+			DirectDoubleScanline32(scanline, scanline + 160);
+			scanline += 320;
+			lineBuffer += 176;
+		}
+
+		// send DMA
 		int startLine = (cpu.memory.LY_lcdline - bufferLines + 1) * 3 / 2;
 		flushScanBuffer(38, 357, startLine, startLine + bufferLines * 3 / 2 - 1, scanBufferSize);
+
+		// move line buffer to front
+		lineBuffer = ((int*)0xE5017000);
+	} else {
+		// move line buffer down a line
+		lineBuffer += 176;
 	}
 }
 
 void resolveScanline_HI_200(void) {
-	const int bufferLines = 4;	// 960 bytes * 4 lines = 3840
-	const int scanBufferSize = bufferLines * 160 * 4 * 3 / 2;
-
-	if (skippingFrame)
-		return;
-
 	TIME_SCOPE();
 
-	unsigned int* scanlineStart = (unsigned int*) &scanGroup[320 * scaledScanline[curScan] + curScanBuffer*scanBufferSize];
-
-	if (curScan & 1) {
-		BlendMixedScanline32(scanlineStart);
-		DirectScanline32(scanlineStart + 160);
-	} else {
-		DirectScanline32(scanlineStart);
-		memcpy(prevLineBuffer, lineBuffer, 4 * 167);
-	}
-
-	// blit / switch buffers once we've used all our buffer lines
+	const int bufferLines = 4;	// 960 bytes * 4 lines = 3840
+	const int scanBufferSize = bufferLines * 160 * 4 * 3 / 2;
+	
 	curScan++;
 	if (curScan == bufferLines) {
+		// we've rendered as much as we can buffer, resolve to pixels and DMA it:
+		lineBuffer = ((int*)0xE5017000);
+		unsigned int* scanline = (unsigned int*)&scanGroup[curScanBuffer*scanBufferSize];
+		for (int i = 0; i < bufferLines; i += 2) {
+			DirectScanline32(scanline);
+			scanline += 160;
+			prevLineBuffer = lineBuffer;
+			lineBuffer += 176;
+
+			BlendMixedScanline32(scanline);
+			scanline += 160;
+			DirectScanline32(scanline);
+			scanline += 160;
+			lineBuffer += 176;
+		}
+
+		// send DMA
 		int startLine = (cpu.memory.LY_lcdline - bufferLines + 1) * 3 / 2;
 		flushScanBuffer(38, 357, startLine, startLine + bufferLines * 3 / 2 - 1, scanBufferSize);
+
+		// move line buffer to front
+		lineBuffer = ((int*)0xE5017000);
+	} else {
+		// move line buffer down a line
+		lineBuffer += 176;
 	}
 }
 
 void resolveScanline_LO_150(void) {
+	TIME_SCOPE();
+
 	const int bufferLines = 6;	// 720 bytes * 6 lines = 4320 (this somehow works... I'm not gonna mess with it)
 	const int scanBufferSize = bufferLines * 480 * 3 / 2;
 
-	if (skippingFrame)
-		return;
-
-	TIME_SCOPE();
-
-	unsigned int* scanlineStart = (unsigned int*)&scanGroup[240 * scaledScanline[curScan] + curScanBuffer*scanBufferSize];
-
-	if (curScan & 1) {
-		DirectScanline24(scanlineStart);
-		DirectScanline24(scanlineStart + 120);
-	} else {
-		DirectScanline24(scanlineStart);
-	}
-
-	// blit / switch buffers once we've used all our buffer lines
 	curScan++;
 	if (curScan == bufferLines) {
+		// we've rendered as much as we can buffer, resolve to pixels and DMA it:
+		lineBuffer = ((int*)0xE5017000);
+		unsigned int* scanline = (unsigned int*)&scanGroup[curScanBuffer*scanBufferSize];
+		for (int i = 0; i < bufferLines; i += 2) {
+			DirectScanline24(scanline);
+			scanline += 120;
+			lineBuffer += 176;
+
+			DirectScanline24(scanline);
+			scanline += 120;
+			DirectScanline24(scanline);
+			scanline += 120;
+			lineBuffer += 176;
+		}
+
+		// send DMA
 		int startLine = (cpu.memory.LY_lcdline - bufferLines + 1) * 3 / 2;
 		flushScanBuffer(78, 317, startLine, startLine + bufferLines * 3 / 2 - 1, scanBufferSize);
+
+		// move line buffer to front
+		lineBuffer = ((int*)0xE5017000);
+	} else {
+		// move line buffer down a line
+		lineBuffer += 176;
 	}
 }
 
 void resolveScanline_HI_150(void) {
+	TIME_SCOPE();
+
 	const int bufferLines = 6;	// 720 bytes * 6 lines = 4320 (this somehow works... I'm not gonna mess with it)
 	const int scanBufferSize = bufferLines * 480 * 3 / 2;
 
-	if (skippingFrame)
-		return;
-
-	TIME_SCOPE();
-
-	unsigned int* scanlineStart = (unsigned int*)&scanGroup[240 * scaledScanline[curScan] + curScanBuffer*scanBufferSize];
-
-	if (curScan & 1) {
-		BlendMixedScanline24(scanlineStart);
-		BlendScanline24(scanlineStart + 120);
-	} else {
-		BlendScanline24(scanlineStart);
-		memcpy(prevLineBuffer, lineBuffer, 4 * 167);
-	}
-
-	// blit / switch buffers once we've used all our buffer lines
 	curScan++;
 	if (curScan == bufferLines) {
+		// we've rendered as much as we can buffer, resolve to pixels and DMA it:
+		lineBuffer = ((int*)0xE5017000);
+		unsigned int* scanline = (unsigned int*)&scanGroup[curScanBuffer*scanBufferSize];
+		for (int i = 0; i < bufferLines; i += 2) {
+			BlendScanline24(scanline);
+			scanline += 120;
+			prevLineBuffer = lineBuffer;
+			lineBuffer += 176;
+
+			BlendMixedScanline24(scanline);
+			scanline += 120;
+			BlendScanline24(scanline);
+			scanline += 120;
+			lineBuffer += 176;
+		}
+
+		// send DMA
 		int startLine = (cpu.memory.LY_lcdline - bufferLines + 1) * 3 / 2;
 		flushScanBuffer(78, 317, startLine, startLine + bufferLines * 3 / 2 - 1, scanBufferSize);
+
+		// move line buffer to front
+		lineBuffer = ((int*)0xE5017000);
+	} else {
+		// move line buffer down a line
+		lineBuffer += 176;
 	}
 }
 
@@ -339,6 +393,9 @@ void SetupDisplayDriver(char withFrameskip) {
 
 	renderScanline = cgb.isCGB ? scanlineCGB : scanlineDMG;
 	renderBlankScanline = scanlineBlank;
+
+	lineBuffer = ((int*)0xE5017000);
+	prevLineBuffer = ((int*)0xE5017400);
 
 	switch (emulator.settings.scaleMode) {
 		case emu_scale::LO_150:
