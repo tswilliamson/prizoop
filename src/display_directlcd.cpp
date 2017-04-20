@@ -50,6 +50,9 @@ static int curScanBuffer = 0;
 static int curScan = 0;
 
 void DmaWaitNext(void) {
+	// enable burst mode now that we are waiting
+	*DMA0_CHCR_0 |= 0x20;
+
 	while (1) {
 		if ((*DMA0_DMAOR) & 4)//Address error has occurred stop looping
 			break;
@@ -73,6 +76,7 @@ void DmaDrawStrip(void* srcAddress, unsigned int size) {
 	*DMA0_CHCR_0 = 0x00101400;
 	*DMA0_DMAOR |= 1;//Enable DMA on all channels
 	*DMA0_DMAOR &= ~6;//Clear flags
+
 	*DMA0_CHCR_0 |= 1;//Enable channel0 DMA
 }
 
