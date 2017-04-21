@@ -560,8 +560,7 @@ void trySaveSRAM(const char* filepath) {
 void mbcOnStateLoad() {
 	if (mbc.sramEnabled) {
 		enableSRAM();
-	}
-	else {
+	} else {
 		disableSRAM();
 	}
 

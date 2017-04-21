@@ -290,28 +290,32 @@ void emulator_type::saveState() {
 
 	if (cgb.isCGB) {
 		for (int i = 0; i < 6; i++) {
-			Bfile_WriteFile_OS(hFile, &cgb_wram[i][0], sizeof(cgbworkram_type));
+			Bfile_WriteFile_OS(hFile, cgb_wram[i]->data, 0x1000);
 		}
 	}
 
 	// video RAM
 	if (cgb.isCGB) {
-		Bfile_WriteFile_OS(hFile, &vram[0], sizeof(0x4000));
+		Bfile_WriteFile_OS(hFile, &vram[0], 0x4000);
 	} else {
-		Bfile_WriteFile_OS(hFile, &vram[0], sizeof(0x2000));
+		Bfile_WriteFile_OS(hFile, &vram[0], 0x2000);
 	}
 
 	Bfile_WriteFile_OS(hFile, &oam[0], sizeof(oam));
 
 	// only write sram for small ram sizes
+	// removing this for now... tend to want the sram to stick around..
+	/*
 	if (RAMSize <= 8 * 1024) {
 		Bfile_WriteFile_OS(hFile, &sram[0], RAMSize);
 	}
+	*/
 
 	// done!
 	Bfile_CloseFile_OS(hFile);
 
 	CompatSwaps();
+
 
 	mbcFileUpdate();
 
@@ -373,35 +377,38 @@ bool emulator_type::loadState() {
 
 	if (cgb.isCGB) {
 		for (int i = 0; i < 6; i++) {
-			Bfile_ReadFile_OS(hFile, &cgb_wram[i][0], sizeof(cgbworkram_type), -1);
+			Bfile_ReadFile_OS(hFile, cgb_wram[i]->data, 0x1000, -1);
 		}
 	}
 
 	// video RAM
 	if (cgb.isCGB) {
-		Bfile_ReadFile_OS(hFile, &vram[0], sizeof(0x4000), -1);
+		Bfile_ReadFile_OS(hFile, &vram[0], 0x4000, -1);
 	} else {
-		Bfile_ReadFile_OS(hFile, &vram[0], sizeof(0x2000), -1);
+		Bfile_ReadFile_OS(hFile, &vram[0], 0x2000, -1);
 	}
 
 	Bfile_ReadFile_OS(hFile, &oam[0], sizeof(oam), -1);
 
 	// only write sram for small ram sizes
+	// removing this for now... tend to want the sram to stick around..
+	/*
 	if (RAMSize <= 8 * 1024) {
 		Bfile_ReadFile_OS(hFile, &sram[0], RAMSize, -1);
 	}
+	*/
 
 	Bfile_CloseFile_OS(hFile);
 
 	// memory bus controller has to invalidate some stuff, etc
 	mbcOnStateLoad();
 
+	mbcFileUpdate();
+
 	// color gameboy needs to fix some stuff too
 	if (cgb.isCGB) {
 		cgbOnStateLoad();
 	}
-
-	mbcFileUpdate();
 
 	screens[curScreen]->postStateChange();
 

@@ -221,6 +221,8 @@ void cgbOnStateLoad() {
 
 	cgbSelectVRAM(cgb.selectedVRAM, true);
 	cgbSelectWRAM(cgb.selectedWRAM, true);
+
+	cgb.dirtyPalette = true;
 }
 
 void cgbCleanup() {
