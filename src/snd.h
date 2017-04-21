@@ -2,7 +2,7 @@
 
 // sound baud rate
 #if TARGET_PRIZM
-#define SOUND_RATE (7168 * 4)
+#define SOUND_RATE (7168 * 2)
 #else
 #define SOUND_RATE 8192
 #endif
@@ -26,4 +26,10 @@ void sndStartup();
 // called from the platform sound system to fill a 1/256 second buffer (0-1020) based on current sound values
 void sndFrame(int* buffer, int length);
 
+#if TARGET_PRIZM
+#include "tmu.h"
+extern unsigned int lastSoundCounter;
+#define condSoundUpdate() if (emulator.settings.sound && lastSoundCounter > REG_TMU_TCNT_1) sndUpdate()
+#else
 #define condSoundUpdate() if (emulator.settings.sound) sndUpdate()
+#endif

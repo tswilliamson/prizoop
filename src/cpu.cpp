@@ -1291,7 +1291,6 @@ void cpuStep() {
 
 			if (gpuCheck()) gpuStep();
 			if (interruptCheck()) interruptStep();
-			condSoundUpdate();
 		}
 	}
 }

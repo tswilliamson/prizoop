@@ -62,7 +62,10 @@ void DmaWaitNext(void) {
 			break;
 		if ((*DMA0_CHCR_0) & 2)//Transfer is done
 			break;
+
+		condSoundUpdate();
 	}
+
 	SYNCO();
 	*DMA0_CHCR_0 &= ~1;
 	*DMA0_DMAOR = 0;
@@ -114,6 +117,8 @@ void resolveScanline_NONE() {
 			DirectScanline16(scanline);
 			scanline += 80;
 			lineBuffer += 176;
+
+			condSoundUpdate();
 		}
 
 		// send DMA
@@ -153,6 +158,8 @@ void resolveScanline_LO_200(void) {
 			DirectDoubleScanline32(scanline, scanline + 160);
 			scanline += 320;
 			lineBuffer += 176;
+
+			condSoundUpdate();
 		}
 
 		// send DMA
@@ -189,6 +196,8 @@ void resolveScanline_HI_200(void) {
 			DirectScanline32(scanline);
 			scanline += 160;
 			lineBuffer += 176;
+
+			condSoundUpdate();
 		}
 
 		// send DMA
@@ -224,6 +233,8 @@ void resolveScanline_LO_150(void) {
 			DirectScanline24(scanline);
 			scanline += 120;
 			lineBuffer += 176;
+
+			condSoundUpdate();
 		}
 
 		// send DMA
@@ -260,6 +271,8 @@ void resolveScanline_HI_150(void) {
 			BlendScanline24(scanline);
 			scanline += 120;
 			lineBuffer += 176;
+
+			condSoundUpdate();
 		}
 
 		// send DMA
@@ -411,6 +424,8 @@ void drawFramebufferMain(void) {
 			skippingFrame = (framecounter % (frameSkip + 1)) != 0;
 		}
 	}
+
+	sndUpdate();
 
 	if (skippingFrame) {
 		return;

@@ -92,11 +92,12 @@ struct st_scif0 {                                      /* struct SCIF0 */
 
 #define SCIF2 (*(volatile struct st_scif0 *)0xA4410000)/* SCIF0 Address */
 
-#define BUFF_SIZE (SOUND_RATE / 256)
+#define BUFF_SIZE (SOUND_RATE / 64)
 
 static int curSoundBuffer[BUFF_SIZE];
 static int sampleNum = 0;
 static int volDivisor = 384;		// default volume
+unsigned int lastSoundCounter;
 
 struct BTCEntry {
 	unsigned char bits;
@@ -138,21 +139,22 @@ bool sndInit() {
 	SCIF2.SCSMR.BIT.CA = 1;		//Synchronous mode is 16 times faster
 
 	sampleNum = 0;
+	lastSoundCounter = 0x7FFFFFFF;
 
 	// tune bitrate based on clock speed
 	if (getDeviceType() == DT_CG50) {
-		SCIF2.SCBRR = 16;
+		SCIF2.SCBRR = 32;
 	} else {
 		switch (Ptune2_GetSetting()) {
 			case PT2_DEFAULT:
 			case PT2_NOMEMWAIT:
-				SCIF2.SCBRR = 8;
+				SCIF2.SCBRR = 16;
 				break;
 			case PT2_HALFINC:
-				SCIF2.SCBRR = 12;
+				SCIF2.SCBRR = 24;
 				break;
 			case PT2_DOUBLE:
-				SCIF2.SCBRR = 16;
+				SCIF2.SCBRR = 32;
 				break;
 		}
 	}
@@ -166,7 +168,10 @@ bool sndInit() {
 static void feed() {
 	TIME_SCOPE();
 
-	sndFrame(curSoundBuffer, BUFF_SIZE);
+	sndFrame(&curSoundBuffer[0 * BUFF_SIZE / 4],	BUFF_SIZE / 4);
+	sndFrame(&curSoundBuffer[1 * BUFF_SIZE / 4],	BUFF_SIZE / 4);
+	sndFrame(&curSoundBuffer[2 * BUFF_SIZE / 4],	BUFF_SIZE / 4);
+	sndFrame(&curSoundBuffer[3 * BUFF_SIZE / 4],	BUFF_SIZE / 4);
 	sampleNum = 0;
 }
 
@@ -174,6 +179,10 @@ static void feed() {
 void sndUpdate() {
 	{
 		int toAdd = Serial_PollTX();
+
+		// perform this update every 1/360th of a second or so
+		lastSoundCounter = REG_TMU_TCNT_1 - 40;
+
 		while (toAdd > 64)
 		{
 			TIME_SCOPE();

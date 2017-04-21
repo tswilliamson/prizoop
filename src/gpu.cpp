@@ -64,6 +64,9 @@ static inline void SetLY(unsigned int ly) {
 	} else {
 		cpu.memory.STAT_lcdstatus &= ~STAT_LYCSIGNAL;
 	}
+
+	// update sound 150x per frame
+	condSoundUpdate();
 }
 
 void stepLCDOn_OAM(void) {
