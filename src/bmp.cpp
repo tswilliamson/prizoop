@@ -8,6 +8,7 @@
 #include "cgb_bootstrap.h"
 #include "memory.h"
 #include "cgb.h"
+#include "gpu.h"
 
 #include "zx7/zx7.h"
 
@@ -159,9 +160,17 @@ void emulator_screen::DrawPausePreview() {
 	unsigned char* pause = &emulator.pausePreview[0];
 	unsigned short* vramStart = ((unsigned short*)GetVRAMAddress()) + xStart + yStart * LCD_WIDTH_PX;
 	for (int y = 0; y < 72; y++) {
-		for (int x = 0; x < 80; x++, pause++) {
-			unsigned int color = ppuPalette[*pause] & 0xFFFF;
-			vramStart[x + y * LCD_WIDTH_PX] = color;
+		if (cgb.isCGB) {
+			for (int x = 0; x < 80; x++, pause++) {
+				unsigned int color = ppuPalette[*pause] & 0xFFFF;
+				vramStart[x + y * LCD_WIDTH_PX] = color;
+			}
+		} else {
+			for (int x = 0; x < 80; x++, pause++) {
+				unsigned int color1 = ppuPalette[(*pause) & 0x0F] & 0xFFFF;
+				unsigned int color2 = ppuPalette[((*pause) & 0xF0) >> 4] & 0xFFFF;
+				vramStart[x + y * LCD_WIDTH_PX] = mix565(color1, color2);
+			}
 		}
 	}
 }

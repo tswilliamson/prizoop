@@ -3,18 +3,6 @@
 // Shared between platforms, renders a scanline based on the unsigned short color palette to different types
 // (we speed up 2x scaling by directly rendering a scanline to unsigned long)
 
-// color mixing helpers
-inline unsigned short mix565(unsigned int X, unsigned int Y) {
-	// RGB565 color mix
-	// thanks to http://www.slack.net/~ant/info/rgb_mixing.html
-	return (X + Y - ((X ^ Y) & 0x0821)) >> 1;
-}
-
-inline unsigned int mix565_32(unsigned int X, unsigned int Y) {
-	// RGB565 color mix with two simultaneous colors
-	return ((X + Y - ((X ^ Y) & 0x08210821)) >> 1) | ((X & Y & 0x80000000));
-}
-
 // resolve scanline to 16 bit wide pixels (100%)
 inline void DirectScanline16(unsigned int* scanline) {
 	// middle 160 bytes of linebuffer go into scanline

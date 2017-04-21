@@ -98,3 +98,15 @@ inline void resolveDMGOBJ1Palette() {
 	ppuPalette[10] = ppuPalette[20 + ((cpu.memory.OBP1_spritepal1 & 0x30) >> 4)];
 	ppuPalette[11] = ppuPalette[20 + ((cpu.memory.OBP1_spritepal1 & 0xC0) >> 6)];
 }
+
+// color mixing helpers
+inline unsigned short mix565(unsigned int X, unsigned int Y) {
+	// RGB565 color mix
+	// thanks to http://www.slack.net/~ant/info/rgb_mixing.html
+	return (X + Y - ((X ^ Y) & 0x0821)) >> 1;
+}
+
+inline unsigned int mix565_32(unsigned int X, unsigned int Y) {
+	// RGB565 color mix with two simultaneous colors
+	return ((X + Y - ((X ^ Y) & 0x08210821)) >> 1) | ((X & Y & 0x80000000));
+}
