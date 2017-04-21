@@ -168,10 +168,7 @@ bool sndInit() {
 static void feed() {
 	TIME_SCOPE();
 
-	sndFrame(&curSoundBuffer[0 * BUFF_SIZE / 4],	BUFF_SIZE / 4);
-	sndFrame(&curSoundBuffer[1 * BUFF_SIZE / 4],	BUFF_SIZE / 4);
-	sndFrame(&curSoundBuffer[2 * BUFF_SIZE / 4],	BUFF_SIZE / 4);
-	sndFrame(&curSoundBuffer[3 * BUFF_SIZE / 4],	BUFF_SIZE / 4);
+	sndFrame(curSoundBuffer, BUFF_SIZE);
 	sampleNum = 0;
 }
 

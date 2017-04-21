@@ -25,11 +25,7 @@ static void prepareBuffer(HWAVEOUT hwo, int bufferNum) {
 	int last = renderBuffer[BUFFER_SIZE-1];
 
 	// buffer is 4 frames
-	const int quartiles[4] = { BUFFER_SIZE / 4, BUFFER_SIZE / 2, BUFFER_SIZE * 3 / 4, BUFFER_SIZE };
-	sndFrame(&renderBuffer[0], quartiles[0]);
-	sndFrame(&renderBuffer[quartiles[0]], quartiles[1] - quartiles[0]);
-	sndFrame(&renderBuffer[quartiles[1]], quartiles[2] - quartiles[1]);
-	sndFrame(&renderBuffer[quartiles[2]], quartiles[3] - quartiles[2]);
+	sndFrame(&renderBuffer[0], BUFFER_SIZE);
 
 	for (int i = BUFFER_SIZE - 1; i > 0; i--) {
 		buffer[bufferNum][i] = (renderBuffer[i] + renderBuffer[i - 1]) * 16;

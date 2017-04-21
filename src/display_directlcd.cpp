@@ -425,7 +425,7 @@ void drawFramebufferMain(void) {
 		}
 	}
 
-	sndUpdate();
+	if (emulator.settings.sound) sndUpdate();
 
 	if (skippingFrame) {
 		return;
