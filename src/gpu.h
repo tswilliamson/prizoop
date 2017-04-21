@@ -100,7 +100,7 @@ inline void resolveDMGOBJ1Palette() {
 }
 
 // color mixing helpers
-inline unsigned short mix565(unsigned int X, unsigned int Y) {
+inline unsigned int mix565(unsigned int X, unsigned int Y) {
 	// RGB565 color mix
 	// thanks to http://www.slack.net/~ant/info/rgb_mixing.html
 	return (X + Y - ((X ^ Y) & 0x0821)) >> 1;

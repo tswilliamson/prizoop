@@ -148,16 +148,14 @@ void resolveScanline_LO_200(void) {
 	curScan++;
 	if (curScan == bufferLines) {
 		// we've rendered as much as we can buffer, resolve to pixels and DMA it:
-		lineBuffer = ((int*)0xE5017000);
+		prevLineBuffer = ((int*)0xE5017000);
+		lineBuffer = ((int*)0xE5017000) + 176;
 		unsigned int* scanline = (unsigned int*)&scanGroup[curScanBuffer*scanBufferSize];
 		for (int i = 0; i < bufferLines; i += 2) {
-			DirectScanline32(scanline);
-			scanline += 160;
-			lineBuffer += 176;
-
-			DirectDoubleScanline32(scanline, scanline + 160);
-			scanline += 320;
-			lineBuffer += 176;
+			DirectTripleScanline32(scanline, scanline + 160, scanline + 320);
+			scanline += 480;
+			lineBuffer += 176 * 2;
+			prevLineBuffer += 176 * 2;
 
 			condSoundUpdate();
 		}
@@ -183,19 +181,14 @@ void resolveScanline_HI_200(void) {
 	curScan++;
 	if (curScan == bufferLines) {
 		// we've rendered as much as we can buffer, resolve to pixels and DMA it:
-		lineBuffer = ((int*)0xE5017000);
+		prevLineBuffer = ((int*)0xE5017000);
+		lineBuffer = ((int*)0xE5017000) + 176;
 		unsigned int* scanline = (unsigned int*)&scanGroup[curScanBuffer*scanBufferSize];
 		for (int i = 0; i < bufferLines; i += 2) {
-			DirectScanline32(scanline);
-			scanline += 160;
-			prevLineBuffer = lineBuffer;
-			lineBuffer += 176;
-
-			BlendMixedScanline32(scanline);
-			scanline += 160;
-			DirectScanline32(scanline);
-			scanline += 160;
-			lineBuffer += 176;
+			BlendTripleScanline32(scanline, scanline + 160, scanline + 320);
+			scanline += 480;
+			lineBuffer += 176 * 2;
+			prevLineBuffer += 176 * 2;
 
 			condSoundUpdate();
 		}
@@ -221,18 +214,14 @@ void resolveScanline_LO_150(void) {
 	curScan++;
 	if (curScan == bufferLines) {
 		// we've rendered as much as we can buffer, resolve to pixels and DMA it:
-		lineBuffer = ((int*)0xE5017000);
+		prevLineBuffer = ((int*)0xE5017000);
+		lineBuffer = ((int*)0xE5017000) + 176;
 		unsigned int* scanline = (unsigned int*)&scanGroup[curScanBuffer*scanBufferSize];
 		for (int i = 0; i < bufferLines; i += 2) {
-			DirectScanline24(scanline);
-			scanline += 120;
-			lineBuffer += 176;
-
-			DirectScanline24(scanline);
-			scanline += 120;
-			DirectScanline24(scanline);
-			scanline += 120;
-			lineBuffer += 176;
+			DirectTripleScanline24(scanline, scanline + 120, scanline + 240);
+			scanline += 360;
+			lineBuffer += 176 * 2;
+			prevLineBuffer += 176 * 2;
 
 			condSoundUpdate();
 		}
@@ -258,19 +247,14 @@ void resolveScanline_HI_150(void) {
 	curScan++;
 	if (curScan == bufferLines) {
 		// we've rendered as much as we can buffer, resolve to pixels and DMA it:
-		lineBuffer = ((int*)0xE5017000);
+		prevLineBuffer = ((int*)0xE5017000);
+		lineBuffer = ((int*)0xE5017000) + 176;
 		unsigned int* scanline = (unsigned int*)&scanGroup[curScanBuffer*scanBufferSize];
 		for (int i = 0; i < bufferLines; i += 2) {
-			BlendScanline24(scanline);
-			scanline += 120;
-			prevLineBuffer = lineBuffer;
-			lineBuffer += 176;
-
-			BlendMixedScanline24(scanline);
-			scanline += 120;
-			BlendScanline24(scanline);
-			scanline += 120;
-			lineBuffer += 176;
+			BlendTripleScanline24(scanline, scanline + 120, scanline + 240);
+			scanline += 360;
+			lineBuffer += 176 * 2;
+			prevLineBuffer += 176 * 2;
 
 			condSoundUpdate();
 		}
