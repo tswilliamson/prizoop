@@ -24,11 +24,11 @@ static int sndIter = 0;
 
 const int FREQ_FACTOR = 131072 * 64 / SOUND_RATE;
 
-const int waveduty[4][8] = {
-	{ 1, 0, 0, 0, 0, 0, 0, 0 },
-	{ 1, 1, 0, 0, 0, 0, 0, 0 },
-	{ 1, 1, 1, 1, 0, 0, 0, 0 },
-	{ 1, 1, 1, 1, 1, 1, 0, 0,},
+const int waveduty[4][16] = {
+	{ 15, 15, 2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0, 0, 2 },
+	{ 15, 15, 15, 15, 2,  0,  0,  0,  0,  0,  0,  0,  0, 0, 0, 2 },
+	{ 15, 15, 15, 15, 15, 15, 15, 15, 2,  0,  0,  0,  0, 0, 0, 2 },
+	{ 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 2, 0, 0, 2 },
 };
 
 void sndStartup() {
@@ -51,7 +51,7 @@ void sndFrame(int* buffer, int buffSize) {
 		return;
 	}
 
-	// normalize master volume to 17 (makes output range to 1020)
+	// normalize master volume to 20 (makes output range to 15750)
 	masterVol = (masterVol * 17) / 14;
 
 	// check for channel inits
@@ -100,7 +100,7 @@ void sndFrame(int* buffer, int buffSize) {
 
 			// determine rate to frequency conversion
 			int freq = (cpu.memory.NR13_snd1frqlo | ((cpu.memory.NR14_snd1ctl & 0x07) << 8));
-			int invFreqFactor = 128 * FREQ_FACTOR / (2048 - freq);
+			int invFreqFactor = 256 * FREQ_FACTOR / (2048 - freq);
 
 			// volume is multiple of channel and master volume
 			int vol = snd.ch1Volume * masterVol;
@@ -111,7 +111,7 @@ void sndFrame(int* buffer, int buffSize) {
 			// fill our sound buffer
 			int j = sndIter;
 			for (int i = 0; i < subSize; j++, i++) {
-				buffer[i] = vol * duty[((j * invFreqFactor) >> 10) % 8];
+				buffer[i] = vol * duty[((j * invFreqFactor) >> 10) % 16];
 			}
 
 			// if length is in use, "decrement" it until sound is done
@@ -148,8 +148,7 @@ void sndFrame(int* buffer, int buffSize) {
 						if (freq <= 0) {
 							freq = 0;
 							masterCtl &= ~0x01;
-						}
-						else if (freq >= 2048) {
+						} else if (freq >= 2048) {
 							freq = 2047;
 							masterCtl &= ~0x01;
 						}
@@ -171,7 +170,7 @@ void sndFrame(int* buffer, int buffSize) {
 
 			// determine rate to frequency conversion
 			int freq = 2048 - (cpu.memory.NR23_snd2frqlo | ((cpu.memory.NR24_snd2ctl & 0x07) << 8));
-			int invFreqFactor = 128 * FREQ_FACTOR / freq;
+			int invFreqFactor = 256 * FREQ_FACTOR / freq;
 
 			// volume is mult of current channel volume and master volume
 			int vol = (snd.ch2Volume & 0xF) * masterVol;
@@ -182,7 +181,7 @@ void sndFrame(int* buffer, int buffSize) {
 			// fill our sound buffer
 			int j = sndIter;
 			for (int i = 0; i < subSize; j++, i++) {
-				buffer[i] += vol * duty[((j * invFreqFactor) >> 10) % 8];
+				buffer[i] += vol * duty[((j * invFreqFactor) >> 10) % 16];
 			}
 
 			// if length is in use, "decrement" it until sound is done
@@ -205,7 +204,7 @@ void sndFrame(int* buffer, int buffSize) {
 			int invFreqFactor = 128 * FREQ_FACTOR / freq;
 
 			// volume is master volume since we use a bitshift w/ pattern RAM
-			int vol = masterVol;
+			int vol = masterVol * 15;
 
 			int volBit = (cpu.memory.NR32_snd3vol & 0x60) >> 5;
 
@@ -258,7 +257,7 @@ void sndFrame(int* buffer, int buffSize) {
 						snd.ch4LFSR = ((snd.ch4LFSR >> 1) && 0x7F7F) | (xorBit << 15) | (xorBit << 7);
 						last = cur;
 					}
-					buffer[i] += ((snd.ch4LFSR & 0xF) * vol) >> 4;
+					buffer[i] += ((snd.ch4LFSR & 0xF) * vol);
 				}
 			}
 			else {
@@ -270,7 +269,7 @@ void sndFrame(int* buffer, int buffSize) {
 						snd.ch4LFSR = (snd.ch4LFSR >> 1) | (xorBit << 15);
 						last = cur;
 					}
-					buffer[i] += ((snd.ch4LFSR & 0xF) * vol) >> 4;
+					buffer[i] += ((snd.ch4LFSR & 0xF) * vol);
 				}
 			}
 

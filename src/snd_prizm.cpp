@@ -96,7 +96,7 @@ struct st_scif0 {                                      /* struct SCIF0 */
 
 static int curSoundBuffer[BUFF_SIZE];
 static int sampleNum = 0;
-static int volDivisor = 384;		// default volume
+static int volDivisor = 192;		// default volume
 unsigned int lastSoundCounter;
 
 struct BTCEntry {
@@ -108,22 +108,22 @@ static BTCEntry* btcTable = NULL;
 
 void computeBTCTable(int divisor) {
 	for (int i = 0; i < 1024; i++) {
-		int curVoltage = 2048;
-		int curSample = i * 4;
+		int curVoltage = 16384;
+		int curSample = i * 32;
 
 		unsigned byte = 0;
 		for (int b = 0; b < 8; b++) {
 			if (curVoltage < curSample) {
-				curVoltage += (8192 / divisor);
+				curVoltage += (65536 / divisor);
 				byte |= (1 << b);
 			}
 			else {
-				curVoltage -= (3072 / divisor);
+				curVoltage -= (24576 / divisor);
 			}
 		}
 
 		btcTable[i].bits = byte;
-		btcTable[i].voltageOffset = curVoltage - 2048;
+		btcTable[i].voltageOffset = curVoltage - 16384;
 	}
 }
 
@@ -185,11 +185,11 @@ void sndUpdate() {
 			TIME_SCOPE();
 
 			static int curVoltage = 0;
-			static int curSample = 2048;
+			static int curSample = 16384;
 
 			if (toAdd == 256) {
 				// reset voltage because we missed too many samples
-				curVoltage = max(curSample - 2047, 0);
+				curVoltage = max(curSample - 16383, 0);
 			}
 
 			unsigned char writeBuffer[64];
@@ -199,18 +199,18 @@ void sndUpdate() {
 					sampleNum = 0;
 				}
 				int lastSample = curSample;
-				curSample = curSoundBuffer[sampleNum] * 2 + 2048;
+				curSample = curSoundBuffer[sampleNum] + 16384;
 				sampleNum++;
 
 				{
-					int tableEntry = ((((curSample + lastSample) >> 1) + 2048 - curVoltage) >> 2) & 0x03FF;
+					int tableEntry = ((((curSample + lastSample) >> 1) + 16384 - curVoltage) >> 5) & 0x03FF;
 					const BTCEntry& e = btcTable[tableEntry];
 					curVoltage += e.voltageOffset;
 					writeBuffer[iter] = e.bits;
 				}
 
 				{
-					int tableEntry = ((curSample + 2048 - curVoltage) >> 2) & 0x03FF;
+					int tableEntry = ((curSample + 16384 - curVoltage) >> 5) & 0x03FF;
 					const BTCEntry& e = btcTable[tableEntry];
 					curVoltage += e.voltageOffset;
 					writeBuffer[iter + 1] = e.bits;
@@ -235,7 +235,7 @@ void sndCleanup() {
 
 
 void sndVolumeUp() {
-	if (volDivisor < 1024) {
+	if (volDivisor < 4096) {
 		volDivisor <<= 1;
 		computeBTCTable(volDivisor);
 	}

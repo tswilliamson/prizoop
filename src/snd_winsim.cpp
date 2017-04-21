@@ -28,9 +28,9 @@ static void prepareBuffer(HWAVEOUT hwo, int bufferNum) {
 	sndFrame(&renderBuffer[0], BUFFER_SIZE);
 
 	for (int i = BUFFER_SIZE - 1; i > 0; i--) {
-		buffer[bufferNum][i] = (renderBuffer[i] + renderBuffer[i - 1]) * 16;
+		buffer[bufferNum][i] = (renderBuffer[i] + renderBuffer[i - 1]);
 	}
-	buffer[bufferNum][0] = (renderBuffer[0] + last) * 16;
+	buffer[bufferNum][0] = (renderBuffer[0] + last);
 }
 
 static void CALLBACK sndProc(

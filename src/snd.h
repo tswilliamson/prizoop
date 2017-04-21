@@ -23,7 +23,7 @@ void sndVolumeDown();
 // called on rom start up to initialize sound registers
 void sndStartup();
 
-// called from the platform sound system to fill a 1/64 second buffer (0-1020) based on current sound values
+// called from the platform sound system to fill a 1/64 second buffer (range 0-15750) based on current sound values
 void sndFrame(int* buffer, int length);
 
 #if TARGET_PRIZM
