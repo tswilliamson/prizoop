@@ -84,8 +84,8 @@ void screen_settings::drawOptions() {
 		if (options[i].type == 0) {
 			unsigned char isOn = *((unsigned char*)options[i].addr);
 
-			Print(200, y, "On", selected && isOn, isOn && !options[i].disabled ? COLOR_WHITE : COLOR_DARKGRAY);
-			Print(230, y, "Off", selected && !isOn, !isOn && !options[i].disabled ? COLOR_WHITE : COLOR_DARKGRAY);
+			Print(180, y, "On", selected && isOn, isOn && !options[i].disabled ? COLOR_WHITE : COLOR_DARKGRAY);
+			Print(210, y, "Off", selected && !isOn, !isOn && !options[i].disabled ? COLOR_WHITE : COLOR_DARKGRAY);
 		}
 		else if (options[i].type == 1) {
 			// key map
@@ -95,13 +95,13 @@ void screen_settings::drawOptions() {
 			char skip = *((char*)options[i].addr);
 
 			if (skip == -1) {
-				Print(200, y, "Auto", selected);
+				Print(180, y, "Auto", selected);
 			}
 			else {
 				char buffer[5];
 				memset(buffer, 0, sizeof(buffer));
 				sprintf(buffer, "%d", skip);
-				Print(200, y, buffer, selected);
+				Print(180, y, buffer, selected);
 			}
 		}
 		else if (options[i].type == 3) {
@@ -112,7 +112,7 @@ void screen_settings::drawOptions() {
 			// draw each color box
 			for (int j = 0; j < 4; j++) {
 				display_fill area;
-				area.x1 = 200 + 18 * j; 
+				area.x1 = 180 + 18 * j; 
 				area.x2 = area.x1 + 16;
 				area.y1 = y + 1;
 				area.y2 = y + 16;
@@ -134,7 +134,7 @@ void screen_settings::drawOptions() {
 			unsigned short colors[] = {
 				COLOR_WHITE, COLOR_WHITE, COLOR_ORANGE, COLOR_YELLOW, COLOR_ORANGE
 			};
-			Print(200, y, modes[opt], selected, !options[i].disabled ? colors[opt] : COLOR_DARKGRAY);
+			Print(180, y, modes[opt], selected, !options[i].disabled ? colors[opt] : COLOR_DARKGRAY);
 		}
 	}
 }

@@ -353,8 +353,7 @@ void drawFramebufferMain(void) {
 		static unsigned int collectedFrames = 0;
 		collectedTime += tmu1Clocks;
 		collectedFrames++;
-		if (frameSkip < 0 && !skippingFrame && collectedFrames > 3) {
-			static int agreeRun = 0;		// must agree for 3 rendered frames in a row
+		if (frameSkip < 0 && collectedFrames > 12) {
 			int speedUpTime = simFrameTime * 95 / 100;
 			int slowDownTime = simFrameTime * 105 / 100;
 			int avgTime = collectedTime / collectedFrames;
@@ -362,19 +361,9 @@ void drawFramebufferMain(void) {
 			collectedFrames = 0;
 
 			if (avgTime < speedUpTime && frameSkip != -1) {
-				agreeRun++;
-				if (agreeRun == 3) {
-					frameSkip++;
-					agreeRun = 0;
-				}
-			} else if (avgTime > slowDownTime && frameSkip != -31) {
-				agreeRun--;
-				if (agreeRun == -3) {
-					frameSkip--;
-					agreeRun = 0;
-				}
-			} else {
-				agreeRun = 0;
+				frameSkip++;
+			} else if (avgTime > slowDownTime && frameSkip != -25) {
+				frameSkip--;
 			}
 		}
 
