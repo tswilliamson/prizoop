@@ -31,8 +31,19 @@ const int waveduty[4][16] = {
 	{ 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 2, 0, 0, 2 },
 };
 
+int* invFreqTable = NULL;
+
 void sndStartup() {
 	memset(&snd, 0, sizeof(snd));
+
+	if (invFreqTable == NULL) {
+		invFreqTable = (int*)malloc(2048 * 4);
+		for (int i = 0; i < 2048; i++) {
+			int freq = max(2048 - i, 31);			// clamp to 4 KHz or so
+			int invFreqFactor = 256 * FREQ_FACTOR / freq;
+			invFreqTable[i] = invFreqFactor;
+		}
+	}
 }
 
 // called from the platform sound system to fill a buffer based on current sound values
@@ -42,8 +53,8 @@ void sndFrame(int* buffer, int buffSize) {
 	int masterCtl = cpu.memory.NR52_soundmast;
 
 	// skip if nothing will output
-	if (masterCtl & 0x80 == 0 || masterVol == 0 || cpu.memory.NR51_chselect == 0) {
-		if ((masterCtl & 0x80 == 0)) {
+	if ((masterCtl & 0x80) == 0 || masterVol == 0 || cpu.memory.NR51_chselect == 0) {
+		if ((masterCtl & 0x80) == 0) {
 			cpu.memory.NR52_soundmast = 0;	// make sure channel on flags are reset
 		}
 
@@ -51,8 +62,8 @@ void sndFrame(int* buffer, int buffSize) {
 		return;
 	}
 
-	// normalize master volume to 20 (makes output range to 15750)
-	masterVol = (masterVol * 17) / 14;
+	// normalize master volume to 20/14 (makes output range to 15750)
+	masterVol = (masterVol * 182) / 128;
 
 	// check for channel inits
 	if (cpu.memory.NR14_snd1ctl & 0x80) {
@@ -100,7 +111,7 @@ void sndFrame(int* buffer, int buffSize) {
 
 			// determine rate to frequency conversion
 			int freq = (cpu.memory.NR13_snd1frqlo | ((cpu.memory.NR14_snd1ctl & 0x07) << 8));
-			int invFreqFactor = 256 * FREQ_FACTOR / (2048 - freq);
+			int invFreqFactor = invFreqTable[freq];
 
 			// volume is multiple of channel and master volume
 			int vol = snd.ch1Volume * masterVol;
@@ -132,15 +143,13 @@ void sndFrame(int* buffer, int buffSize) {
 				if (ch1Sweep) {
 					if (++snd.ch1SweepCounter >= ch1Sweep) {
 						// change channel 1 frequency
-						int freq = (cpu.memory.NR13_snd1frqlo | ((cpu.memory.NR14_snd1ctl & 0x07) << 8));
 
 						snd.ch1SweepCounter = 0;
 						int bits = cpu.memory.NR10_snd1sweep & 0x07;
 						if (cpu.memory.NR10_snd1sweep & 0x08) {
 							// decrease
 							freq -= (freq >> bits);
-						}
-						else {
+						} else {
 							freq += (freq >> bits);
 						}
 
@@ -169,8 +178,7 @@ void sndFrame(int* buffer, int buffSize) {
 			const int* duty = &waveduty[(cpu.memory.NR21_snd2len & 0xC0) >> 6][0];
 
 			// determine rate to frequency conversion
-			int freq = 2048 - (cpu.memory.NR23_snd2frqlo | ((cpu.memory.NR24_snd2ctl & 0x07) << 8));
-			int invFreqFactor = 256 * FREQ_FACTOR / freq;
+			int invFreqFactor = invFreqTable[cpu.memory.NR23_snd2frqlo | ((cpu.memory.NR24_snd2ctl & 0x07) << 8)];
 
 			// volume is mult of current channel volume and master volume
 			int vol = (snd.ch2Volume & 0xF) * masterVol;
@@ -200,8 +208,7 @@ void sndFrame(int* buffer, int buffSize) {
 		// sound channel 3 (wave RAM)
 		if ((!ch3UseLength || (masterCtl & 0x04)) && (cpu.memory.NR30_snd3enable & 0x80)) {	// not using or not out of length yet, AND enabled
 			// determine rate to frequency conversion
-			int freq = 2048 - (cpu.memory.NR33_snd3frqlo | ((cpu.memory.NR34_snd3ctl & 0x07) << 8));
-			int invFreqFactor = 128 * FREQ_FACTOR / freq;
+			int invFreqFactor = invFreqTable[cpu.memory.NR33_snd3frqlo | ((cpu.memory.NR34_snd3ctl & 0x07) << 8)];
 
 			// volume is master volume since we use a bitshift w/ pattern RAM
 			int vol = masterVol * 15;
@@ -214,7 +221,7 @@ void sndFrame(int* buffer, int buffSize) {
 			// fill our sound buffer
 			int j = sndIter;
 			for (int i = 0; i < subSize; j++, i++) {
-				int samp = ((j * invFreqFactor) >> 9) % 32;
+				int samp = ((j * invFreqFactor) >> 10) % 32;
 				buffer[i] += (vol * ((samp & 1) ? (cpu.memory.WAVE_ptr[samp / 2] & 0x0F) : ((cpu.memory.WAVE_ptr[samp / 2] & 0xF0) >> 4))) >> volBit;
 			}
 
@@ -236,7 +243,7 @@ void sndFrame(int* buffer, int buffSize) {
 			// determine rate to frequency conversion
 			const int divTable[8] = { 8, 16, 32, 48, 64, 80, 96, 112 };
 			int freq = divTable[cpu.memory.NR43_snd4cnt & 7] << ((cpu.memory.NR43_snd4cnt & 0xF0) >> 4);
-			int invFreqFactor = 128 * FREQ_FACTOR / freq;
+			int invFreqFactor = invFreqTable[2048 - freq];
 
 			// volume is mult of current channel volume and master volume
 			// noise volume is halved because prizm output struggles with it
@@ -247,11 +254,11 @@ void sndFrame(int* buffer, int buffSize) {
 
 			// fill our sound buffer
 			int j = sndIter;
-			int last = ((j * invFreqFactor) >> 7);
+			int last = ((j * invFreqFactor) >> 8);
 			if (cpu.memory.NR43_snd4cnt & 0x80) {
 				// 7 bit shift
 				for (int i = 0; i < subSize; j++, i++) {
-					int cur = ((j * invFreqFactor) >> 7);
+					int cur = ((j * invFreqFactor) >> 8);
 					if (last != cur) {
 						int xorBit = ((snd.ch4LFSR & 0x02) >> 1) ^ (snd.ch4LFSR & 0x01);
 						snd.ch4LFSR = ((snd.ch4LFSR >> 1) && 0x7F7F) | (xorBit << 15) | (xorBit << 7);
@@ -263,7 +270,7 @@ void sndFrame(int* buffer, int buffSize) {
 			else {
 				// 15 bit shift
 				for (int i = 0; i < subSize; j++, i++) {
-					int cur = ((j * invFreqFactor) >> 7);
+					int cur = ((j * invFreqFactor) >> 8);
 					if (last != cur) {
 						int xorBit = ((snd.ch4LFSR & 0x02) >> 1) ^ (snd.ch4LFSR & 0x01);
 						snd.ch4LFSR = (snd.ch4LFSR >> 1) | (xorBit << 15);

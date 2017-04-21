@@ -96,7 +96,7 @@ struct st_scif0 {                                      /* struct SCIF0 */
 
 static int curSoundBuffer[BUFF_SIZE];
 static int sampleNum = 0;
-static int volDivisor = 192;		// default volume
+static int volDivisor = 96;		// default volume
 unsigned int lastSoundCounter;
 
 struct BTCEntry {
