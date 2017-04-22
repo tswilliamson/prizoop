@@ -26,46 +26,33 @@ inline unsigned char rrc(unsigned char value) {
 }
 
 inline unsigned char rl(unsigned char value) {
-	if (value & 0x80) {
-		value <<= 1;
-		if (FLAGS_ISCARRY) value |= 0x01;
-		FLAGS_SET(FLAGS_C);
-	}
-	else {
-		value <<= 1;
-		if (FLAGS_ISCARRY) value |= 0x01;
-		FLAGS_CLEAR(FLAGS_C);
-	}
+	unsigned int carry = (value & 0x80) >> (7-FLAGS_C_BIT);
+
+	value = (value << 1) | ((FLAGS_ISCARRY) >> FLAGS_C_BIT);
 
 	cpu.registers.f =
 		((value == 0) << FLAGS_Z_BIT) |										// ZERO
 		0 |																	// NEGATIVE
 		0 |																	// HALF-CARRY
-		(FLAGS_ISCARRY);													// CARRY
+		carry;																// CARRY
 
 	return value;
 }
 
 inline unsigned char rr(unsigned char value) {
-	if (value & 0x01) {
-		value >>= 1;
-		if (FLAGS_ISCARRY) value |= 0x80;
-		FLAGS_SET(FLAGS_C);
-	}
-	else {
-		value >>= 1;
-		if (FLAGS_ISCARRY) value |= 0x80;
-		FLAGS_CLEAR(FLAGS_C);
-	}
+	unsigned int carry = (value & 0x01) << FLAGS_C_BIT;
+
+	value = (value >> 1) | ((cpu.registers.f & FLAGS_C) << (7 - FLAGS_C_BIT));
 
 	cpu.registers.f =
 		((value == 0) << FLAGS_Z_BIT) |										// ZERO
 		0 |																	// NEGATIVE
 		0 |																	// HALF-CARRY
-		(FLAGS_ISCARRY);													// CARRY
+		carry;																// CARRY
 
 	return value;
 }
+
 
 inline unsigned char sla(unsigned char value) {
 	cpu.registers.f =

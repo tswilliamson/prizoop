@@ -186,7 +186,7 @@ static inline void add(unsigned char *destination, unsigned char value) {
 	cpu.registers.f =
 		(((result & 0xff) == 0) << FLAGS_Z_BIT) |												// ZERO
 		0 |																						// NEGATIVE
-		((((*destination & 0x0f) + (value & 0x0f)) > 0x0f) << FLAGS_HC_BIT) |					// HALF-CARRY
+		((((*destination & 0x0f) + (value & 0x0f)) & 0x10) << (FLAGS_HC_BIT - 4)) |					// HALF-CARRY
 		(((result & 0xff00) != 0) << FLAGS_C_BIT);												// CARRY
 
 	*destination = (unsigned char)(result & 0xff);
@@ -590,8 +590,8 @@ inline void adc(unsigned char value) {
 	cpu.registers.f =
 		(((result & 0xff) == 0) << FLAGS_Z_BIT) |															// ZERO
 		0 |																									// NEGATIVE
-		((((value & 0x0f) + (cpu.registers.a & 0x0f) + (FLAGS_ISCARRY ? 1 : 0)) > 0x0f) << FLAGS_HC_BIT) |	// HALF-CARRY
-		(((result & 0xff00) != 0) << FLAGS_C_BIT);															// CARRY
+		((((value & 0x0f) + (cpu.registers.a & 0x0f) + (FLAGS_ISCARRY ? 1 : 0)) & 0x10) << (FLAGS_HC_BIT-4)) |	// HALF-CARRY
+		((result & 0x100) >> (8-FLAGS_C_BIT));																// CARRY
 
 	cpu.registers.a = (unsigned char)(result & 0xff);
 }
@@ -632,7 +632,7 @@ inline void sbc(unsigned char value) {
 		(((result & 0xff) == 0) << FLAGS_Z_BIT) |														// ZERO
 		FLAGS_N |																						// NEGATIVE
 		(((value & 0x0f) + (FLAGS_ISCARRY ? 1 : 0) > (cpu.registers.a & 0x0f)) << FLAGS_HC_BIT) |		// HALF-CARRY
-		(((result & 0xff00) != 0) << FLAGS_C_BIT);														// CARRY
+		((result & 0x100) >> (8-FLAGS_C_BIT));															// CARRY
 
 	cpu.registers.a = (unsigned char)(result & 0xff);
 
