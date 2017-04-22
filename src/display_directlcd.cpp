@@ -401,6 +401,7 @@ void drawFramebufferMain(void) {
 	if (emulator.settings.sound) sndUpdate();
 
 	if (skippingFrame) {
+		refreshKeys(false);
 		return;
 	}
 
@@ -415,8 +416,7 @@ void drawFramebufferMain(void) {
 	*((volatile unsigned*)MSTPCR0) &= ~(1 << 21);//Clear bit 21
 
 	// good time to refresh keys and check for os requests and such
-	extern void refresh();
-	refresh();
+	refreshKeys(true);
 }
 
 void SetupDisplayDriver(char withFrameskip) {

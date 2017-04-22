@@ -152,6 +152,7 @@ void drawEmu() {
 	}
 
 	if (skippingFrame) {
+		refreshKeys(false);
 		return;
 	}
 
@@ -159,8 +160,7 @@ void drawEmu() {
 	Bdisp_PutDisp_DD();
 
 	// good time to refresh keys and check for os requests and such
-	extern void refresh();
-	refresh();
+	refreshKeys(true);
 }
 
 

@@ -10,6 +10,7 @@
 
 #include "gpu.h"
 #include "snd.h"
+#include "keys.h"
 
 void(*gpuStep)(void) = NULL;
 
@@ -38,8 +39,7 @@ void stepLCDOff(void) {
 		condSoundUpdate();
 
 		// good time to refresh the keys
-		extern void refresh();
-		refresh();
+		refreshKeys(true);
 	}
 }
 

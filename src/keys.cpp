@@ -25,7 +25,7 @@ static inline unsigned char getGBAKey(unsigned int keyNum) {
 	return keyDown_fast(emulator.settings.keyMap[keyNum]) ? 0 : 1;
 }
 
-void refresh() {
+void refreshKeys(bool systemCalls) {
 	{
 		keys.k1.a = getGBAKey(emu_button::A);
 		keys.k1.b = getGBAKey(emu_button::B);
@@ -37,30 +37,32 @@ void refresh() {
 		keys.k2.down = getGBAKey(emu_button::DOWN);
 	}
 
-	if (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_SAVE])) {
-		emulator.saveState();
-		while (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_SAVE])) {}
-	}
+	if (systemCalls) {
+		if (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_SAVE])) {
+			emulator.saveState();
+			while (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_SAVE])) {}
+		}
 
-	if (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_LOAD])) {
-		emulator.loadState();
-		while (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_LOAD])) {}
-	}
+		if (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_LOAD])) {
+			emulator.loadState();
+			while (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_LOAD])) {}
+		}
 
-	if (keyDown_fast(48)) {
-		// this will set keys.exit once a full frame renders
-		enablePausePreview();
-	}
+		if (keyDown_fast(48)) {
+			// this will set keys.exit once a full frame renders
+			enablePausePreview();
+		}
 
-	// sound volume controls
-	if (emulator.settings.sound && framecounter % 8 == 0) {
-		if (keyDown_fast(42)) sndVolumeUp();
-		if (keyDown_fast(32)) sndVolumeDown();
-	}
+		// sound volume controls
+		if (emulator.settings.sound && framecounter % 8 == 0) {
+			if (keyDown_fast(42)) sndVolumeUp();
+			if (keyDown_fast(32)) sndVolumeDown();
+		}
 
 #if DEBUG
-	if (keyDown_fast(79)) {
-		ScopeTimer::DisplayTimes();
-	}
+		if (keyDown_fast(79)) {
+			ScopeTimer::DisplayTimes();
+		}
 #endif
+	}
 }
