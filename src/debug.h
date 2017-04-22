@@ -38,6 +38,7 @@ struct InstructionsHistory {
 extern int instr_slot;
 extern InstructionsHistory instr_hist[DEBUG_TRACKINSTRUCTIONS];
 #define DebugInstruction(...) { sprintf(instr_hist[instr_slot % DEBUG_TRACKINSTRUCTIONS].instr, __VA_ARGS__); instr_hist[(instr_slot++) % DEBUG_TRACKINSTRUCTIONS].regs = cpu.registers; }
+#define DebugInstructionMapped(...) { sprintf(instr_hist[instr_slot % DEBUG_TRACKINSTRUCTIONS].instr, __VA_ARGS__); instr_hist[(instr_slot++) % DEBUG_TRACKINSTRUCTIONS].regs = cpu.registers; }
 #endif
 
 #define OutputLog(...) { char buffer[1024]; sprintf_s(buffer, 1024, __VA_ARGS__); OutputDebugString(buffer); }
@@ -62,6 +63,7 @@ extern InstructionsHistory instr_hist[DEBUG_TRACKINSTRUCTIONS];
 
 #ifndef DebugInstruction
 #define DebugInstruction(...) 
+#define DebugInstructionMapped(...) 
 #endif
 
 #ifndef DebugWrite

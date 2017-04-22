@@ -17,18 +17,6 @@ cpu_type cpu ALIGN(256);
 
 CT_ASSERT(sizeof(cpu.memory) == 0x100);
 
-#if TARGET_WINSIM
-#include <Windows.h>
-#define DEBUG_ROM 0
-#endif
-
-#if DEBUG_ROM
-int iter = 0;
-#define DebugInstruction(name) { char buffer[256]; sprintf(buffer, "(%d) 0x%04x : %s\n", iter++, cpu.registers.pc-1, name); OutputDebugString(buffer); }
-#else
-// #define DebugInstruction(...) 
-#endif
-
 /*
 	References:
 
@@ -225,31 +213,6 @@ static inline void add2(unsigned short *destination, unsigned short value) {
 	*destination = (unsigned short)(result & 0xffff);
 }
 
-static inline void adc(unsigned char value) {
-	int result = cpu.registers.a + value + (FLAGS_ISCARRY ? 1 : 0);
-
-	cpu.registers.f =
-		(((result & 0xff) == 0) << FLAGS_Z_BIT) |															// ZERO
-		0 |																									// NEGATIVE
-		((((value & 0x0f) + (cpu.registers.a & 0x0f) + (FLAGS_ISCARRY ? 1 : 0)) > 0x0f) << FLAGS_HC_BIT) |	// HALF-CARRY
-		(((result & 0xff00) != 0) << FLAGS_C_BIT);															// CARRY
-
-	cpu.registers.a = (unsigned char)(result & 0xff);
-}
-
-static inline void sbc(unsigned char value) {
-	int result = cpu.registers.a - value - (FLAGS_ISCARRY ? 1 : 0);
-
-	cpu.registers.f =
-		(((result & 0xff) == 0) << FLAGS_Z_BIT) |														// ZERO
-		FLAGS_N |																						// NEGATIVE
-		(((value & 0x0f) + (FLAGS_ISCARRY ? 1 : 0) > (cpu.registers.a & 0x0f)) << FLAGS_HC_BIT) |		// HALF-CARRY
-		(((result & 0xff00) != 0) << FLAGS_C_BIT);														// CARRY
-
-	cpu.registers.a = (unsigned char)(result & 0xff);
-
-}
-
 static inline void sub(unsigned char value) {
 	cpu.registers.f =
 		((cpu.registers.a == value) << FLAGS_Z_BIT) |						// ZERO
@@ -258,44 +221,6 @@ static inline void sub(unsigned char value) {
 		((value > cpu.registers.a) << FLAGS_C_BIT);							// CARRY
 
 	cpu.registers.a -= value;
-}
-
-static inline void and_a(unsigned char value) {
-	cpu.registers.a &= value;
-
-	cpu.registers.f =
-		((cpu.registers.a == 0) << FLAGS_Z_BIT) |							// ZERO
-		0 |																	// NEGATIVE
-		FLAGS_HC |															// HALF-CARRY
-		0;																	// CARRY
-}
-
-static inline void or_a(unsigned char value) {
-	cpu.registers.a |= value;
-
-	cpu.registers.f =
-		((cpu.registers.a == 0) << FLAGS_Z_BIT) |							// ZERO
-		0 |																	// NEGATIVE
-		0 |																	// HALF-CARRY
-		0;																	// CARRY
-}
-
-static inline void xor_a(unsigned char value) {
-	cpu.registers.a ^= value;
-
-	cpu.registers.f =
-		((cpu.registers.a == 0) << FLAGS_Z_BIT) |							// ZERO
-		0 |																	// NEGATIVE
-		0 |																	// HALF-CARRY
-		0;																	// CARRY
-}
-
-static inline void cp(unsigned char value) {
-	cpu.registers.f =
-		((cpu.registers.a == value) << FLAGS_Z_BIT) |						// ZERO
-		FLAGS_N |															// NEGATIVE
-		(((value & 0x0f) > (cpu.registers.a & 0x0f)) << FLAGS_HC_BIT) |		// HALF-CARRY
-		((value > cpu.registers.a) << 4);									// CARRY
 }
 
 // 0x00
@@ -610,226 +535,77 @@ inline void ccf(void) {
 		((FLAGS_ISCARRY == 0) << FLAGS_C_BIT);		// CARRY
 }
 
-// 0x41
-inline void ld_b_c(void) { cpu.registers.b = cpu.registers.c; }
-
-// 0x42
-inline void ld_b_d(void) { cpu.registers.b = cpu.registers.d; }
-
-// 0x43
-inline void ld_b_e(void) { cpu.registers.b = cpu.registers.e; }
-
-// 0x44
-inline void ld_b_h(void) { cpu.registers.b = cpu.registers.h; }
-
-// 0x45
-inline void ld_b_l(void) { cpu.registers.b = cpu.registers.l; }
+// 0x40-0x47 (except 0x46)
+inline void ld_b(unsigned char value) { cpu.registers.b = value; }
 
 // 0x46
 inline void ld_b_hlp(void) { cpu.registers.b = readByte(cpu.registers.hl); }
 
-// 0x47
-inline void ld_b_a(void) { cpu.registers.b = cpu.registers.a; }
-
-// 0x48
-inline void ld_c_b(void) { cpu.registers.c = cpu.registers.b; }
-
-// 0x4a
-inline void ld_c_d(void) { cpu.registers.c = cpu.registers.d; }
-
-// 0x4b
-inline void ld_c_e(void) { cpu.registers.c = cpu.registers.e; }
-
-// 0x4c
-inline void ld_c_h(void) { cpu.registers.c = cpu.registers.h; }
-
-// 0x4d
-inline void ld_c_l(void) { cpu.registers.c = cpu.registers.l; }
+// 0x48-0x4f (except 0x4e)
+inline void ld_c(unsigned char value) { cpu.registers.c = value; }
 
 // 0x4e
 inline void ld_c_hlp(void) { cpu.registers.c = readByte(cpu.registers.hl); }
 
-// 0x4f
-inline void ld_c_a(void) { cpu.registers.c = cpu.registers.a; }
-
-// 0x50
-inline void ld_d_b(void) { cpu.registers.d = cpu.registers.b; }
-
-// 0x51
-inline void ld_d_c(void) { cpu.registers.d = cpu.registers.c; }
-
-// 0x53
-inline void ld_d_e(void) { cpu.registers.d = cpu.registers.e; }
-
-// 0x54
-inline void ld_d_h(void) { cpu.registers.d = cpu.registers.h; }
-
-// 0x55
-inline void ld_d_l(void) { cpu.registers.d = cpu.registers.l; }
+// 0x50-0x57 (except 0x56)
+inline void ld_d(unsigned char value) { cpu.registers.d = value; }
 
 // 0x56
 inline void ld_d_hlp(void) { cpu.registers.d = readByte(cpu.registers.hl); }
 
-// 0x57
-inline void ld_d_a(void) { cpu.registers.d = cpu.registers.a; }
-
-// 0x58
-inline void ld_e_b(void) { cpu.registers.e = cpu.registers.b; }
-
-// 0x59
-inline void ld_e_c(void) { cpu.registers.e = cpu.registers.c; }
-
-// 0x5a
-inline void ld_e_d(void) { cpu.registers.e = cpu.registers.d; }
-
-// 0x5c
-inline void ld_e_h(void) { cpu.registers.e = cpu.registers.h; }
-
-// 0x5d
-inline void ld_e_l(void) { cpu.registers.e = cpu.registers.l; }
+// 0x58-5f (except 0x5e)
+inline void ld_e(unsigned char value) { cpu.registers.e = value; }
 
 // 0x5e
 inline void ld_e_hlp(void) { cpu.registers.e = readByte(cpu.registers.hl); }
 
-// 0x5f
-inline void ld_e_a(void) { cpu.registers.e = cpu.registers.a; }
-
-// 0x60
-inline void ld_h_b(void) { cpu.registers.h = cpu.registers.b; }
-
-// 0x61
-inline void ld_h_c(void) { cpu.registers.h = cpu.registers.c; }
-
-// 0x62
-inline void ld_h_d(void) { cpu.registers.h = cpu.registers.d; }
-
-// 0x63
-inline void ld_h_e(void) { cpu.registers.h = cpu.registers.e; }
-
-// 0x65
-inline void ld_h_l(void) { cpu.registers.h = cpu.registers.l; }
+// 0x60-67 (except 0x66)
+inline void ld_h(unsigned char value) { cpu.registers.h = value; }
 
 // 0x66
 inline void ld_h_hlp(void) { cpu.registers.h = readByte(cpu.registers.hl); }
 
-// 0x67
-inline void ld_h_a(void) { cpu.registers.h = cpu.registers.a; }
-
-// 0x68
-inline void ld_l_b(void) { cpu.registers.l = cpu.registers.b; }
-
-// 0x69
-inline void ld_l_c(void) { cpu.registers.l = cpu.registers.c; }
-
-// 0x6a
-inline void ld_l_d(void) { cpu.registers.l = cpu.registers.d; }
-
-// 0x6b
-inline void ld_l_e(void) { cpu.registers.l = cpu.registers.e; }
-
-// 0x6c
-inline void ld_l_h(void) { cpu.registers.l = cpu.registers.h; }
+// 0x68-6f (except 0x6e)
+inline void ld_l(unsigned char value) { cpu.registers.l = value; }
 
 // 0x6e
 inline void ld_l_hlp(void) { cpu.registers.l = readByte(cpu.registers.hl); }
 
-// 0x6f
-inline void ld_l_a(void) { cpu.registers.l = cpu.registers.a; }
-
-// 0x70
-inline void ld_hlp_b(void) { writeByte(cpu.registers.hl, cpu.registers.b); }
-
-// 0x71
-inline void ld_hlp_c(void) { writeByte(cpu.registers.hl, cpu.registers.c); }
-
-// 0x72
-inline void ld_hlp_d(void) { writeByte(cpu.registers.hl, cpu.registers.d); }
-
-// 0x73
-inline void ld_hlp_e(void) { writeByte(cpu.registers.hl, cpu.registers.e); }
-
-// 0x74
-inline void ld_hlp_h(void) { writeByte(cpu.registers.hl, cpu.registers.h); }
-
-// 0x75
-inline void ld_hlp_l(void) { writeByte(cpu.registers.hl, cpu.registers.l); }
+// 0x70-0x77 (except 0x76)
+inline void ld_hlp(unsigned char value) { writeByte(cpu.registers.hl, value); }
 
 // 0x76
 inline void halt(void) {
 	cpu.halted = 1;
 }
 
-// 0x77
-inline void ld_hlp_a(void) { writeByte(cpu.registers.hl, cpu.registers.a); }
-
-// 0x78
-inline void ld_a_b(void) { cpu.registers.a = cpu.registers.b; }
-
-// 0x79
-inline void ld_a_c(void) { cpu.registers.a = cpu.registers.c; }
-
-// 0x7a
-inline void ld_a_d(void) { cpu.registers.a = cpu.registers.d; }
-
-// 0x7b
-inline void ld_a_e(void) { cpu.registers.a = cpu.registers.e; }
-
-// 0x7c
-inline void ld_a_h(void) { cpu.registers.a = cpu.registers.h; }
-
-// 0x7d
-inline void ld_a_l(void) { cpu.registers.a = cpu.registers.l; }
+// 0x78-0x7f (except 0x7e)
+inline void ld_a(unsigned char value) { cpu.registers.a = value; }
 
 // 0x7e
 inline void ld_a_hlp(void) { cpu.registers.a = readByte(cpu.registers.hl); }
 
-// 0x80
-inline void add_a_b(void) { add(&cpu.registers.a, cpu.registers.b); }
-
-// 0x81
-inline void add_a_c(void) { add(&cpu.registers.a, cpu.registers.c); }
-
-// 0x82
-inline void add_a_d(void) { add(&cpu.registers.a, cpu.registers.d); }
-
-// 0x83
-inline void add_a_e(void) { add(&cpu.registers.a, cpu.registers.e); }
-
-// 0x84
-inline void add_a_h(void) { add(&cpu.registers.a, cpu.registers.h); }
-
-// 0x85
-inline void add_a_l(void) { add(&cpu.registers.a, cpu.registers.l); }
+// 0x80-0x87 (except 0x86)
+inline void add_a(unsigned char value) { add(&cpu.registers.a, value); }
 
 // 0x86
 inline void add_a_hlp(void) { add(&cpu.registers.a, readByte(cpu.registers.hl)); }
 
-// 0x87
-inline void add_a_a(void) { add(&cpu.registers.a, cpu.registers.a); }
+// 0x88-0x8f (except 0x8e)
+inline void adc(unsigned char value) {
+	int result = cpu.registers.a + value + (FLAGS_ISCARRY ? 1 : 0);
 
-// 0x88
-inline void adc_b(void) { adc(cpu.registers.b); }
+	cpu.registers.f =
+		(((result & 0xff) == 0) << FLAGS_Z_BIT) |															// ZERO
+		0 |																									// NEGATIVE
+		((((value & 0x0f) + (cpu.registers.a & 0x0f) + (FLAGS_ISCARRY ? 1 : 0)) > 0x0f) << FLAGS_HC_BIT) |	// HALF-CARRY
+		(((result & 0xff00) != 0) << FLAGS_C_BIT);															// CARRY
 
-// 0x89
-inline void adc_c(void) { adc(cpu.registers.c); }
-
-// 0x8a
-inline void adc_d(void) { adc(cpu.registers.d); }
-
-// 0x8b
-inline void adc_e(void) { adc(cpu.registers.e); }
-
-// 0x8c
-inline void adc_h(void) { adc(cpu.registers.h); }
-
-// 0x8d
-inline void adc_l(void) { adc(cpu.registers.l); }
+	cpu.registers.a = (unsigned char)(result & 0xff);
+}
 
 // 0x8e
 inline void adc_hlp(void) { adc(readByte(cpu.registers.hl)); }
-
-// 0x8f
-inline void adc_a(void) { adc(cpu.registers.a); }
 
 // 0x90
 inline void sub_b(void) { sub(cpu.registers.b); }
@@ -855,125 +631,77 @@ inline void sub_hlp(void) { sub(readByte(cpu.registers.hl)); }
 // 0x97
 inline void sub_a(void) { sub(cpu.registers.a); }
 
-// 0x98
-inline void sbc_b(void) { sbc(cpu.registers.b); }
 
-// 0x99
-inline void sbc_c(void) { sbc(cpu.registers.c); }
+// 0x98-0x9f (except 0x9e)
+inline void sbc(unsigned char value) {
+	int result = cpu.registers.a - value - (FLAGS_ISCARRY ? 1 : 0);
 
-// 0x9a
-inline void sbc_d(void) { sbc(cpu.registers.d); }
+	cpu.registers.f =
+		(((result & 0xff) == 0) << FLAGS_Z_BIT) |														// ZERO
+		FLAGS_N |																						// NEGATIVE
+		(((value & 0x0f) + (FLAGS_ISCARRY ? 1 : 0) > (cpu.registers.a & 0x0f)) << FLAGS_HC_BIT) |		// HALF-CARRY
+		(((result & 0xff00) != 0) << FLAGS_C_BIT);														// CARRY
 
-// 0x9b
-inline void sbc_e(void) { sbc(cpu.registers.e); }
+	cpu.registers.a = (unsigned char)(result & 0xff);
 
-// 0x9c
-inline void sbc_h(void) { sbc(cpu.registers.h); }
-
-// 0x9d
-inline void sbc_l(void) { sbc(cpu.registers.l); }
+}
 
 // 0x9e
 inline void sbc_hlp(void) { sbc(readByte(cpu.registers.hl)); }
 
-// 0x9f
-inline void sbc_a(void) { sbc(cpu.registers.a); }
+// 0xa0-a7 (except 0xa6)
+inline void and_op(unsigned char value) {
+	cpu.registers.a &= value;
 
-// 0xa0
-inline void and_b(void) { and_a(cpu.registers.b); }
-
-// 0xa1
-inline void and_c(void) { and_a(cpu.registers.c); }
-
-// 0xa2
-inline void and_d(void) { and_a(cpu.registers.d); }
-
-// 0xa3
-inline void and_e(void) { and_a(cpu.registers.e); }
-
-// 0xa4
-inline void and_h(void) { and_a(cpu.registers.h); }
-
-// 0xa5
-inline void and_l(void) { and_a(cpu.registers.l); }
+	cpu.registers.f =
+		((cpu.registers.a == 0) << FLAGS_Z_BIT) |							// ZERO
+		0 |																	// NEGATIVE
+		FLAGS_HC |															// HALF-CARRY
+		0;																	// CARRY
+}
 
 // 0xa6
-inline void and_hlp(void) { and_a(readByte(cpu.registers.hl)); }
+inline void and_hlp(void) { and_op(readByte(cpu.registers.hl)); }
 
-// 0xa7
-inline void and_a(void) { and_a(cpu.registers.a); }
+// 0xa8-0xaf (except 0xae)
+inline void xor_op(unsigned char value) {
+	cpu.registers.a ^= value;
 
-// 0xa8
-inline void xor_b(void) { xor_a(cpu.registers.b); }
-
-// 0xa9
-inline void xor_c(void) { xor_a(cpu.registers.c); }
-
-// 0xaa
-inline void xor_d(void) { xor_a(cpu.registers.d); }
-
-// 0xab
-inline void xor_e(void) { xor_a(cpu.registers.e); }
-
-// 0xac
-inline void xor_h(void) { xor_a(cpu.registers.h); }
-
-// 0xad
-inline void xor_l(void) { xor_a(cpu.registers.l); }
+	cpu.registers.f =
+		((cpu.registers.a == 0) << FLAGS_Z_BIT) |							// ZERO
+		0 |																	// NEGATIVE
+		0 |																	// HALF-CARRY
+		0;																	// CARRY
+}
 
 // 0xae
-inline void xor_hlp(void) { xor_a(readByte(cpu.registers.hl)); }
+inline void xor_hlp(void) { xor_op(readByte(cpu.registers.hl)); }
 
-// 0xaf
-inline void xor_a(void) { xor_a(cpu.registers.a); }
+// 0xb0-b8 (except 0xb7)
+inline void or_op(unsigned char value) {
+	cpu.registers.a |= value;
 
-// 0xb0
-inline void or_b(void) { or_a(cpu.registers.b); }
-
-// 0xb1
-inline void or_c(void) { or_a(cpu.registers.c); }
-
-// 0xb2
-inline void or_d(void) { or_a(cpu.registers.d); }
-
-// 0xb3
-inline void or_e(void) { or_a(cpu.registers.e); }
-
-// 0xb4
-inline void or_h(void) { or_a(cpu.registers.h); }
-
-// 0xb5
-inline void or_l(void) { or_a(cpu.registers.l); }
+	cpu.registers.f =
+		((cpu.registers.a == 0) << FLAGS_Z_BIT) |							// ZERO
+		0 |																	// NEGATIVE
+		0 |																	// HALF-CARRY
+		0;																	// CARRY
+}
 
 // 0xb6
-inline void or_hlp(void) { or_a(readByte(cpu.registers.hl)); }
+inline void or_hlp(void) { or_op(readByte(cpu.registers.hl)); }
 
-// 0xb7
-inline void or_a(void) { or_a(cpu.registers.a); }
-
-// 0xb8
-inline void cp_b(void) { cp(cpu.registers.b); }
-
-// 0xb9
-inline void cp_c(void) { cp(cpu.registers.c); }
-
-// 0xba
-inline void cp_d(void) { cp(cpu.registers.d); }
-
-// 0xbb
-inline void cp_e(void) { cp(cpu.registers.e); }
-
-// 0xbc
-inline void cp_h(void) { cp(cpu.registers.h); }
-
-// 0xbd
-inline void cp_l(void) { cp(cpu.registers.l); }
+// 0xb8-bf (except 0xbe)
+inline void cp(unsigned char value) {
+	cpu.registers.f =
+		((cpu.registers.a == value) << FLAGS_Z_BIT) |						// ZERO
+		FLAGS_N |															// NEGATIVE
+		(((value & 0x0f) > (cpu.registers.a & 0x0f)) << FLAGS_HC_BIT) |		// HALF-CARRY
+		((value > cpu.registers.a) << 4);									// CARRY
+}
 
 // 0xbe
 inline void cp_hlp(void) { cp(readByte(cpu.registers.hl)); }
-
-// 0xbf
-inline void cp_a(void) { cp(cpu.registers.a); }
 
 // 0xc0
 inline void ret_nz(void) {
@@ -1186,7 +914,7 @@ inline void jp_hl(void) {
 inline void ld_nnp_a(unsigned short operand) { writeByte(operand, cpu.registers.a); }
 
 // 0xee
-inline void xor_n(unsigned char operand) { xor_a(operand); }
+inline void xor_n(unsigned char operand) { xor_op(operand); }
 
 //0xef
 inline void rst_28(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc = 0x0028; }
@@ -1207,7 +935,7 @@ inline void di_inst(void) { cpu.IME = 0; }
 inline void push_af(void) { writeShortToStack(cpu.registers.af); }
 
 // 0xf6
-inline void or_n(unsigned char operand) { or_a(operand); }
+inline void or_n(unsigned char operand) { or_op(operand); }
 
 // 0xf7
 inline void rst_30(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc = 0x0030; }
@@ -1242,10 +970,32 @@ inline void ei(void) { cpu.IME = 1; }
 //0xff
 inline void rst_38(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc = 0x0038; }
 
+static unsigned char* const regMap[8] = {
+	&cpu.registers.b,
+	&cpu.registers.c,
+	&cpu.registers.d,
+	&cpu.registers.e,
+	&cpu.registers.h,
+	&cpu.registers.l,
+	NULL,
+	&cpu.registers.a
+};
+
+static const char* regNames[8] = {
+	"B",
+	"C",
+	"D",
+	"E",
+	"H",
+	"L",
+	"(HL)",
+	"A"
+};
 
 void cpuStep() {
 	{
 		TIME_SCOPE();
+
 		
 		for (int b = 0; b < BATCHES; b++) {
 			if (cpu.stopped || cpu.halted) {
@@ -1272,11 +1022,15 @@ void cpuStep() {
 						#define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name, pc[1]); { cpu.registers.pc += 1; func(pc[1]); cpu.clocks += (numticks - 4); code } break;
 						#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name, pc[1]); { cpu.registers.pc += 1; func((signed char) pc[1]); cpu.clocks += (numticks - 4); code } break;
 						#define INSTRUCTION_2(name,numticks,func,id,code)   case id: DebugInstruction(name, pc[1] | (pc[2] << 8)); { cpu.registers.pc += 2; func(pc[1] | (pc[2] << 8)); cpu.clocks += (numticks - 4); code } break;
+						#define INSTRUCTION_L(name,numticks,func,id,code)   case id: 
+						#define INSTRUCTION_E(name,numticks,func,id,code)   case id: DebugInstructionMapped(name, regNames[pc[0] & 7]); func(*regMap[pc[0] & 7]); cpu.clocks += (numticks - 4); code break;
 						#include "cpu_instructions.inl"
 						#undef INSTRUCTION_0
 						#undef INSTRUCTION_1
 						#undef INSTRUCTION_1S
 						#undef INSTRUCTION_2
+						#undef INSTRUCTION_L
+						#undef INSTRUCTION_E
 						// handle extended instruction set call
 						case 0xcb: 
 							cpu.registers.pc += 1;
