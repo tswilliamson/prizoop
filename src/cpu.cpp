@@ -152,15 +152,7 @@ inline void undefined(void) {
 	exit(-1);
 }
 
-// extended instruction set
-#include "cb_impl.inl"
-void cb_n(unsigned char instruction) {
-	switch (instruction) {
-#define CB_INSTRUCTION(name,numticks,func,id,code) case id: DebugInstruction(name); func(); cpu.clocks += (numticks - 4); code break;
-#include "cb_instructions.inl"
-#undef CB_INSTRUCTION
-	}
-}
+void cb_n(unsigned int instruction);
 
 static unsigned char inc(unsigned char value) {
 	value++;
@@ -995,12 +987,17 @@ static const char* regNames[8] = {
 void cpuStep() {
 	{
 		TIME_SCOPE();
-		static int cpuinstr = 0;
-		static int cbinstr = 0;
-		
+
 		for (int b = 0; b < BATCHES; b++) {
 			if (cpu.stopped || cpu.halted) {
-				cpu.clocks += 12;
+				// just advance the clock til something happens
+				int numClocks = max(cpu.gpuTick - cpu.clocks, 4);
+
+				if (cpu.memory.TAC_timerctl & 0x04) {
+					numClocks = min(cpu.timerInterrupt - cpu.clocks, numClocks);
+				}
+
+				cpu.clocks += numClocks;
 			} else {
 				// 8 clocks per instruction is about the average from empirical testing
 				int numInstr = min(max(cpu.gpuTick - cpu.clocks, (MIN_CPU_BATCH * 8)) / 8, MAX_CPU_BATCH);
@@ -1014,7 +1011,7 @@ void cpuStep() {
 
 				for (int i = 0; i < numInstr; i++) {
 					DebugPC(cpu.registers.pc);
-					cpuinstr++;
+
 					unsigned char* pc = getInstrByte(cpu.registers.pc++);
 					// perform inlined instruction op
 					switch (pc[0]) {
@@ -1034,7 +1031,6 @@ void cpuStep() {
 						#undef INSTRUCTION_E
 						// handle extended instruction set call
 						case 0xcb: 
-							cbinstr++;
 							cpu.registers.pc += 1;
 							cb_n(pc[1]);
 							break;
@@ -1049,5 +1045,15 @@ void cpuStep() {
 			if (gpuCheck()) gpuStep();
 			if (interruptCheck()) interruptStep();
 		}
+	}
+}
+
+// extended instruction set
+#include "cb_impl.inl"
+void cb_n(unsigned int instruction) {
+	switch (instruction) {
+#define CB_INSTRUCTION(name,numticks,func,id,code) case id: DebugInstruction(name); func(); cpu.clocks += (numticks - 4); code break;
+#include "cb_instructions.inl"
+#undef CB_INSTRUCTION
 	}
 }
