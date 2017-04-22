@@ -164,6 +164,16 @@ inline void undefined(void) {
 	exit(-1);
 }
 
+// extended instruction set
+#include "cb_impl.inl"
+void cb_n(unsigned char instruction) {
+	switch (instruction) {
+#define CB_INSTRUCTION(name,numticks,func,id,code) case id: DebugInstruction(name); func(); cpu.clocks += (numticks - 4); code break;
+#include "cb_instructions.inl"
+#undef CB_INSTRUCTION
+	}
+}
+
 static unsigned char inc(unsigned char value) {
 	value++;
 		
@@ -353,7 +363,7 @@ inline void rrca(void) {
 }
 
 // 0x10
-inline void stop(unsigned char operand) {
+void stop(unsigned char operand) {
 	// are we attempting a speed switch?
 	if (cgb.isCGB && (cpu.memory.KEY1_cgbspeed & 1)) {
 		cgbSpeedSwitch();
@@ -459,7 +469,7 @@ inline void dec_h(void) { cpu.registers.h = dec(cpu.registers.h); }
 inline void ld_h_n(unsigned char operand) { cpu.registers.h = operand; }
 
 // 0x27
-inline void daa(void) {
+void daa(void) {
 	int s = cpu.registers.a;
 
 	if (!FLAGS_ISNEGATIVE)
@@ -1203,7 +1213,7 @@ inline void or_n(unsigned char operand) { or_a(operand); }
 inline void rst_30(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc = 0x0030; }
 
 // 0xf8
-inline void ld_hl_sp_n(unsigned char operand) {
+void ld_hl_sp_n(unsigned char operand) {
 	int result = cpu.registers.sp + operand;
 
 	cpu.registers.f =
@@ -1232,15 +1242,6 @@ inline void ei(void) { cpu.IME = 1; }
 //0xff
 inline void rst_38(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc = 0x0038; }
 
-// extended instruction set
-#include "cb_impl.inl"
-void cb_n(unsigned char instruction) {
-	switch (instruction) {
-		#define CB_INSTRUCTION(name,numticks,func,id,code) case id: DebugInstruction(name); func(); cpu.clocks += (numticks - 4); code break;
-		#include "cb_instructions.inl"
-		#undef CB_INSTRUCTION
-	}
-}
 
 void cpuStep() {
 	{
