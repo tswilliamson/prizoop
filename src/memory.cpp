@@ -154,7 +154,7 @@ void copy(unsigned short destination, unsigned short source, size_t length) {
 }
 
 // this only gets called on 0xFF** addresses
-unsigned char readByteSpecial(unsigned short address) {
+unsigned char readByteSpecial(unsigned int address) {
 	if (specialMap[address >> 8] & 0x10) {
 		// simply needs mbc validation
 		return mbcRead(address);
@@ -202,7 +202,7 @@ unsigned char readByteSpecial(unsigned short address) {
 }
 
 // this only gets called on 0xFF** addresses
-void writeByteSpecial(unsigned short address, unsigned char value) {
+void writeByteSpecial(unsigned int address, unsigned char value) {
 	unsigned char byte = address & 0x00FF;
 	switch (byte) {
 		case 0x02:

@@ -10,6 +10,7 @@ struct cpu_type {
 	struct {
 		union {
 			unsigned char all[0x100];
+			unsigned int  longs[0x40];
 			struct {
 				union {
 					unsigned char io[0x80];

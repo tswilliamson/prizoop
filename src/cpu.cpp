@@ -200,8 +200,8 @@ static inline void add(unsigned char *destination, unsigned char value) {
 	*destination = (unsigned char)(result & 0xff);
 }
 
-static inline void add2(unsigned short *destination, unsigned short value) {
-	unsigned long result = *destination + value;
+static inline void add2(unsigned int *destination, unsigned short value) {
+	unsigned int result = *destination + value;
 
 	// zero flag left alone
 	cpu.registers.f =
@@ -210,7 +210,7 @@ static inline void add2(unsigned short *destination, unsigned short value) {
 		(((((*destination & 0x0fff) + (value & 0x0fff)) & 0x1000) != 0) << FLAGS_HC_BIT) |		// HALF-CARRY
 		(((result & 0xffff0000) != 0) << FLAGS_C_BIT);											// CARRY
 
-	*destination = (unsigned short)(result & 0xffff);
+	*destination = (result & 0xffff);
 }
 
 static inline void sub(unsigned char value) {
@@ -233,7 +233,7 @@ inline void ld_bc_nn(unsigned short operand) { cpu.registers.bc = operand; }
 inline void ld_bcp_a(void) { writeByte(cpu.registers.bc, cpu.registers.a); }
 
 // 0x03
-inline void inc_bc(void) { cpu.registers.bc++; }
+inline void inc_bc(void) { cpu.registers.bc++; cpu.registers.bc &= 0xFFFF; }
 
 // 0x04
 inline void inc_b(void) { cpu.registers.b = inc(cpu.registers.b); }
@@ -265,7 +265,7 @@ inline void add_hl_bc(void) { add2(&cpu.registers.hl, cpu.registers.bc); }
 inline void ld_a_bcp(void) { cpu.registers.a = readByte(cpu.registers.bc); }
 
 // 0x0b
-inline void dec_bc(void) { cpu.registers.bc--; }
+inline void dec_bc(void) { cpu.registers.bc--; cpu.registers.bc &= 0xFFFF; }
 
 // 0x0c
 inline void inc_c(void) { cpu.registers.c = inc(cpu.registers.c); }
@@ -304,7 +304,7 @@ inline void ld_de_nn(unsigned short operand) { cpu.registers.de = operand; }
 inline void ld_dep_a(void) { writeByte(cpu.registers.de, cpu.registers.a); }
 
 // 0x13
-inline void inc_de(void) { cpu.registers.de++; }
+inline void inc_de(void) { cpu.registers.de++; cpu.registers.de &= 0xFFFF; }
 
 // 0x14
 inline void inc_d(void) { cpu.registers.d = inc(cpu.registers.d); }
@@ -341,7 +341,7 @@ inline void add_hl_de(void) { add2(&cpu.registers.hl, cpu.registers.de); }
 inline void ld_a_dep(void) { cpu.registers.a = readByte(cpu.registers.de); }
 
 // 0x1b
-inline void dec_de(void) { cpu.registers.de--; }
+inline void dec_de(void) { cpu.registers.de--; cpu.registers.de &= 0xFFFF; }
 
 // 0x1c
 inline void inc_e(void) { cpu.registers.e = inc(cpu.registers.e); }
@@ -382,7 +382,7 @@ inline void ld_hl_nn(unsigned short operand) { cpu.registers.hl = operand; }
 inline void ldi_hlp_a(void) { writeByte(cpu.registers.hl++, cpu.registers.a); }
 
 // 0x23
-inline void inc_hl(void) { cpu.registers.hl++; }
+inline void inc_hl(void) { cpu.registers.hl++; cpu.registers.hl &= 0xFFFF; }
 
 // 0x24
 inline void inc_h(void) { cpu.registers.h = inc(cpu.registers.h); }
@@ -444,10 +444,10 @@ inline void jr_z_n(unsigned char operand) {
 inline void add_hl_hl(void) { add2(&cpu.registers.hl, cpu.registers.hl); }
 
 // 0x2a
-inline void ldi_a_hlp(void) { cpu.registers.a = readByte(cpu.registers.hl++); }
+inline void ldi_a_hlp(void) { cpu.registers.a = readByte(cpu.registers.hl++); cpu.registers.de &= 0xFFFF; }
 
 // 0x2b
-inline void dec_hl(void) { cpu.registers.hl--; }
+inline void dec_hl(void) { cpu.registers.hl--; cpu.registers.hl &= 0xFFFF; }
 
 // 0x2c
 inline void inc_l(void) { cpu.registers.l = inc(cpu.registers.l); }
@@ -511,7 +511,7 @@ inline void jr_c_n(char operand) {
 inline void add_hl_sp(void) { add2(&cpu.registers.hl, cpu.registers.sp); }
 
 // 0x3a
-inline void ldd_a_hlp(void) { cpu.registers.a = readByte(cpu.registers.hl--); }
+inline void ldd_a_hlp(void) { cpu.registers.a = readByte(cpu.registers.hl--); cpu.registers.hl &= 0xFFFF; }
 
 // 0x3b
 inline void dec_sp(void) { cpu.registers.sp--; }
@@ -995,7 +995,8 @@ static const char* regNames[8] = {
 void cpuStep() {
 	{
 		TIME_SCOPE();
-
+		static int cpuinstr = 0;
+		static int cbinstr = 0;
 		
 		for (int b = 0; b < BATCHES; b++) {
 			if (cpu.stopped || cpu.halted) {
@@ -1013,7 +1014,7 @@ void cpuStep() {
 
 				for (int i = 0; i < numInstr; i++) {
 					DebugPC(cpu.registers.pc);
-
+					cpuinstr++;
 					unsigned char* pc = getInstrByte(cpu.registers.pc++);
 					// perform inlined instruction op
 					switch (pc[0]) {
@@ -1033,6 +1034,7 @@ void cpuStep() {
 						#undef INSTRUCTION_E
 						// handle extended instruction set call
 						case 0xcb: 
+							cbinstr++;
 							cpu.registers.pc += 1;
 							cb_n(pc[1]);
 							break;

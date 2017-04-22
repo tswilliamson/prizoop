@@ -36,35 +36,35 @@ void resetMemoryMaps(bool isCGB);
 
 void copy(unsigned short destination, unsigned short source, size_t length);
 
-unsigned char readByteSpecial(unsigned short address);
-void writeByteSpecial(unsigned short address, unsigned char value);
+unsigned char readByteSpecial(unsigned int address);
+void writeByteSpecial(unsigned int address, unsigned char value);
 
 // called when a write attempt occurs for rom
 void mbcWrite(unsigned short address, unsigned char value);
 unsigned char mbcRead(unsigned short address);
 
-inline unsigned char readByte(unsigned short address) {
+inline unsigned char readByte(unsigned int address) {
 	return (((address >> 8) == 0xff && (specialMap[address & 0xFF] & 0x01)) || (specialMap[address >> 8] & 0x10)) ? readByteSpecial(address) : memoryMap[address >> 8][address & 0xFF];
 }
 
-inline unsigned short readShort(unsigned short address) {
+inline unsigned short readShort(unsigned int address) {
 	return readByte(address) | (readByte(address + 1) << 8);
 }
 
-inline unsigned short readShortFromStack(void) {
+inline unsigned int readShortFromStack(void) {
 	unsigned short value = readShort(cpu.registers.sp);
 	cpu.registers.sp += 2;
 	return value;
 }
 
 // branch avoidance. instructions will just have bad "reads" if somehow we are executing code off the on chip registers
-inline unsigned char* getInstrByte(unsigned short address) {
+inline unsigned char* getInstrByte(unsigned int address) {
 	const unsigned char topBit = address >> 8;
 	if (specialMap[topBit] & 0x10) mbcRead(address);			// force flush of cached ROM page
 	return memoryMap[topBit] + (address & 0xFF);
 }
 
-inline void writeByte(unsigned short address, unsigned char value) {
+inline void writeByte(unsigned int address, unsigned char value) {
 	// special write cases happen at upper 256 bytes
 	if ((address >> 8) == 0xff) {
 		if (specialMap[address & 0xFF] & 0x02)
@@ -85,9 +85,9 @@ inline void writeByte(unsigned short address, unsigned char value) {
 	DebugWrite(address);
 }
 
-inline void writeShort(unsigned short address, unsigned short value) {
+inline void writeShort(unsigned int address, unsigned short value) {
 	writeByte(address, (unsigned char)(value & 0x00ff));
-	writeByte(address + 1, (unsigned char)((value & 0xff00) >> 8));
+	writeByte(address + 1, (unsigned char)(value >> 8));
 }
 
 inline void writeShortToStack(unsigned short value) {
