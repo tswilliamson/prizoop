@@ -67,10 +67,11 @@ inline unsigned char* getInstrByte(unsigned int address) {
 inline void writeByte(unsigned int address, unsigned char value) {
 	// special write cases happen at upper 256 bytes
 	if ((address >> 8) == 0xff) {
-		if (specialMap[address & 0xFF] & 0x02)
-			writeByteSpecial(address, value);
+		unsigned int operand = address & 0xFF;
+		if (specialMap[operand] & 0x02)
+			writeByteSpecial(operand, value);
 		else
-			cpu.memory.all[address & 0xFF] = value;
+			cpu.memory.all[operand] = value;
 	}
 	// rom "write" goes to memory bank controller instead
 	else if ((address & 0x8000) == 0) {

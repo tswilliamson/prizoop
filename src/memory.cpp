@@ -153,11 +153,13 @@ void copy(unsigned short destination, unsigned short source, size_t length) {
 	for(i = 0; i < length; i++) writeByte(destination + i, readByte(source + i));
 }
 
-// this only gets called on 0xFF** addresses
 unsigned char readByteSpecial(unsigned int address) {
-	if (specialMap[address >> 8] & 0x10) {
-		// simply needs mbc validation
-		return mbcRead(address);
+	if ((address & 0xFF00) != 0xFF00) {
+		if (specialMap[address >> 8] & 0x10) {
+			return mbcRead(address);
+		} else {
+			return memoryMap[address >> 8][address & 0xFF];
+		}
 	}
 
 	unsigned char byte = address & 0x00FF;
@@ -203,8 +205,7 @@ unsigned char readByteSpecial(unsigned int address) {
 
 // this only gets called on 0xFF** addresses
 void writeByteSpecial(unsigned int address, unsigned char value) {
-	unsigned char byte = address & 0x00FF;
-	switch (byte) {
+	switch (address) {
 		case 0x02:
 			cpu.memory.SC_serial_ctl = value;
 			if ((value & 0x81) == 0x81) {

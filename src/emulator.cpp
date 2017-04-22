@@ -196,8 +196,11 @@ void fillSaveStatePath(unsigned short* pFile) {
 	Bfile_StrToName_ncpy(pFile, (const char*)filepath, strlen(filepath) + 2);
 }
 
+// removing this for now... tend to want the sram to stick around..
+#define SAVE_STATE_SRAM 0
+
 int getSaveStateSize(unsigned int& withRAMSize) {
-	int spaceNeeded = 2 + sizeof(cpu_type) + sizeof(mbc_state);			// main types
+	int spaceNeeded = 4 + sizeof(cpu_type) + sizeof(mbc_state);			// main types
 	spaceNeeded += sizeof(wram_perm) + sizeof(wram_gb) + sizeof(oam); // various permanent work RAMS
 
 	// video and additional work ram based on cgb type
@@ -209,10 +212,13 @@ int getSaveStateSize(unsigned int& withRAMSize) {
 
 
 	withRAMSize = getRAMSize();
+
+#if SAVE_STATE_SRAM
 	// we only save state RAMS <= 8 KB to save space
 	if (withRAMSize <= 8 * 1024) {
-		spaceNeeded += getRAMSize();										// RAM
+		spaceNeeded += withRAMSize;										// RAM
 	}
+#endif
 
 	// 4 byte align
 	if (spaceNeeded % 4 != 0) {
@@ -274,7 +280,7 @@ void emulator_type::saveState() {
 	CompatSwaps();
 
 	// write rom bytes 0x14E-F (checksum) for sanity
-	Bfile_WriteFile_OS(hFile, &cart[0x14E], 2);
+	Bfile_WriteFile_OS(hFile, &cart[0x14E], 4);
 
 	// write cpu and mbc state
 	Bfile_WriteFile_OS(hFile, &cpu, sizeof(cpu_type));
@@ -303,13 +309,17 @@ void emulator_type::saveState() {
 
 	Bfile_WriteFile_OS(hFile, &oam[0], sizeof(oam));
 
+#if SAVE_STATE_SRAM
 	// only write sram for small ram sizes
-	// removing this for now... tend to want the sram to stick around..
-	/*
 	if (RAMSize <= 8 * 1024) {
 		Bfile_WriteFile_OS(hFile, &sram[0], RAMSize);
 	}
-	*/
+#endif
+
+#if TARGET_WINSIM
+	int amountWritten = Bfile_TellFile_OS(hFile);
+	DebugAssert(amountWritten == spaceNeeded);
+#endif
 
 	// done!
 	Bfile_CloseFile_OS(hFile);
@@ -343,14 +353,16 @@ bool emulator_type::loadState() {
 
 	if (Bfile_GetFileSize_OS(hFile) != spaceNeeded) {
 		// wrong size (format must have changed, or a bad write)
+		Bfile_CloseFile_OS(hFile);
 		return false;
 	}
 
 	// read checksum and check it
-	unsigned char checkSum[2];
-	Bfile_ReadFile_OS(hFile, &checkSum[0], 2, -1);
+	unsigned char checkSum[4];
+	Bfile_ReadFile_OS(hFile, &checkSum[0], 4, -1);
 	if (checkSum[0] != cart[0x14E] || checkSum[1] != cart[0x14F]) {
 		// different ROM somehow
+		Bfile_CloseFile_OS(hFile);
 		return false;
 	}
 
@@ -390,13 +402,12 @@ bool emulator_type::loadState() {
 
 	Bfile_ReadFile_OS(hFile, &oam[0], sizeof(oam), -1);
 
+#if SAVE_STATE_SRAM
 	// only write sram for small ram sizes
-	// removing this for now... tend to want the sram to stick around..
-	/*
 	if (RAMSize <= 8 * 1024) {
 		Bfile_ReadFile_OS(hFile, &sram[0], RAMSize, -1);
 	}
-	*/
+#endif
 
 	Bfile_CloseFile_OS(hFile);
 

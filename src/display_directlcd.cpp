@@ -367,9 +367,9 @@ void drawFramebufferMain(void) {
 #if DEBUG
 	static unsigned int totalClocks = 0;
 	totalClocks += tmu1Clocks;
-	if (framecounter % 32 == 0) {
+	if (framecounter % 256 == 0) {
 		static int fps = 0;
-		int curfps = 145150 * Ptune2_GetPLLFreq() / totalClocks;
+		int curfps = 145150 * 8 * Ptune2_GetPLLFreq() / totalClocks;
 
 		if (curfps != fps) {
 			fps = curfps;

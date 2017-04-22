@@ -1,7 +1,7 @@
 #pragma once
 
 // Implementation of extended instruction set functions
-inline unsigned char rlc(unsigned char value) {
+FORCE_INLINE unsigned char rlc(unsigned char value) {
 	value = (value << 1) | (value >> 7);
 
 	cpu.registers.f =
@@ -13,7 +13,7 @@ inline unsigned char rlc(unsigned char value) {
 	return value;
 }
 
-inline unsigned char rrc(unsigned char value) {
+FORCE_INLINE unsigned char rrc(unsigned char value) {
 	value = (value >> 1) | ((value << 7) & 0x80);
 
 	cpu.registers.f =
@@ -25,7 +25,7 @@ inline unsigned char rrc(unsigned char value) {
 	return value;
 }
 
-inline unsigned char rl(unsigned char value) {
+FORCE_INLINE unsigned char rl(unsigned char value) {
 	unsigned int carry = (value & 0x80) >> (7-FLAGS_C_BIT);
 
 	value = (value << 1) | ((FLAGS_ISCARRY) >> FLAGS_C_BIT);
@@ -39,7 +39,7 @@ inline unsigned char rl(unsigned char value) {
 	return value;
 }
 
-inline unsigned char rr(unsigned char value) {
+FORCE_INLINE unsigned char rr(unsigned char value) {
 	unsigned int carry = (value & 0x01) << FLAGS_C_BIT;
 
 	value = (value >> 1) | ((cpu.registers.f & FLAGS_C) << (7 - FLAGS_C_BIT));
@@ -54,7 +54,7 @@ inline unsigned char rr(unsigned char value) {
 }
 
 
-inline unsigned char sla(unsigned char value) {
+FORCE_INLINE unsigned char sla(unsigned char value) {
 	cpu.registers.f =
 		(((value & 0x7F) == 0) << FLAGS_Z_BIT) |							// ZERO
 		0 |																	// NEGATIVE
@@ -66,7 +66,7 @@ inline unsigned char sla(unsigned char value) {
 	return value;
 }
 
-inline unsigned char sra(unsigned char value) {
+FORCE_INLINE unsigned char sra(unsigned char value) {
 	cpu.registers.f =
 		(((value & 0xFE) == 0) << FLAGS_Z_BIT) |							// ZERO
 		0 |																	// NEGATIVE
@@ -78,7 +78,7 @@ inline unsigned char sra(unsigned char value) {
 	return value;
 }
 
-inline unsigned char swap(unsigned char value) {
+FORCE_INLINE unsigned char swap(unsigned char value) {
 	value = ((value & 0xf) << 4) | ((value & 0xf0) >> 4);
 
 	cpu.registers.f =
@@ -90,7 +90,7 @@ inline unsigned char swap(unsigned char value) {
 	return value;
 }
 
-static unsigned char srl(unsigned char value) {
+FORCE_INLINE unsigned char srl(unsigned char value) {
 	cpu.registers.f =
 		(((value & 0xFE) == 0) << FLAGS_Z_BIT) |							// ZERO
 		0 |																	// NEGATIVE
@@ -102,7 +102,7 @@ static unsigned char srl(unsigned char value) {
 	return value;
 }
 
-inline void bit(unsigned char bit, unsigned char value) {
+FORCE_INLINE void bit(unsigned char bit, unsigned char value) {
 	// carry uneffected
 	cpu.registers.f =
 		(((value & bit) == 0) << FLAGS_Z_BIT) |								// ZERO
@@ -112,8 +112,28 @@ inline void bit(unsigned char bit, unsigned char value) {
 
 }
 
-inline void set(unsigned char bit, unsigned char& value) {
+template<int bitNum>
+FORCE_INLINE void bit(unsigned char value) {
+	// carry uneffected
+	cpu.registers.f =
+		(((value & (1 << bitNum)) == 0) << FLAGS_Z_BIT) |					// ZERO
+		0 |																	// NEGATIVE
+		(FLAGS_HC) |														// HALF-CARRY
+		(FLAGS_ISCARRY);													// CARRY
+}
+
+FORCE_INLINE void set(unsigned char bit, unsigned char& value) {
 	value |= bit;
+}
+
+template<int bitNum>
+FORCE_INLINE void res(unsigned char& value) {
+	value &= ~(1 << bitNum);
+}
+
+template<int bitNum>
+FORCE_INLINE void set(unsigned char& value) {
+	value |= (1 << bitNum);
 }
 
 // 0x00

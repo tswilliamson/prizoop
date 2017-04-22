@@ -454,6 +454,10 @@ int Bfile_GetFileSize_OS(int handle) {
 	return GetFileSize((HANDLE)(size_t)handle, NULL);
 }
 
+int Bfile_TellFile_OS(int handle) {
+	return SetFilePointer((HANDLE)handle, 0, NULL, FILE_CURRENT);
+}
+
 int Bfile_CloseFile_OS(int handle) {
 	CloseHandle((HANDLE)(size_t)handle);
 	return 0;

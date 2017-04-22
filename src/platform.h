@@ -15,10 +15,12 @@
 #if TARGET_WINSIM
 #define ALIGN(x) alignas(x)
 #define LITTLE_E
+#define FORCE_INLINE __forceinline
 #else
 #define ALIGN(x) __attribute__((aligned(x)))
 #define BIG_E
 #define override
+#define FORCE_INLINE __attribute__((always_inline)) inline
 #endif
 
 #ifdef LITTLE_E

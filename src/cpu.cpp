@@ -864,13 +864,23 @@ inline void sbc_n(unsigned char operand) { sbc(operand); }
 inline void rst_18(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc = 0x0018; }
 
 // 0xe0
-inline void ld_ff_n_ap(unsigned char operand) { writeByte(0xff00 + operand, cpu.registers.a); }
+inline void ld_ff_n_ap(unsigned char operand) {
+	if (specialMap[operand] & 0x02)
+		writeByteSpecial(operand, cpu.registers.a);
+	else
+		cpu.memory.all[operand] = cpu.registers.a;
+}
 
 // 0xe1
 inline void pop_hl(void) { cpu.registers.hl = readShortFromStack(); }
 
 // 0xe2
-inline void ld_ff_c_a(void) { writeByte(0xff00 + cpu.registers.c, cpu.registers.a); }
+inline void ld_ff_c_a(void) {
+	if (specialMap[cpu.registers.c] & 0x02)
+		writeByteSpecial(cpu.registers.c, cpu.registers.a);
+	else
+		cpu.memory.all[cpu.registers.c] = cpu.registers.a;
+}
 
 // 0xe5
 inline void push_hl(void) { writeShortToStack(cpu.registers.hl); }
@@ -912,13 +922,17 @@ inline void xor_n(unsigned char operand) { xor_op(operand); }
 inline void rst_28(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc = 0x0028; }
 
 // 0xf0
-inline void ld_ff_ap_n(unsigned char operand) { cpu.registers.a = readByte(0xff00 + operand); }
+inline void ld_ff_ap_n(unsigned char operand) {
+	cpu.registers.a = (specialMap[operand] & 0x01) ? readByteSpecial(0xFF00 | operand) : cpu.memory.all[operand];
+}
 
 // 0xf1
 inline void pop_af(void) { cpu.registers.af = readShortFromStack(); cpu.registers.f &= 0xF0; }
 
 // 0xf2
-inline void ld_a_ff_c(void) { cpu.registers.a = readByte(0xff00 + cpu.registers.c); }
+inline void ld_a_ff_c(void) {
+	cpu.registers.a = (specialMap[cpu.registers.c] & 0x01) ? readByteSpecial(0xFF00 | cpu.registers.c) : cpu.memory.all[cpu.registers.c];
+}
 
 // 0xf3
 inline void di_inst(void) { cpu.IME = 0; }
@@ -962,6 +976,9 @@ inline void ei(void) { cpu.IME = 1; }
 //0xff
 inline void rst_38(void) { writeShortToStack(cpu.registers.pc); cpu.registers.pc = 0x0038; }
 
+// extended instruction set
+#include "cb_impl.inl"
+
 static unsigned char* const regMap[8] = {
 	&cpu.registers.b,
 	&cpu.registers.c,
@@ -983,6 +1000,20 @@ static const char* regNames[8] = {
 	"(HL)",
 	"A"
 };
+
+#define INSTRUCTION_0(name,numticks,func,id,code)   case id: DebugInstruction(name); func(); cpu.clocks += (numticks - 4); code break;
+#define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name, pc[1]); { cpu.registers.pc += 1; func(pc[1]); cpu.clocks += (numticks - 4); code } break;
+#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name, pc[1]); { cpu.registers.pc += 1; func((signed char) pc[1]); cpu.clocks += (numticks - 4); code } break;
+#define INSTRUCTION_2(name,numticks,func,id,code)   case id: DebugInstruction(name, pc[1] | (pc[2] << 8)); { cpu.registers.pc += 2; func(pc[1] | (pc[2] << 8)); cpu.clocks += (numticks - 4); code } break;
+#define INSTRUCTION_L(name,numticks,func,id,code)   case id: 
+#define INSTRUCTION_E(name,numticks,func,id,code)   case id: DebugInstructionMapped(name, regNames[pc[0] & 7]); func(*regMap[pc[0] & 7]); cpu.clocks += (numticks - 4); code break;
+#define CB_INSTRUCTION(name,numticks,func,id,code)  case id: DebugInstruction(name); func(); cpu.clocks += (numticks - 4); code break;
+#define CB_INSTR______(name,numticks,func,id,code)  case id: 
+#define CB_INSTRMAPPED(name,numticks,func,id,code)  case id: DebugInstructionMapped(name, regNames[operand & 7]); func(*regMap[operand & 7]); cpu.clocks += (numticks - 4); code break;
+
+#define LEAVE_LOOP {cpu.clocks -= (numInstr - i - 1) * 4; i = numInstr;}
+
+void cb_n(int operand);
 
 void cpuStep() {
 	{
@@ -1011,30 +1042,16 @@ void cpuStep() {
 
 				for (int i = 0; i < numInstr; i++) {
 					DebugPC(cpu.registers.pc);
-
 					unsigned char* pc = getInstrByte(cpu.registers.pc++);
 					// perform inlined instruction op
 					switch (pc[0]) {
 						// main instruction set
-						#define INSTRUCTION_0(name,numticks,func,id,code)   case id: DebugInstruction(name); func(); cpu.clocks += (numticks - 4); code break;
-						#define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name, pc[1]); { cpu.registers.pc += 1; func(pc[1]); cpu.clocks += (numticks - 4); code } break;
-						#define INSTRUCTION_1S(name,numticks,func,id,code)  case id: DebugInstruction(name, pc[1]); { cpu.registers.pc += 1; func((signed char) pc[1]); cpu.clocks += (numticks - 4); code } break;
-						#define INSTRUCTION_2(name,numticks,func,id,code)   case id: DebugInstruction(name, pc[1] | (pc[2] << 8)); { cpu.registers.pc += 2; func(pc[1] | (pc[2] << 8)); cpu.clocks += (numticks - 4); code } break;
-						#define INSTRUCTION_L(name,numticks,func,id,code)   case id: 
-						#define INSTRUCTION_E(name,numticks,func,id,code)   case id: DebugInstructionMapped(name, regNames[pc[0] & 7]); func(*regMap[pc[0] & 7]); cpu.clocks += (numticks - 4); code break;
 						#include "cpu_instructions.inl"
-						#undef INSTRUCTION_0
-						#undef INSTRUCTION_1
-						#undef INSTRUCTION_1S
-						#undef INSTRUCTION_2
-						#undef INSTRUCTION_L
-						#undef INSTRUCTION_E
 						// handle extended instruction set call
-						case 0xcb: 
-							cpu.registers.pc += 1;
+						case 0xcb:
 							cb_n(pc[1]);
-							break;
-						// unknown instruction
+							break; 
+							// unknown instruction
 						default:
 							undefined();
 							break;
@@ -1048,12 +1065,17 @@ void cpuStep() {
 	}
 }
 
-// extended instruction set
-#include "cb_impl.inl"
-void cb_n(unsigned int instruction) {
-	switch (instruction) {
-#define CB_INSTRUCTION(name,numticks,func,id,code) case id: DebugInstruction(name); func(); cpu.clocks += (numticks - 4); code break;
+void cb_n(int operand) {
+	cpu.registers.pc += 1;
+	switch (operand) {
 #include "cb_instructions.inl"
-#undef CB_INSTRUCTION
 	}
 }
+
+#undef INSTRUCTION_0
+#undef INSTRUCTION_1
+#undef INSTRUCTION_1S
+#undef INSTRUCTION_2
+#undef INSTRUCTION_L
+#undef INSTRUCTION_E
+#undef CB_INSTRUCTION
