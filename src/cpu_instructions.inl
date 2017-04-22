@@ -56,7 +56,7 @@
  INSTRUCTION_0( "DEC L", 					4,   dec_l			,	0x2d, {}			)
  INSTRUCTION_1( "LD L, 0x%02X", 			8,   ld_l_n			,	0x2e, {}			)
  INSTRUCTION_0( "CPL", 						4,   cpl			,	0x2f, {}			)
- INSTRUCTION_1S("JR NC, 0x%02X", 			8,   jr_nc_n		,	0x30, {}			)
+ INSTRUCTION_1S("JR NC, 0x%02X", 			4,   jr_nc_n		,	0x30, {}			)
  INSTRUCTION_2( "LD SP, 0x%04X", 			12,  ld_sp_nn		,	0x31, {}			)
  INSTRUCTION_0( "LDD (HL), A", 				8,   ldd_hlp_a		,	0x32, {}			)
  INSTRUCTION_0( "INC SP", 					8,   inc_sp			,	0x33, {}			)
