@@ -154,7 +154,7 @@ inline void undefined(void) {
 
 void cb_n(unsigned int instruction);
 
-static unsigned char inc(unsigned char value) {
+inline unsigned char inc(unsigned char value) {
 	value++;
 		
 	// carry is ignored!
@@ -167,7 +167,7 @@ static unsigned char inc(unsigned char value) {
 	return value;
 }
 
-static unsigned char dec(unsigned char value) {
+inline unsigned char dec(unsigned char value) {
 	value--;
 
 	// carry is ignored!
