@@ -17,6 +17,7 @@ int frameSkip = 0;
 int lineBuffer[176] ALIGN(32) = { 0 };
 int prevLineBuffer[168] ALIGN(32) = { 0 };
 
+#include "tilerow.inl"
 #include "dmg_scanline.inl"
 #include "cgb_scanline.inl"
 #include "scanline_resolve.inl"

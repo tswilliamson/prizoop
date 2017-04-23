@@ -28,6 +28,7 @@ void(*renderBlankScanline)(void) = 0;
 void(*resolveRenderedLine)(void) = 0;
 void(*drawFramebuffer)(void) = 0;
 
+#include "tilerow.inl"
 #include "dmg_scanline.inl"
 #include "cgb_scanline.inl"
 #include "scanline_resolve.inl"

@@ -63,6 +63,9 @@
     <ClCompile Include="..\src\snd_main.cpp" />
     <ClCompile Include="..\src\snd_prizm.cpp" />
     <ClCompile Include="..\src\snd_winsim.cpp" />
+    <None Include="..\src\tilerow.inl">
+      <FileType>Document</FileType>
+    </None>
     <ClCompile Include="..\src\timer.cpp" />
     <ClCompile Include="..\src\zx7\compress.c" />
     <ClCompile Include="..\src\zx7\dzx7.c" />

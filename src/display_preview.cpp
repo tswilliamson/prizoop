@@ -8,6 +8,7 @@
 #include "memory.h"
 #include "keys.h"
 
+#include "tilerow.inl"
 #include "dmg_scanline.inl"
 #include "cgb_scanline.inl"
 

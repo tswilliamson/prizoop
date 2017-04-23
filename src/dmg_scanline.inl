@@ -29,14 +29,8 @@ inline void RenderDMGScanline() {
 				unsigned int tileRow = *((unsigned short*)&vram[tile * 16 + y]);
 				ShortSwap(tileRow);
 
-				scanline[0] = (tileRow >> 15) | ((tileRow >> 6) & 2);
-				scanline[1] = ((tileRow >> 14) & 1) | ((tileRow >> 5) & 2);
-				scanline[2] = ((tileRow >> 13) & 1) | ((tileRow >> 4) & 2);
-				scanline[3] = ((tileRow >> 12) & 1) | ((tileRow >> 3) & 2);
-				scanline[4] = ((tileRow >> 11) & 1) | ((tileRow >> 2) & 2);
-				scanline[5] = ((tileRow >> 10) & 1) | ((tileRow >> 1) & 2);
-				scanline[6] = ((tileRow >> 9) & 1) | ((tileRow >> 0) & 2);
-				scanline[7] = ((tileRow >> 8) & 1) | ((tileRow << 1) & 2);
+				resolveTileRow(scanline, tileRow);
+
 				scanline += 8;
 				lineOffset = (lineOffset + 1) & 0x1F;
 			}
@@ -53,26 +47,19 @@ inline void RenderDMGScanline() {
 				int mapOffset = (cpu.memory.LCDC_ctl & LCDC_WINDOWTILEMAP) ? 0x1c00 : 0x1800;
 				mapOffset += (y >> 3) << 5;
 
-				int lineOffset = -1;
 				y = (y & 0x07) * 2;
 
 				int* scanline = (int*) &lineBuffer[wx];
+				unsigned char* curTile = &vram[mapOffset];
 
 				for (; wx < 167; wx += 8) {
-					lineOffset = lineOffset + 1;
-					int tile = vram[mapOffset + lineOffset];
+					int tile = *curTile++;
 					if (!(tile & 0x80)) tile += tileOffset;
 					unsigned int tileRow = *((unsigned short*)&vram[tile * 16 + y]);
 					ShortSwap(tileRow);
 
-					scanline[0] = ((tileRow >> 15) & 1) | ((tileRow >> 6) & 2);
-					scanline[1] = ((tileRow >> 14) & 1) | ((tileRow >> 5) & 2);
-					scanline[2] = ((tileRow >> 13) & 1) | ((tileRow >> 4) & 2);
-					scanline[3] = ((tileRow >> 12) & 1) | ((tileRow >> 3) & 2);
-					scanline[4] = ((tileRow >> 11) & 1) | ((tileRow >> 2) & 2);
-					scanline[5] = ((tileRow >> 10) & 1) | ((tileRow >> 1) & 2);
-					scanline[6] = ((tileRow >> 9) & 1)  | ((tileRow >> 0) & 2);
-					scanline[7] = ((tileRow >> 8) & 1)  | ((tileRow << 1) & 2);
+					resolveTileRow(scanline, tileRow);
+
 					scanline += 8;
 				}
 			}
@@ -110,14 +97,7 @@ inline void RenderDMGScanline() {
 
 					int colors[8];
 					if (!OAM_ATTR_XFLIP(sprite->attr)) {
-						colors[0] = ((tileRow >> 15) & 1) | ((tileRow >> 6) & 2);
-						colors[1] = ((tileRow >> 14) & 1) | ((tileRow >> 5) & 2);
-						colors[2] = ((tileRow >> 13) & 1) | ((tileRow >> 4) & 2);
-						colors[3] = ((tileRow >> 12) & 1) | ((tileRow >> 3) & 2);
-						colors[4] = ((tileRow >> 11) & 1) | ((tileRow >> 2) & 2);
-						colors[5] = ((tileRow >> 10) & 1) | ((tileRow >> 1) & 2);
-						colors[6] = ((tileRow >> 9) & 1)  | ((tileRow >> 0) & 2);
-						colors[7] = ((tileRow >> 8) & 1)  | ((tileRow << 1) & 2);
+						resolveTileRow(colors, tileRow);
 					} else {
 						colors[0] = ((tileRow >> 8) & 1)  | ((tileRow << 1) & 2);
 						colors[1] = ((tileRow >> 9) & 1)  | ((tileRow >> 0) & 2);
