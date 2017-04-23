@@ -53,7 +53,7 @@ inline bool RenderCGBScanline_BG() {
 				if (!(tile & 0x80)) tile += tileOffset;
 
 				// attribute bit 3 is vram bank number, bit 6 is yflip
-				int tileRow = *((unsigned short*)&vram[tile * 16 + yVal[(attr & 0x40) >> 6] + ((attr & 0x8) << 10)]);
+				unsigned int tileRow = *((unsigned short*)&vram[tile * 16 + yVal[(attr & 0x40) >> 6] + ((attr & 0x8) << 10)]);
 				ShortSwap(tileRow);
 
 				// attribute bit 0-2 is bg palette
@@ -134,7 +134,7 @@ inline bool RenderCGBScanline_BG() {
 					if (!(tile & 0x80)) tile += tileOffset;
 
 					// attribute bit 3 is vram bank number, bit 6 is yflip
-					int tileRow = *((unsigned short*)&vram[tile * 16 + yVal[(attr & 0x40) >> 6] + ((attr & 0x8) << 10)]);
+					unsigned int tileRow = *((unsigned short*)&vram[tile * 16 + yVal[(attr & 0x40) >> 6] + ((attr & 0x8) << 10)]);
 					ShortSwap(tileRow);
 
 					// attribute bit 0-2 is bg palette
@@ -221,7 +221,7 @@ inline void RenderCGBScanline() {
 
 					// bit 3 is vram bank #
 					int tileIndex = tile * 16 + y * 2 + (OAM_ATTR_BANK(sprite.attr) << 10);
-					int tileRow = *((unsigned short*)&vram[tileIndex]);
+					unsigned int tileRow = *((unsigned short*)&vram[tileIndex]);
 					ShortSwap(tileRow);
 
 					int colors[8];

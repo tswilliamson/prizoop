@@ -27,7 +27,7 @@
 static inline void EndianSwap(unsigned short& s) {
 	s = ((s & 0xFF00) >> 8) | ((s & 0x00FF) << 8);
 }
-static inline void ShortSwap(int& s) {
+static inline void ShortSwap(unsigned int& s) {
 	s = ((s & 0xFF00) >> 8) | ((s & 0x00FF) << 8);
 }
 static inline void EndianSwap(unsigned int& i) {

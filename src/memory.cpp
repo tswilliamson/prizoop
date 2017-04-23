@@ -149,7 +149,6 @@ void resetMemoryMaps(bool isCGB) {
 }
 
 void oamDMA(unsigned int sourceUpper) {
-	unsigned int i;
 	if (specialMap[sourceUpper] & 0x10)
 		mbcRead(sourceUpper << 8);
 

@@ -1,20 +1,22 @@
 #pragma once
 
 inline void RenderDMGScanline() {
+	int curLine = cpu.memory.LY_lcdline;
+
 	// background/window
 	{
 		int i;
 
 		// tile offset and palette shared for window
-		const int tileOffset = (cpu.memory.LCDC_ctl & LCDC_TILESET) ? 0 : 256;
+		const int tileOffset = ((~cpu.memory.LCDC_ctl) & LCDC_TILESET) << 4;
 
 		// draw background
 		if (cpu.memory.LCDC_ctl & LCDC_BGENABLE)
 		{
-			int y = ((cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 7) * 2;
+			int y = ((curLine + cpu.memory.SCY_bgscrolly) & 7) * 2;
 
 			int mapOffset = ((cpu.memory.LCDC_ctl & LCDC_BGTILEMAP) ? 0x1c00 : 0x1800) +
-						    ((((cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 255) >> 3) << 5);
+						    ((((curLine + cpu.memory.SCY_bgscrolly) & 255) >> 3) << 5);
 
 			// start to the left of pixel 7 (our leftmost linebuffer pixel) based on scrollx
 			int* scanline = (int*) &lineBuffer[7 - (cpu.memory.SCX_bgscrollx & 7)];
@@ -24,7 +26,7 @@ inline void RenderDMGScanline() {
 			for (i = 0; i < 168; i += 8) {
 				int tile = vram[mapOffset + lineOffset];
 				if (!(tile & 0x80)) tile += tileOffset;
-				int tileRow = *((unsigned short*)&vram[tile * 16 + y]);
+				unsigned int tileRow = *((unsigned short*)&vram[tile * 16 + y]);
 				ShortSwap(tileRow);
 
 				scanline[0] = (tileRow >> 15) | ((tileRow >> 6) & 2);
@@ -44,7 +46,7 @@ inline void RenderDMGScanline() {
 		if (cpu.memory.LCDC_ctl & LCDC_WINDOWENABLE)
 		{
 			int wx = cpu.memory.WX_windowx;
-			int y = cpu.memory.LY_lcdline - cpu.memory.WY_windowy;
+			int y = curLine - cpu.memory.WY_windowy;
 
 			if (wx <= 166 && y >= 0) {
 				// select map offset row
@@ -60,7 +62,7 @@ inline void RenderDMGScanline() {
 					lineOffset = lineOffset + 1;
 					int tile = vram[mapOffset + lineOffset];
 					if (!(tile & 0x80)) tile += tileOffset;
-					int tileRow = *((unsigned short*)&vram[tile * 16 + y]);
+					unsigned int tileRow = *((unsigned short*)&vram[tile * 16 + y]);
 					ShortSwap(tileRow);
 
 					scanline[0] = ((tileRow >> 15) & 1) | ((tileRow >> 6) & 2);
@@ -95,15 +97,14 @@ inline void RenderDMGScanline() {
 			if (sprite->x && sprite->x < 168) {
 				int sy = sprite->y - 16;
 
-				if (sy <= cpu.memory.LY_lcdline && (sy + spriteSize) > cpu.memory.LY_lcdline) {
-					// sprite position
-					int* scanline = (int*) &lineBuffer[sprite->x - 1];
+				if (sy <= curLine && (sy + spriteSize) > curLine) {
 
 					int y;
 					int tile = sprite->tile & tileMask;
-					if (OAM_ATTR_YFLIP(sprite->attr)) y = spriteSize - 1 - (cpu.memory.LY_lcdline - sy);
-					else y = cpu.memory.LY_lcdline - sy;
+					if (OAM_ATTR_YFLIP(sprite->attr)) y = spriteSize - 1 - (curLine - sy);
+					else y = curLine - sy;
 
+					// determine tile row colors
 					unsigned int tileRow = *((unsigned short*)&vram[tile * 16 + y * 2]);
 					ShortSwap(tileRow);
 
@@ -128,6 +129,8 @@ inline void RenderDMGScanline() {
 						colors[7] = ((tileRow >> 15) & 1) | ((tileRow >> 6) & 2);
 					}
 
+					// sprite position on scanline
+					int* scanline = (int*)&lineBuffer[sprite->x - 1];
 					int paletteBase = OAM_ATTR_PALETTE(sprite->attr) ? 8 : 4;
 					if (OAM_ATTR_PRIORITY(sprite->attr)) {
 						if (!scanline[0] && colors[0]) scanline[0] = paletteBase | colors[0];
