@@ -99,14 +99,7 @@ inline void RenderDMGScanline() {
 					if (!OAM_ATTR_XFLIP(sprite->attr)) {
 						resolveTileRow(colors, tileRow);
 					} else {
-						colors[0] = ((tileRow >> 8) & 1)  | ((tileRow << 1) & 2);
-						colors[1] = ((tileRow >> 9) & 1)  | ((tileRow >> 0) & 2);
-						colors[2] = ((tileRow >> 10) & 1) | ((tileRow >> 1) & 2);
-						colors[3] = ((tileRow >> 11) & 1) | ((tileRow >> 2) & 2);
-						colors[4] = ((tileRow >> 12) & 1) | ((tileRow >> 3) & 2);
-						colors[5] = ((tileRow >> 13) & 1) | ((tileRow >> 4) & 2);
-						colors[6] = ((tileRow >> 14) & 1) | ((tileRow >> 5) & 2);
-						colors[7] = ((tileRow >> 15) & 1) | ((tileRow >> 6) & 2);
+						resolveTileRowReverse(colors, tileRow);
 					}
 
 					// sprite position on scanline

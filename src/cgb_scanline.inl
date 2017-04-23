@@ -66,23 +66,9 @@ inline bool RenderCGBScanline_BG() {
 
 				// bit 5 is hflip
 				if (attr & 0x20) {
-					scanline[0] = paletteMask | ((tileRow >> 8) & 1) | ((tileRow << 1) & 2);
-					scanline[1] = paletteMask | ((tileRow >> 9) & 1) | ((tileRow >> 0) & 2);
-					scanline[2] = paletteMask | ((tileRow >> 10) & 1) | ((tileRow >> 1) & 2);
-					scanline[3] = paletteMask | ((tileRow >> 11) & 1) | ((tileRow >> 2) & 2);
-					scanline[4] = paletteMask | ((tileRow >> 12) & 1) | ((tileRow >> 3) & 2);
-					scanline[5] = paletteMask | ((tileRow >> 13) & 1) | ((tileRow >> 4) & 2);
-					scanline[6] = paletteMask | ((tileRow >> 14) & 1) | ((tileRow >> 5) & 2);
-					scanline[7] = paletteMask | (tileRow >> 15) | ((tileRow >> 6) & 2);
+					resolveTileRowReversePal(paletteMask, scanline, tileRow);
 				} else {
-					scanline[0] = paletteMask | (tileRow >> 15) | ((tileRow >> 6) & 2);
-					scanline[1] = paletteMask | ((tileRow >> 14) & 1) | ((tileRow >> 5) & 2);
-					scanline[2] = paletteMask | ((tileRow >> 13) & 1) | ((tileRow >> 4) & 2);
-					scanline[3] = paletteMask | ((tileRow >> 12) & 1) | ((tileRow >> 3) & 2);
-					scanline[4] = paletteMask | ((tileRow >> 11) & 1) | ((tileRow >> 2) & 2);
-					scanline[5] = paletteMask | ((tileRow >> 10) & 1) | ((tileRow >> 1) & 2);
-					scanline[6] = paletteMask | ((tileRow >> 9) & 1) | ((tileRow >> 0) & 2);
-					scanline[7] = paletteMask | ((tileRow >> 8) & 1) | ((tileRow << 1) & 2);
+					resolveTileRowPal(paletteMask, scanline, tileRow);
 				}
 
 				if (priorityBG) {
@@ -147,23 +133,9 @@ inline bool RenderCGBScanline_BG() {
 
 					// bit 5 is hflip
 					if (attr & 0x20) {
-						scanline[0] = paletteMask | ((tileRow >> 8) & 1) | ((tileRow << 1) & 2);
-						scanline[1] = paletteMask | ((tileRow >> 9) & 1) | ((tileRow >> 0) & 2);
-						scanline[2] = paletteMask | ((tileRow >> 10) & 1) | ((tileRow >> 1) & 2);
-						scanline[3] = paletteMask | ((tileRow >> 11) & 1) | ((tileRow >> 2) & 2);
-						scanline[4] = paletteMask | ((tileRow >> 12) & 1) | ((tileRow >> 3) & 2);
-						scanline[5] = paletteMask | ((tileRow >> 13) & 1) | ((tileRow >> 4) & 2);
-						scanline[6] = paletteMask | ((tileRow >> 14) & 1) | ((tileRow >> 5) & 2);
-						scanline[7] = paletteMask | (tileRow >> 15) | ((tileRow >> 6) & 2);
+						resolveTileRowReversePal(paletteMask, scanline, tileRow);
 					} else {
-						scanline[0] = paletteMask | (tileRow >> 15) | ((tileRow >> 6) & 2);
-						scanline[1] = paletteMask | ((tileRow >> 14) & 1) | ((tileRow >> 5) & 2);
-						scanline[2] = paletteMask | ((tileRow >> 13) & 1) | ((tileRow >> 4) & 2);
-						scanline[3] = paletteMask | ((tileRow >> 12) & 1) | ((tileRow >> 3) & 2);
-						scanline[4] = paletteMask | ((tileRow >> 11) & 1) | ((tileRow >> 2) & 2);
-						scanline[5] = paletteMask | ((tileRow >> 10) & 1) | ((tileRow >> 1) & 2);
-						scanline[6] = paletteMask | ((tileRow >> 9) & 1) | ((tileRow >> 0) & 2);
-						scanline[7] = paletteMask | ((tileRow >> 8) & 1) | ((tileRow << 1) & 2);
+						resolveTileRowPal(paletteMask, scanline, tileRow);
 					}
 
 					if (priorityBG) {
@@ -193,62 +165,52 @@ inline void RenderCGBScanline() {
 	// if sprites enabled
 	if (cpu.memory.LCDC_ctl & LCDC_SPRITEENABLE)
 	{
-		int spriteSize = (cpu.memory.LCDC_ctl & LCDC_SPRITEVDOUBLE) ? 16 : 8;
+		int spriteSize;
+		int tileMask;
+		if (cpu.memory.LCDC_ctl & LCDC_SPRITEVDOUBLE) {
+			spriteSize = 15;
+			tileMask = 0xFE;
+		} else {
+			spriteSize = 7;
+			tileMask = 0xFF;
+		}
 
 		// BG enable flag for CGB means allowng BG over sprite priority
 		bool forceSpritePriority = (cpu.memory.LCDC_ctl & LCDC_BGENABLE);
 
-		for (int i = 39; i >= 0; i--) {
-			const sprite_type& sprite = ((struct sprite_type *)oam)[i];
+		sprite_type* sprite = (struct sprite_type *) &oam[156];
+		for (int i = 39; i >= 0; i--, sprite--) {
 
-			if (sprite.x && sprite.x < 168) {
-				int sy = sprite.y - 16;
+			if (sprite->x && sprite->x < 168) {
+				int sy = sprite->y - 16;
 
-				if (sy <= cpu.memory.LY_lcdline && (sy + spriteSize) > cpu.memory.LY_lcdline) {
+				if (sy <= cpu.memory.LY_lcdline && (sy + spriteSize) >= cpu.memory.LY_lcdline) {
 					// sprite position
-					int* scanline = (int*)&lineBuffer[sprite.x - 1];
+					int* scanline = (int*)&lineBuffer[sprite->x - 1];
 
 					int y;
-					int tile = sprite.tile;
-					if (cpu.memory.LCDC_ctl & LCDC_SPRITEVDOUBLE) {
-						if (OAM_ATTR_YFLIP(sprite.attr)) y = 15 - (cpu.memory.LY_lcdline - sy);
-						else y = cpu.memory.LY_lcdline - sy;
-						tile &= 0xFE;
-					} else {
-						if (OAM_ATTR_YFLIP(sprite.attr)) y = 7 - (cpu.memory.LY_lcdline - sy);
-						else y = cpu.memory.LY_lcdline - sy;
-					}
+					int tile = sprite->tile;
+
+					if (OAM_ATTR_YFLIP(sprite->attr)) y = spriteSize - (cpu.memory.LY_lcdline - sy);
+					else y = cpu.memory.LY_lcdline - sy;
+					tile &= tileMask;
 
 					// bit 3 is vram bank #
-					int tileIndex = tile * 16 + y * 2 + (OAM_ATTR_BANK(sprite.attr) << 10);
+					int tileIndex = tile * 16 + y * 2 + (OAM_ATTR_BANK(sprite->attr) << 10);
 					unsigned int tileRow = *((unsigned short*)&vram[tileIndex]);
 					ShortSwap(tileRow);
 
 					int colors[8];
-					if (!OAM_ATTR_XFLIP(sprite.attr)) {
-						colors[0] = ((tileRow >> 15) & 1) | ((tileRow >> 6) & 2);
-						colors[1] = ((tileRow >> 14) & 1) | ((tileRow >> 5) & 2);
-						colors[2] = ((tileRow >> 13) & 1) | ((tileRow >> 4) & 2);
-						colors[3] = ((tileRow >> 12) & 1) | ((tileRow >> 3) & 2);
-						colors[4] = ((tileRow >> 11) & 1) | ((tileRow >> 2) & 2);
-						colors[5] = ((tileRow >> 10) & 1) | ((tileRow >> 1) & 2);
-						colors[6] = ((tileRow >> 9) & 1)  | ((tileRow >> 0) & 2);
-						colors[7] = ((tileRow >> 8) & 1)  | ((tileRow << 1) & 2);
+					if (!OAM_ATTR_XFLIP(sprite->attr)) {
+						resolveTileRow(colors, tileRow);
 					} else {
-						colors[0] = ((tileRow >> 8) & 1)  | ((tileRow << 1) & 2);
-						colors[1] = ((tileRow >> 9) & 1)  | ((tileRow >> 0) & 2);
-						colors[2] = ((tileRow >> 10) & 1) | ((tileRow >> 1) & 2);
-						colors[3] = ((tileRow >> 11) & 1) | ((tileRow >> 2) & 2);
-						colors[4] = ((tileRow >> 12) & 1) | ((tileRow >> 3) & 2);
-						colors[5] = ((tileRow >> 13) & 1) | ((tileRow >> 4) & 2);
-						colors[6] = ((tileRow >> 14) & 1) | ((tileRow >> 5) & 2);
-						colors[7] = ((tileRow >> 15) & 1) | ((tileRow >> 6) & 2);
+						resolveTileRowReverse(colors, tileRow);
 					}
 
 					// bit 0-2 are palette #'s for CGB
-					int paletteBase = 32 + (OAM_ATTR_PAL_NUM(sprite.attr) << 2);
+					int paletteBase = 32 + (OAM_ATTR_PAL_NUM(sprite->attr) << 2);
 
-					if (OAM_ATTR_PRIORITY(sprite.attr) && forceSpritePriority) {
+					if (OAM_ATTR_PRIORITY(sprite->attr) && forceSpritePriority) {
 						if (!(scanline[0] & 3) && colors[0]) scanline[0] = paletteBase | colors[0];
 						if (!(scanline[1] & 3) && colors[1]) scanline[1] = paletteBase | colors[1];
 						if (!(scanline[2] & 3) && colors[2]) scanline[2] = paletteBase | colors[2];
