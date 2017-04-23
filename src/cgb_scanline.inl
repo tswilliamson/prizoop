@@ -199,7 +199,7 @@ inline void RenderCGBScanline() {
 		bool forceSpritePriority = (cpu.memory.LCDC_ctl & LCDC_BGENABLE);
 
 		for (int i = 39; i >= 0; i--) {
-			const sprite& sprite = ((struct sprite *)oam)[i];
+			const sprite_type& sprite = ((struct sprite_type *)oam)[i];
 
 			if (sprite.x && sprite.x < 168) {
 				int sy = sprite.y - 16;

@@ -148,9 +148,12 @@ void resetMemoryMaps(bool isCGB) {
 	memoryMap[0xff] = cpu.memory.all;	// on chip memory
 }
 
-void copy(unsigned short destination, unsigned short source, size_t length) {
+void oamDMA(unsigned int sourceUpper) {
 	unsigned int i;
-	for(i = 0; i < length; i++) writeByte(destination + i, readByte(source + i));
+	if (specialMap[sourceUpper] & 0x10)
+		mbcRead(sourceUpper << 8);
+
+	memcpy(oam, memoryMap[sourceUpper], 160);
 }
 
 unsigned char readByteSpecial(unsigned int address) {
@@ -236,7 +239,7 @@ void writeByteSpecial(unsigned int address, unsigned char value) {
 		case 0x44: // read only
 			break;
 		case 0x46:
-			copy(0xfe00, value << 8, 160); // OAM DMA
+			oamDMA(value); // OAM DMA
 			break;
 		case 0x47:
 			cpu.memory.BGP_bgpalette = value;

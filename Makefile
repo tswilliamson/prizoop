@@ -43,7 +43,9 @@ CXXFLAGS	=	$(CFLAGS) \
 		  -fno-rtti \
 		  -fno-exceptions \
 		  -fno-threadsafe-statics \
-		  -fno-use-cxa-get-exception-ptr
+		  -fno-use-cxa-get-exception-ptr 
+
+# add -S -fverbose-asm for assembly output
 
 LDFLAGS	= $(MACHDEP) -O2 -T$(FXCGSDK)/common/prizm.ld -Wl,-static -Wl,-gc-sections
 

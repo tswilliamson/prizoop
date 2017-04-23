@@ -38,7 +38,7 @@ inline bool gpuCheck() {
 	return (cpu.clocks >= cpu.gpuTick || (cpu.halted && cpu.IME));
 }
 
-struct sprite {
+struct sprite_type {
 	unsigned char y;
 	unsigned char x;
 	unsigned char tile;
