@@ -211,6 +211,8 @@ void selectRomBank(unsigned char bankNum) {
 }
 
 unsigned char mbcRead(unsigned short address) {
+	DebugAssert(address >= 0x4000 && address <= 0x7FFF);
+
 	unsigned char highNibble = address >> 12;
 	mbc_bankcache* cache = cacheBank(mbc.romBank * 4 + highNibble - 4);
 

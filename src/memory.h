@@ -30,7 +30,7 @@ extern unsigned char* memoryMap[256] ALIGN(256);
 // Bit 1 : for high memory, specific bytes that need a special write
 // Bit 2 : for most significant memory byte, whether a write requires a tile update (TODO, use mem directly in display code)
 // Bit 4 : for most significant memory byte, whether a read must validate the area first (switched bank)
-extern unsigned int specialMap[256] ALIGN(256);
+extern unsigned char specialMap[256] ALIGN(256);
 
 void resetMemoryMaps(bool isCGB);
 
