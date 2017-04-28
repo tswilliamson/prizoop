@@ -204,13 +204,12 @@ int Ptune2_GetSetting() {
 	PTuneRegs curRegs = Ptune2_CurrentRegs();
 	for (i = 0; i < 5; i++) {
 		same = 1;
-		for (set = 0; set < 8; set++) {
-			if (curRegs.regs[set] != sets[i].regs[set]) {
-				// special exception for PTune2-less CPU reset:
-				if (set == 1 && i == 0 && curRegs.regs[1] == 0x0F112213) {
-					continue;
-				}
+		// the freq register has some trash bits in it on reset:
+		unsigned int mask = i == 0 ? 0xFFF0FF0F : 0xFFFFFFFF;
 
+		for (set = 0; set < 8; set++) {
+			if ((curRegs.regs[set] & mask) != (sets[i].regs[set] & mask)) {
+				// special exception for PTune2-less CPU reset:
 				same = 0;
 				break;
 			}

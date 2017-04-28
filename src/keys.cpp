@@ -40,12 +40,12 @@ void refreshKeys(bool systemCalls) {
 	if (systemCalls) {
 		if (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_SAVE])) {
 			emulator.saveState();
-			while (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_SAVE])) {}
+		//	while (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_SAVE])) {}
 		}
 
 		if (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_LOAD])) {
 			emulator.loadState();
-			while (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_LOAD])) {}
+		//	while (keyDown_fast(emulator.settings.keyMap[emu_button::STATE_LOAD])) {}
 		}
 
 		if (keyDown_fast(48)) {
