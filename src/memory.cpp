@@ -156,11 +156,7 @@ void oamDMA(unsigned int sourceUpper) {
 
 unsigned char readByteSpecial(unsigned int address) {
 	if (address < 0xFF00) {
-		if (specialMap[address >> 8] & 0x10) {
-			return mbcRead(address);
-		} else {
-			return memoryMap[address >> 8][address & 0xFF];
-		}
+		return mbcRead(address);
 	}
 
 	unsigned char byte = address & 0x00FF;

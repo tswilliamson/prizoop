@@ -200,8 +200,8 @@ void fillSaveStatePath(unsigned short* pFile) {
 #define SAVE_STATE_SRAM 0
 
 int getSaveStateSize(unsigned int& withRAMSize) {
-	int spaceNeeded = 4 + sizeof(cpu_type) + sizeof(mbc_state);			// main types
-	spaceNeeded += sizeof(wram_perm) + sizeof(wram_gb) + sizeof(oam); // various permanent work RAMS
+	int spaceNeeded = 4 + sizeof(cpu_type) + sizeof(mbc_state);							// main types
+	spaceNeeded += sizeof(wram_perm) + sizeof(wram_gb) + sizeof(oam);					// various permanent work RAMS
 
 	// video and additional work ram based on cgb type
 	if (cgb.isCGB) {
@@ -336,6 +336,7 @@ bool emulator_type::loadState() {
 #if !TARGET_WINSIM
 	// flush DMA before making OS calls
 	DmaWaitNext();
+	REG_TMU_TSTR &= ~(1 << 1);
 #endif
 
 	// calculate space needed for state
@@ -348,12 +349,14 @@ bool emulator_type::loadState() {
 	int hFile = Bfile_OpenFile_OS(pFile, READ, 0); // Get handle
 	if (hFile < 0) {
 		// not found
+		mbcFileUpdate();
 		return false;
 	}
 
 	if (Bfile_GetFileSize_OS(hFile) != spaceNeeded) {
 		// wrong size (format must have changed, or a bad write)
 		Bfile_CloseFile_OS(hFile);
+		mbcFileUpdate();
 		return false;
 	}
 
@@ -363,6 +366,7 @@ bool emulator_type::loadState() {
 	if (checkSum[0] != cart[0x14E] || checkSum[1] != cart[0x14F]) {
 		// different ROM somehow
 		Bfile_CloseFile_OS(hFile);
+		mbcFileUpdate();
 		return false;
 	}
 
@@ -419,6 +423,10 @@ bool emulator_type::loadState() {
 	// color gameboy needs to fix some stuff too
 	if (cgb.isCGB) {
 		cgbOnStateLoad();
+	} else {
+		resolveDMGBGPalette();
+		resolveDMGOBJ0Palette();
+		resolveDMGOBJ1Palette();
 	}
 
 	screens[curScreen]->postStateChange();

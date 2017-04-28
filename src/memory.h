@@ -44,7 +44,7 @@ void mbcWrite(unsigned short address, unsigned char value);
 unsigned char mbcRead(unsigned short address);
 
 inline unsigned char readByte(unsigned int address) {
-	return (((address >> 8) == 0xff && (specialMap[address & 0xFF] & 0x01)) || (specialMap[address >> 8] & 0x10)) ? readByteSpecial(address) : memoryMap[address >> 8][address & 0xFF];
+	return ((address >= 0xff00 && (specialMap[address & 0xFF] & 0x01)) || (specialMap[address >> 8] & 0x10)) ? readByteSpecial(address) : memoryMap[address >> 8][address & 0xFF];
 }
 
 inline unsigned short readShort(unsigned int address) {
