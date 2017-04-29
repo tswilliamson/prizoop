@@ -51,6 +51,8 @@ void screen_rom::drawFiles() {
 			Print(10 + width + 10, curY, files[i].path, i == selectedFile);
 		}
 	}
+
+	EnableStatusArea(3);
 	DrawFrame(0);
 }
 

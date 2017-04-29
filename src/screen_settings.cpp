@@ -70,6 +70,8 @@ void screen_settings::deselect() {
 }
 
 void screen_settings::drawOptions() {
+	EnableStatusArea(3);
+
 	int row = 0;
 	for (int i = 0; i < NumOptions(); i++) {
 		bool selected = curOption == i;

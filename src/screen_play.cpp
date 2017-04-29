@@ -61,6 +61,7 @@ void screen_play::drawPlayBG() {
 	} else {
 		DrawBGEmbedded((unsigned char*)bg_1x1);
 	}
+	EnableStatusArea(3);
 	DrawFrame(0);
 	Bdisp_PutDisp_DD();
 }
