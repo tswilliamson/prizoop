@@ -25,7 +25,7 @@
 
 #include "zx7.h"
 
-#if TARGET_WINSIM
+#if !TARGET_PRIZM
 
 // ZX7 Compress the given data, outData is malloc'd and the return value is the length (first 3 bytes of data will be 24-bit size result for convenience)
 unsigned int ZX7Compress(unsigned char *srcData, unsigned int inLength, unsigned char** outData) {

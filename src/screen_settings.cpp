@@ -48,8 +48,7 @@ void screen_settings::select() {
 	int currentPtuneSetting = Ptune2_GetSetting();
 	options[0].disabled = getDeviceType() != DT_CG20 || currentPtuneSetting != PT2_DEFAULT;
 
-	const char* rom = emulator.settings.selectedRom;
-	if (rom[0] && (rom[strlen(rom) - 1] == 'c' || rom[strlen(rom) - 1] == 'C')) {
+	if (emulator.isCGBRomLoaded()) {
 		options[2].noCGB = true;
 		options[5].noCGB = true;
 		options[6].noCGB = true;

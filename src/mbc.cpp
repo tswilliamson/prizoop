@@ -4,6 +4,7 @@
 #include "mbc.h"
 #include "keys.h"
 #include "memory.h"
+#include "zx7\zx7.h"
 
 // cached banks
 mbc_bankcache* cachedBanks[NUM_CACHED_BANKS];
@@ -19,6 +20,9 @@ unsigned int sramHash = 0;
 
 // the memory bus controller object
 mbc_state mbc;
+
+// compressed page locations for each rom file page
+int* compressedPages = NULL;
 
 const char* getMBCTypeString(mbcType type) {
 	switch (type) {
@@ -143,6 +147,47 @@ void mbcFileUpdate() {
 }
 #endif
 
+bool mbcReadPage(unsigned int bankIndex, unsigned char* target, bool instrOverlap) {
+	unsigned int overlapBytes = instrOverlap ? 2 : 0;
+
+	if (mbc.compressed) {
+		int compSize = compressedPages[bankIndex + 1] - compressedPages[bankIndex];
+
+		if (compSize == 4098) {
+			Bfile_ReadFile_OS(mbc.romFile, target, 0x1000 + overlapBytes, compressedPages[bankIndex]);
+		} else {
+			unsigned char compBuffer[4098];
+			Bfile_ReadFile_OS(mbc.romFile, compBuffer, compSize, compressedPages[bankIndex]);
+			if (instrOverlap) {
+				ZX7Decompress(compBuffer, target, 4098);
+			} else {
+				unsigned char uncompBuffer[4098];
+				ZX7Decompress(compBuffer, uncompBuffer, 4098);
+				memcpy(target, uncompBuffer, 4096);
+			}
+		}
+
+		return true;
+	} else {
+#if !TARGET_WINSIM
+		// use Bfile_GetBlockAddress to do a direct copy
+		memcpy(target, (const void*)BlockAddresses[bankIndex], 0x1000);
+		if (instrOverlap) {
+			memcpy(&target[0x1000], (const void*)BlockAddresses[bankIndex + 1], overlapBytes);
+		}
+		return true;
+#else
+		unsigned int read = Bfile_ReadFile_OS(mbc.romFile, target, 0x1000 + overlapBytes, bankIndex * 0x1000);
+		DebugAssert(read == 0x1000 + overlapBytes);
+		if (read == 0x1000 + overlapBytes) {
+			return true;
+		}
+#endif
+	}
+
+	return false;
+}
+
 // returns the cached rom bank (or caches it) with the given index (which is a a factor of the number of caches per rom bank)
 mbc_bankcache* cacheBank(unsigned int index) {
 	cacheIndex++;
@@ -166,27 +211,14 @@ mbc_bankcache* cacheBank(unsigned int index) {
 	}
 
 	// uncached! using minimum cache request index, read into slot from file and return
-	unsigned int instrOverlap = index == (mbc.numRomBanks * 4 - 1) ? 0 : 2;
-#if !TARGET_WINSIM
-	// use Bfile_GetBlockAddress to do a direct copy
-	unsigned int read = 0x1000 + instrOverlap;
-	memcpy(cachedBanks[minSlot]->bank, (const void*)BlockAddresses[index], 0x1000);
-	if (instrOverlap) {
-		memcpy(&cachedBanks[minSlot]->bank[0x1000], (const void*)BlockAddresses[index+1], instrOverlap);
-	}
-#else
-	unsigned int read = Bfile_ReadFile_OS(mbc.romFile, cachedBanks[minSlot]->bank, 0x1000 + instrOverlap, index * 0x1000);
-	DebugAssert(read == 0x1000 + instrOverlap);
-#endif
-
-	if (read == 0x1000 + instrOverlap) {
-		cachedBankIndex[minSlot] = index;
-		lastCacheRequestIndex[minSlot] = cacheIndex;
-		return cachedBanks[minSlot];
-	} else {
+	if (!mbcReadPage(index, cachedBanks[minSlot]->bank,  index != (mbc.numRomBanks * 4 - 1))) {
 		// attempt to escape
 		keys.exit = true;
 		return cachedBanks[0];
+	} else {
+		cachedBankIndex[minSlot] = index;
+		lastCacheRequestIndex[minSlot] = cacheIndex;
+		return cachedBanks[minSlot];
 	}
 }
 

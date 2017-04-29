@@ -118,6 +118,8 @@ struct emulator_type {
 	void saveState();
 	bool loadState();				// returns true if a state was found
 
+	bool isCGBRomLoaded();
+
 	// custom color palettes
 	static unsigned char numPalettes();
 	static void getPalette(unsigned char paletteNum, colorpalette_type& intoColors);

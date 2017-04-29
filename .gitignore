@@ -31,3 +31,8 @@ debug.txt
 /DeviceRelease
 /Emulator
 /proj/WindowsSim
+/comp-gb/Release
+/comp-gb/x64
+/comp-gb/comp-gb.pdb
+/comp-gb/comp-gb.vcxproj.user
+/proj/Release/comp-gb.pdb

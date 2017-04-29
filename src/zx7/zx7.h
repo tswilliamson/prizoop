@@ -27,7 +27,7 @@
 extern "C" {
 #endif
 
-#if TARGET_WINSIM
+#if !TARGET_PRIZM
 
 #define MAX_OFFSET  2176  /* range 1..2176 */
 #define MAX_LEN    65536  /* range 2..65536 */
@@ -38,7 +38,7 @@ typedef struct optimal_t {
     int len;
 } Optimal;
 
-Optimal *optimize(unsigned char *input_data, unsigned int input_size, long skip);
+Optimal *optimize(unsigned char *input_data, unsigned int input_size, unsigned long skip);
 
 unsigned char *compress(Optimal *optimal, unsigned char *input_data, unsigned int input_size, long skip, unsigned int *output_size);
 

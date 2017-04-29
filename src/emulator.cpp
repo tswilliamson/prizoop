@@ -41,6 +41,15 @@ void emulator_type::shutDown() {
 	screens[curScreen]->deselect();
 }
 
+bool emulator_type::isCGBRomLoaded() {
+	screen_play* play = (screen_play*) screens[2];
+	if (play && play->loadedROM[0] && !strcmp(play->loadedROM, emulator.settings.selectedRom)) {
+		return cgb.isCGB;
+	}
+
+	return false;
+}
+
 void emulator_type::run() {
 	screens[curScreen]->select();
 

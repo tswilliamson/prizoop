@@ -25,7 +25,9 @@
 
 #include "zx7.h"
 
-#if TARGET_WINSIM
+#if !TARGET_PRIZM
+
+#include <stdlib.h>
 
 static int elias_gamma_bits(int value) {
     int bits;
@@ -42,7 +44,7 @@ static int count_bits(int offset, int len) {
     return 1 + (offset > 128 ? 12 : 8) + elias_gamma_bits(len-1);
 }
 
-Optimal* optimize(unsigned char *input_data, unsigned int input_size, long skip) {
+Optimal* optimize(unsigned char *input_data, unsigned int input_size, unsigned long skip) {
     unsigned int *min;
     unsigned int *max;
     unsigned int *matches;

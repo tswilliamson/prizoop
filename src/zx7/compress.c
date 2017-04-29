@@ -25,7 +25,9 @@
 
 #include "zx7.h"
 
-#if TARGET_WINSIM
+#if !TARGET_PRIZM
+
+#include <stdlib.h>
 
 static unsigned char* output_data;
 static unsigned int output_index;

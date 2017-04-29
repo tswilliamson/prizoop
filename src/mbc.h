@@ -44,6 +44,7 @@ enum ramSizeType {
 
 struct mbc_state {
 	int romFile;					// rom File ID
+	int compressed;				    // whether ROM is compressed (gbz file)
 
 	mbcType type;					// active type
 	ramSizeType ramType;			// active ram type
@@ -91,6 +92,12 @@ void mbcFileUpdate();
 
 // pointers to each cached bank
 extern mbc_bankcache* cachedBanks[NUM_CACHED_BANKS];
+
+// compressed page locations for each rom file page
+extern int* compressedPages;
+
+// reads the page with the given ROM bank index (in 4k chunks) to the given memory address
+bool mbcReadPage(unsigned int bankIndex, unsigned char* target, bool instructionOverlap);
 
 // cached ROM banks is alloc'd in main() on the stack
 #define ALLOCATE_CACHED_BANKS() mbc_bankcache stackCachedBanks[NUM_CACHED_BANKS]; for (int r = 0; r < NUM_CACHED_BANKS; r++) { cachedBanks[r] = &stackCachedBanks[r]; }

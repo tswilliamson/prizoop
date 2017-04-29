@@ -30,6 +30,7 @@ static void FindFiles(const char* path, foundFile* toArray, int& numFound) {
 void screen_rom::discoverFiles() {
 	files = new foundFile[64];
 	numFiles = 0;
+	FindFiles("\\\\fls0\\*.gbz", files, numFiles);			// compressed gameboy ROM with utility
 	FindFiles("\\\\fls0\\*.gbc", files, numFiles);			// gameboy color
 	FindFiles("\\\\fls0\\*.gb", files, numFiles);			// gameboy
 	// TODO : These don't work on Prizm?

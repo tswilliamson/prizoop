@@ -20,14 +20,16 @@ unsigned char loadROM(const char *filename) {
 	
 	unsigned char header[0x180];
 
-	unsigned char isColor = filename[strlen(filename) - 1] == 'c' ? 1 : 0;
+	int extension = strrchr(filename, '.') - filename;
 
 	strcpy(curRomFile, "\\\\fls0\\");
 	strcat(curRomFile, filename);
 
+	bool isCompressed = strcmp(filename + extension, ".gbz") == 0 || strcmp(filename + extension, ".GBZ") == 0 || strcmp(filename + extension, ".Gbz") == 0;
+
 	strcpy(curSaveFile, "\\\\fls0\\");
 	strcat(curSaveFile, filename);
-	curSaveFile[strlen(curSaveFile) - 2 - isColor] = 0;
+	curSaveFile[extension+8] = 0;
 	strcat(curSaveFile, "SAV");
 
 	int hFile;
@@ -65,9 +67,9 @@ unsigned char loadROM(const char *filename) {
 
 	bool isCGB = header[ROM_OFFSET_GBC] == 0x80 || header[ROM_OFFSET_GBC] == 0xc0;
 	if (isCGB) {
-		printf("CGB ROM name: %s\n", name);
+		printf("CGB ROM name: %s %s\n", name, isCompressed ? "(gbz)" : "");
 	} else {
-		printf("GB ROM name: %s\n", name);
+		printf("GB ROM name: %s %s\n", name, isCompressed ? "(gbz)" : "");
 	}
 
 	resetMemoryMaps(isCGB);
@@ -94,9 +96,43 @@ unsigned char loadROM(const char *filename) {
 	printf("MBC type: %s\n", getMBCTypeString(type));
 	printf("RAM type: %s\n", getRAMTypeString(mbc.ramType));
 	printf("Num ROM Banks: %d\n", mbc.numRomBanks);
+
+	if (compressedPages) {
+		free((void*) compressedPages);
+		compressedPages = NULL;
+	}
+
+	// set up compression if in use
+	if (isCompressed) {
+		mbc.compressed = 1;
+
+		unsigned short numPages;
+		Bfile_ReadFile_OS(hFile, &numPages, 2, -1);
+		EndianSwap(numPages);
+
+		//  N 2 byte words of compressed page sizes (4098 if left uncompressed)
+		//  N zx7 compressed pages
+		compressedPages = (int*) malloc(sizeof(int) * (numPages + 1));
+		int curPos = Bfile_TellFile_OS(hFile) + 2 * numPages;
+		compressedPages[0] = curPos;
+		for (int i = 1; i <= numPages; i++) {
+			unsigned short pageSize;
+			Bfile_ReadFile_OS(hFile, &pageSize, 2, -1);
+			EndianSwap(pageSize);
+			
+			curPos += pageSize;
+			compressedPages[i] = curPos;
+		}
+		DebugAssert(Bfile_TellFile_OS(hFile) == compressedPages[0]);
+	} else {
+		mbc.compressed = 0;
+	}
 		
 	// read permanent ROM Area in
-	Bfile_ReadFile_OS(hFile, cart, /*min(length,*/ 0x4000/*)*/, 0);
+	mbcReadPage(0, &cart[0x0000], false);
+	mbcReadPage(1, &cart[0x1000], false);
+	mbcReadPage(2, &cart[0x2000], false);
+	mbcReadPage(3, &cart[0x3000], false);
 
 	if (mbc.batteryBacked) {
 		if (tryLoadSRAM(curSaveFile)) {
