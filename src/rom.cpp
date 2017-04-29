@@ -127,6 +127,8 @@ unsigned char loadROM(const char *filename) {
 	} else {
 		mbc.compressed = 0;
 	}
+
+	mbcFileUpdate();
 		
 	// read permanent ROM Area in
 	mbcReadPage(0, &cart[0x0000], false);

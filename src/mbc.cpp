@@ -133,7 +133,7 @@ const unsigned int sc1DAA[] = { SCA, SCB, SCE, 0x1DAA };
 // support up to a 4 MB ROM 
 static unsigned int BlockAddresses[1024] = { 0 };
 void mbcFileUpdate() {
-	int numBlocks = mbc.numRomBanks * 4; // 16k ROM banks means 4 4k blocks a piece
+	int numBlocks = (Bfile_GetFileSize_OS(mbc.romFile) + 4095) / 4096; // 16k ROM banks means 4 4k blocks a piece
 	for (int i = 0; i < numBlocks; i++) {
 		int ret = Bfile_GetBlockAddress(mbc.romFile, i * 0x1000, &BlockAddresses[i]);
 		if (ret < 0)
@@ -141,11 +141,31 @@ void mbcFileUpdate() {
 			return;
 	}
 }
-
 #else
 void mbcFileUpdate() {
 }
 #endif
+
+static int mbcReadFile(unsigned char* into, unsigned int size, unsigned int offset) {
+#if !TARGET_WINSIM
+	// use block addresses to do direct copy
+	int sizeLeft = size;
+	int block = offset / 4096;
+	int blockAddr = offset % 4096;
+	while (sizeLeft) {
+		int blockRem = min(4096 - blockAddr, sizeLeft);
+		memcpy(into, (const void*)(BlockAddresses[block]+blockAddr), blockRem);
+		into += blockRem;
+		sizeLeft -= blockRem;
+
+		block++;
+		blockAddr = 0;
+	}
+	return size;
+#else
+	return Bfile_ReadFile_OS(mbc.romFile, into, size, offset);
+#endif
+}
 
 bool mbcReadPage(unsigned int bankIndex, unsigned char* target, bool instrOverlap) {
 	unsigned int overlapBytes = instrOverlap ? 2 : 0;
@@ -154,10 +174,10 @@ bool mbcReadPage(unsigned int bankIndex, unsigned char* target, bool instrOverla
 		int compSize = compressedPages[bankIndex + 1] - compressedPages[bankIndex];
 
 		if (compSize == 4098) {
-			Bfile_ReadFile_OS(mbc.romFile, target, 0x1000 + overlapBytes, compressedPages[bankIndex]);
+			mbcReadFile(target, 0x1000 + overlapBytes, compressedPages[bankIndex]);
 		} else {
 			unsigned char compBuffer[4098];
-			Bfile_ReadFile_OS(mbc.romFile, compBuffer, compSize, compressedPages[bankIndex]);
+			mbcReadFile(compBuffer, compSize, compressedPages[bankIndex]);
 			if (instrOverlap) {
 				ZX7Decompress(compBuffer, target, 4098);
 			} else {
@@ -169,20 +189,11 @@ bool mbcReadPage(unsigned int bankIndex, unsigned char* target, bool instrOverla
 
 		return true;
 	} else {
-#if !TARGET_WINSIM
-		// use Bfile_GetBlockAddress to do a direct copy
-		memcpy(target, (const void*)BlockAddresses[bankIndex], 0x1000);
-		if (instrOverlap) {
-			memcpy(&target[0x1000], (const void*)BlockAddresses[bankIndex + 1], overlapBytes);
-		}
-		return true;
-#else
-		unsigned int read = Bfile_ReadFile_OS(mbc.romFile, target, 0x1000 + overlapBytes, bankIndex * 0x1000);
+		unsigned int read = mbcReadFile(target, 0x1000 + overlapBytes, bankIndex * 0x1000);
 		DebugAssert(read == 0x1000 + overlapBytes);
 		if (read == 0x1000 + overlapBytes) {
 			return true;
 		}
-#endif
 	}
 
 	return false;
