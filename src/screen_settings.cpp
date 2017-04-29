@@ -136,6 +136,8 @@ void screen_settings::drawOptions() {
 			Print(180, y, modes[opt], selected, !options[i].disabled ? colors[opt] : COLOR_DARKGRAY);
 		}
 	}
+
+	DrawFrame(0);
 }
 
 static const char* keyName[] = {

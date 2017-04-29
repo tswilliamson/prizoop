@@ -41,6 +41,7 @@ void screen_play::handleSelect() {
 
 void screen_play::initRom() {
 	LoadVRAM_1();
+	DrawFrame(0);
 
 	reset_printf();
 	printf("Loading file \"%s\"...\n", emulator.settings.selectedRom);
@@ -60,6 +61,7 @@ void screen_play::drawPlayBG() {
 	} else {
 		DrawBGEmbedded((unsigned char*)bg_1x1);
 	}
+	DrawFrame(0);
 	Bdisp_PutDisp_DD();
 }
 
