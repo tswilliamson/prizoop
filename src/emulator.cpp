@@ -2,6 +2,7 @@
 #include "emulator.h"
 #include "memory.h"
 #include "cgb.h"
+#include "tmu.h"
 
 #include "screen_rom.h"
 #include "screen_settings.h"
