@@ -248,5 +248,12 @@ int Ptune2_GetPLLFreq() {
 	return (CPG.FRQCRA.LONG >> 24) + 1;
 }
 
+int Ptune2_GetIFCDiv() {
+	return ((CPG.FRQCRA.LONG >> 20) & 0xF) + 1;
+}
+
+int Ptune2_GetPFCDiv() {
+	return ((CPG.FRQCRA.LONG & 0xF) + 1);
+}
 //---------------------------------------------------------------------------------------------
 
