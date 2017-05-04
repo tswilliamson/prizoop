@@ -114,6 +114,8 @@ void screen_rom::deselect() {
 	files = NULL;
 
 	emulator.saveSettings();
+
+	emulator.pausePreviewValid = false;
 }
 
 bool screen_rom::checkScroll() {

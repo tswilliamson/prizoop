@@ -59,12 +59,22 @@ struct mbc_state {
 	unsigned char sramEnabled;		// whether sram is currently enabled
 };
 
+struct rtc_state {
+	unsigned int rtcBase;			// device rtc base for current values
+	unsigned int curRTC;			// latched RTC value (in total seconds)
+	unsigned char rtcReg;			// current rtc selected register
+	unsigned char rtcValue;			// current rtc selected register value (to check for writes)
+	unsigned char lastLatch;		// last write to the latch data area (for determining rtc latch from 00->01)
+	unsigned char isHalted;			// whether RTC is currently halted (curRTC won't change)
+};
+
 // each cache has 2 extra bytes in it to account for instruction overlap
 struct mbc_bankcache {
 	unsigned char bank[0x1002];
 };
 
 extern mbc_state mbc;
+extern rtc_state rtc;
 
 // returns false if type is not supported
 bool setupMBCType(mbcType type, unsigned char romSizeByte, unsigned char ramSizeByte, int fileID);
@@ -98,6 +108,15 @@ extern int* compressedPages;
 
 // reads the page with the given ROM bank index (in 4k chunks) to the given memory address
 bool mbcReadPage(unsigned int bankIndex, unsigned char* target, bool instructionOverlap);
+
+// returns whether mbc uses RTC
+bool mbcIsRTC();
+
+// checks for a dirty rtc register, should only be done at opportune times
+void rtcCheckDirty();
+
+// converts current device rtc values to useable seconds value;
+unsigned int rtcToSeconds();
 
 // cached ROM banks is alloc'd in main() on the stack
 #define ALLOCATE_CACHED_BANKS() mbc_bankcache stackCachedBanks[NUM_CACHED_BANKS]; for (int r = 0; r < NUM_CACHED_BANKS; r++) { cachedBanks[r] = &stackCachedBanks[r]; }

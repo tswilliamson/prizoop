@@ -132,9 +132,6 @@
     <ClCompile Include="..\src\timer.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\tilerow.inl">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\main.h">
@@ -232,6 +229,9 @@
     </None>
     <None Include="..\src\scanline_resolve.inl">
       <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="..\src\tilerow.inl">
+      <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

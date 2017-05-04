@@ -249,6 +249,9 @@ clean.bat FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET=PRIZMEMU -DDEBUG=1" 
     <NMakeOutput>$(ProjectDir)\..\$(ProjectName).g3a</NMakeOutput>
     <NMakeIncludeSearchPath>$(ProjectDir)\..\..\include</NMakeIncludeSearchPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DeviceRelease|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

@@ -242,7 +242,7 @@ void sndFrame(int* buffer, int buffSize) {
 		if (!ch4UseLength || (masterCtl & 0x08)) {	// not using or not out of length yet
 			// determine rate to frequency conversion
 			const int divTable[8] = { 8, 16, 32, 48, 64, 80, 96, 112 };
-			int freq = divTable[cpu.memory.NR43_snd4cnt & 7] << ((cpu.memory.NR43_snd4cnt & 0xF0) >> 4);
+			int freq = min(divTable[cpu.memory.NR43_snd4cnt & 7] << ((cpu.memory.NR43_snd4cnt & 0xF0) >> 4), 2048);
 			int invFreqFactor = invFreqTable[2048 - freq];
 
 			// volume is mult of current channel volume and master volume

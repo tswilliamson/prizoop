@@ -181,6 +181,11 @@ void stepLCDOn_VBLANK(void) {
 	if (cpu.clocks >= cpu.gpuTick) {
 		switch (cpu.memory.LY_lcdline) {
 			case 0x00:
+				// check for dirty rtc value once per frame
+				if (mbcIsRTC()) {
+					rtcCheckDirty();
+				}
+
 				// check if lcd was disabled:
 				if (cpu.memory.LCDC_ctl & 0x80) {
 					invalidFrame = false;
