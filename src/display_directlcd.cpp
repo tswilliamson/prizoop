@@ -330,7 +330,7 @@ void drawFramebufferMain(void) {
 		tmu1Clocks = 0;
 	} else {
 		// expected TMU1 based sim frame time (for 59.7 FPS)
-		unsigned int simFrameTime = Ptune2_GetPLLFreq() * 243 >> Ptune2_GetPFCDiv();
+		unsigned int simFrameTime = Ptune2_GetPLLFreq() * 241 >> Ptune2_GetPFCDiv();
 		tmu1Clocks = counterStart - REG_TMU_TCNT_1;
 
 		// auto frameskip adjustment based on pre clamped time
@@ -370,7 +370,7 @@ void drawFramebufferMain(void) {
 	totalClocks += tmu1Clocks;
 	if (framecounter % 256 == 0) {
 		static int fps = 0;
-		int curfps = ((145150 * 256 * Ptune2_GetPLLFreq()) >> Ptune2_GetPFCDiv()) / totalClocks;
+		int curfps = ((143994 * 256 * Ptune2_GetPLLFreq()) >> Ptune2_GetPFCDiv()) / totalClocks;
 
 		if (curfps != fps) {
 			fps = curfps;
