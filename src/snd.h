@@ -20,6 +20,9 @@ void sndCleanup();
 void sndVolumeUp();
 void sndVolumeDown();
 
+// sound channel inits come from writes to bit 7 of certain IO mem regs
+void sndChannelInit(int channelNum);
+
 // called on rom start up to initialize sound registers
 void sndStartup();
 

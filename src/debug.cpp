@@ -84,6 +84,8 @@ void LogInstructionsHistory() {
 
 #if DEBUG_MEMWRITE
 void HitMemAccess() {
+	if (!cpu.clocks) return;
+
 	OutputLog("Hit Mem Access! 0x%04x (val: 0x%02x)\n", debugWriteAddress, readByte(debugWriteAddress));
 	OutputLog(BORDER);
 

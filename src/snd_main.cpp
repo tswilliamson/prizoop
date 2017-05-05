@@ -46,6 +46,35 @@ void sndStartup() {
 	}
 }
 
+
+void sndChannelInit(int channelNum) {
+	switch (channelNum) {
+		case 1:
+			// init channel 1
+			cpu.memory.NR52_soundmast |= 0x01;							// set not out of length
+			snd.ch1EnvCounter = 0;										// reset envelope counter
+			snd.ch1SweepCounter = 0;									// reset sweep counter
+			snd.ch1Volume = ((cpu.memory.NR12_snd1env & 0xF0) >> 4);	// use initial volume
+			break;
+		case 2:
+			// init channel 2
+			cpu.memory.NR52_soundmast |= 0x02;							// set not out of length
+			snd.ch2EnvCounter = 0;										// reset envelope counter
+			snd.ch2Volume = ((cpu.memory.NR22_snd2env & 0xF0) >> 4);	// use initial volume
+			break;
+		case 3:
+			// init channel 3
+			cpu.memory.NR52_soundmast |= 0x04;							// set not out of length
+			break;
+		case 4:
+			// init channel 4
+			cpu.memory.NR52_soundmast |= 0x08;							// set not out of length
+			snd.ch4EnvCounter = 0;										// reset envelope counter
+			snd.ch4Volume = ((cpu.memory.NR42_snd4env & 0xF0) >> 4);	// use initial volume
+			snd.ch4LFSR = cpu.clocks >> 4;
+			break;
+	}
+}
 // called from the platform sound system to fill a buffer based on current sound values
 void sndFrame(int* buffer, int buffSize) {
 	// master volume 0-14
@@ -64,36 +93,6 @@ void sndFrame(int* buffer, int buffSize) {
 
 	// normalize master volume to 20/14 (makes output range to 15750)
 	masterVol = (masterVol * 182) / 128;
-
-	// check for channel inits
-	if (cpu.memory.NR14_snd1ctl & 0x80) {
-		// init channel 1
-		masterCtl |= 0x01;											// set not out of length
-		cpu.memory.NR14_snd1ctl &= 0x7F;							// disable init flag
-		snd.ch1EnvCounter = 0;										// reset envelope counter
-		snd.ch1SweepCounter = 0;									// reset sweep counter
-		snd.ch1Volume = ((cpu.memory.NR12_snd1env & 0xF0) >> 4);	// use initial volume
-	}
-	if (cpu.memory.NR24_snd2ctl & 0x80) {
-		// init channel 2
-		masterCtl |= 0x02;											// set not out of length
-		cpu.memory.NR24_snd2ctl &= 0x7F;							// disable init flag
-		snd.ch2EnvCounter = 0;										// reset envelope counter
-		snd.ch2Volume = ((cpu.memory.NR22_snd2env & 0xF0) >> 4);	// use initial volume
-	}
-	if (cpu.memory.NR34_snd3ctl & 0x80) {
-		// init channel 3
-		masterCtl |= 0x04;											// set not out of length
-		cpu.memory.NR34_snd3ctl &= 0x7F;							// disable init flag
-	}
-	if (cpu.memory.NR44_snd4ctl & 0x80) {
-		// init channel 4
-		masterCtl |= 0x08;											// set not out of length
-		cpu.memory.NR44_snd4ctl &= 0x7F;							// disable init flag
-		snd.ch4EnvCounter = 0;										// reset envelope counter
-		snd.ch4Volume = ((cpu.memory.NR42_snd4env & 0xF0) >> 4);	// use initial volume
-		snd.ch4LFSR = cpu.clocks >> 4;
-	}
 
 	// cached useLength values
 	int ch1UseLength = cpu.memory.NR14_snd1ctl & 0x40;
@@ -135,6 +134,8 @@ void sndFrame(int* buffer, int buffSize) {
 					masterCtl &= ~0x01;
 				}
 				cpu.memory.NR11_snd1len = (cpu.memory.NR11_snd1len & 0xC0) | length;
+			} else if (cpu.memory.NR11_snd1len & 0x3f == 0) {
+				masterCtl &= ~0x01;
 			}
 
 			// sweep step every 2 frames
@@ -170,6 +171,7 @@ void sndFrame(int* buffer, int buffSize) {
 		} else {
 			// if the channel wasn't set then it couldn't clear the buffer with its values
 			memset(buffer, 0, subSize * 4);
+			masterCtl &= ~0x01;
 		}
 		
 		// sound channel 2
@@ -202,7 +204,11 @@ void sndFrame(int* buffer, int buffSize) {
 					masterCtl &= ~0x02;
 				}
 				cpu.memory.NR21_snd2len = (cpu.memory.NR21_snd2len & 0xC0) | length;
+			} else if (cpu.memory.NR21_snd2len & 0x3f == 0) {
+				masterCtl &= ~0x02;
 			}
+		} else {
+			masterCtl &= ~0x02;
 		}
 
 		// sound channel 3 (wave RAM)
@@ -226,7 +232,7 @@ void sndFrame(int* buffer, int buffSize) {
 			}
 
 			// if length is in use, "decrement" it until sound is done
-			if (ch2UseLength) {
+			if (ch3UseLength) {
 				int length = cpu.memory.NR31_snd3len;
 				length++;
 				if (length == 256) {
@@ -235,7 +241,11 @@ void sndFrame(int* buffer, int buffSize) {
 					masterCtl &= ~0x04;
 				}
 				cpu.memory.NR31_snd3len = length;
+			} else if (cpu.memory.NR31_snd3len & 0x3f == 0) {
+				masterCtl &= ~0x04;
 			}
+		} else {
+			masterCtl &= ~0x04;
 		}
 
 		// sound channel 4 (noise)
@@ -290,7 +300,11 @@ void sndFrame(int* buffer, int buffSize) {
 					masterCtl &= ~0x08;
 				}
 				cpu.memory.NR41_snd4len = length;
+			} else if (cpu.memory.NR41_snd4len & 0x3f == 0) {
+				masterCtl &= ~0x08;
 			}
+		} else {
+			masterCtl &= ~0x08;
 		}
 
 		buffer += subSize;
