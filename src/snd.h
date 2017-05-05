@@ -29,6 +29,9 @@ void sndStartup();
 // called from the platform sound system to fill a 1/64 second buffer (range 0-15750) based on current sound values
 void sndFrame(int* buffer, int length);
 
+// called from emulator (once per frame, so not quite every 1/64th of a second) to emulate register updates when sound emulation is turned off
+void sndInactiveFrame();
+
 #if TARGET_PRIZM
 #include "tmu.h"
 extern unsigned int lastSoundCounter;

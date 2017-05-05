@@ -75,6 +75,7 @@ void sndChannelInit(int channelNum) {
 			break;
 	}
 }
+
 // called from the platform sound system to fill a buffer based on current sound values
 void sndFrame(int* buffer, int buffSize) {
 	// master volume 0-14
@@ -292,9 +293,9 @@ void sndFrame(int* buffer, int buffSize) {
 
 			// if length is in use, "decrement" it until sound is done
 			if (ch4UseLength) {
-				int length = cpu.memory.NR41_snd4len;
+				int length = cpu.memory.NR41_snd4len & 0x3f;
 				length++;
-				if (length == 256) {
+				if (length == 64) {
 					// length finished!
 					length = 0;
 					masterCtl &= ~0x08;
@@ -351,6 +352,148 @@ void sndFrame(int* buffer, int buffSize) {
 				if (snd.ch4Volume) snd.ch4Volume--;
 			}
 		}
+	}
+
+	// write back master control flags
+	cpu.memory.NR52_soundmast = masterCtl;
+}
+
+
+// called from emulator (once per frame, so not quite every 1/64th of a second) to emulate register updates when sound emulation is turned off
+void sndInactiveFrame() {
+	int masterCtl = cpu.memory.NR52_soundmast;
+
+	{
+		int masterVol = (cpu.memory.NR50_spkvol & 0x07) + ((cpu.memory.NR50_spkvol & 0x70) >> 4);
+
+		// skip if nothing will output
+		if ((masterCtl & 0x80) == 0 || masterVol == 0 || cpu.memory.NR51_chselect == 0) {
+			if ((masterCtl & 0x80) == 0) {
+				cpu.memory.NR52_soundmast = 0;	// make sure channel on flags are reset
+			}
+			return;
+		}
+	}
+
+	// cached useLength values
+	int ch1UseLength = cpu.memory.NR14_snd1ctl & 0x40;
+	int ch2UseLength = cpu.memory.NR24_snd2ctl & 0x40;
+	int ch3UseLength = cpu.memory.NR34_snd3ctl & 0x40;
+	int ch4UseLength = cpu.memory.NR44_snd4ctl & 0x40;
+
+	// sound channel 1
+	if (!ch1UseLength || (masterCtl & 0x01)) {	// not using or not out of length yet
+		// if length is in use, "decrement" it until sound is done
+		if (ch1UseLength) {
+			int length = cpu.memory.NR11_snd1len & 0x3F;
+			length += 4;
+			if (length >= 64) {
+				// length finished!
+				length = 0;
+				masterCtl &= ~0x01;
+			}
+			cpu.memory.NR11_snd1len = (cpu.memory.NR11_snd1len & 0xC0) | length;
+		}
+		else if (cpu.memory.NR11_snd1len & 0x3f == 0) {
+			masterCtl &= ~0x01;
+		}
+
+		int ch1Sweep = (cpu.memory.NR10_snd1sweep & 0x70) >> 4;
+		if (ch1Sweep) {
+			snd.ch1SweepCounter += 2;
+			if (snd.ch1SweepCounter >= ch1Sweep) {
+				// change channel 1 frequency
+				int freq = (cpu.memory.NR13_snd1frqlo | ((cpu.memory.NR14_snd1ctl & 0x07) << 8));
+
+				snd.ch1SweepCounter = 0;
+				int bits = cpu.memory.NR10_snd1sweep & 0x07;
+				if (cpu.memory.NR10_snd1sweep & 0x08) {
+					// decrease
+					freq -= (freq >> bits);
+				}
+				else {
+					freq += (freq >> bits);
+				}
+
+				// check for freq overflow
+				if (freq <= 0) {
+					freq = 0;
+					masterCtl &= ~0x01;
+				}
+				else if (freq >= 2048) {
+					freq = 2047;
+					masterCtl &= ~0x01;
+				}
+
+				cpu.memory.NR13_snd1frqlo = freq & 0xFF;
+				cpu.memory.NR14_snd1ctl = (cpu.memory.NR14_snd1ctl & 0xF8) | (freq >> 8);
+			}
+		}
+	} else {
+		masterCtl &= ~0x01;
+	}
+
+	// sound channel 2
+	if (!ch2UseLength || (masterCtl & 0x02)) {	// not using or not out of length yet
+		// if length is in use, "decrement" it until sound is done
+		if (ch2UseLength) {
+			int length = cpu.memory.NR21_snd2len & 0x3F;
+			length += 4;
+			if (length >= 64) {
+				// length finished!
+				length = 0;
+				masterCtl &= ~0x02;
+			}
+			cpu.memory.NR21_snd2len = (cpu.memory.NR21_snd2len & 0xC0) | length;
+		}
+		else if (cpu.memory.NR21_snd2len & 0x3f == 0) {
+			masterCtl &= ~0x02;
+		}
+	}
+	else {
+		masterCtl &= ~0x02;
+	}
+
+	// sound channel 3 (wave RAM)
+	if ((!ch3UseLength || (masterCtl & 0x04)) && (cpu.memory.NR30_snd3enable & 0x80)) {	// not using or not out of length yet, AND enabled
+		// if length is in use, "decrement" it until sound is done
+		if (ch3UseLength) {
+			int length = cpu.memory.NR31_snd3len & 0x3f;
+			length += 4;
+			if (length >= 256) {
+				// length finished!
+				length = 0;
+				masterCtl &= ~0x04;
+			}
+			cpu.memory.NR31_snd3len = length;
+		}
+		else if (cpu.memory.NR31_snd3len & 0x3f == 0) {
+			masterCtl &= ~0x04;
+		}
+	}
+	else {
+		masterCtl &= ~0x04;
+	}
+
+	// sound channel 4 (noise)
+	if (!ch4UseLength || (masterCtl & 0x08)) {	// not using or not out of length yet
+		// if length is in use, "decrement" it until sound is done
+		if (ch4UseLength) {
+			int length = cpu.memory.NR41_snd4len & 0x3f;
+			length += 4;
+			if (length >= 64) {
+				// length finished!
+				length = 0;
+				masterCtl &= ~0x08;
+			}
+			cpu.memory.NR41_snd4len = length;
+		}
+		else if (cpu.memory.NR41_snd4len & 0x3f == 0) {
+			masterCtl &= ~0x08;
+		}
+	}
+	else {
+		masterCtl &= ~0x08;
 	}
 
 	// write back master control flags

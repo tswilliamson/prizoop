@@ -40,6 +40,11 @@ void stepLCDOff(void) {
 
 		// good time to refresh the keys
 		refreshKeys(true);
+
+		// run inactive sound logic if sound disabled
+		if (!emulator.settings.sound) {
+			sndInactiveFrame();
+		}
 	}
 }
 
@@ -181,6 +186,11 @@ void stepLCDOn_VBLANK(void) {
 	if (cpu.clocks >= cpu.gpuTick) {
 		switch (cpu.memory.LY_lcdline) {
 			case 0x00:
+				// run inactive sound logic if sound disabled
+				if (!emulator.settings.sound) {
+					sndInactiveFrame();
+				}
+
 				// check for dirty rtc value once per frame
 				if (mbcIsRTC()) {
 					rtcCheckDirty();
