@@ -135,7 +135,7 @@ void sndFrame(int* buffer, int buffSize) {
 					masterCtl &= ~0x01;
 				}
 				cpu.memory.NR11_snd1len = (cpu.memory.NR11_snd1len & 0xC0) | length;
-			} else if (cpu.memory.NR11_snd1len & 0x3f == 0) {
+			} else if ((cpu.memory.NR11_snd1len & 0x3f) == 0) {
 				masterCtl &= ~0x01;
 			}
 
@@ -205,7 +205,7 @@ void sndFrame(int* buffer, int buffSize) {
 					masterCtl &= ~0x02;
 				}
 				cpu.memory.NR21_snd2len = (cpu.memory.NR21_snd2len & 0xC0) | length;
-			} else if (cpu.memory.NR21_snd2len & 0x3f == 0) {
+			} else if ((cpu.memory.NR21_snd2len & 0x3f) == 0) {
 				masterCtl &= ~0x02;
 			}
 		} else {
@@ -242,7 +242,7 @@ void sndFrame(int* buffer, int buffSize) {
 					masterCtl &= ~0x04;
 				}
 				cpu.memory.NR31_snd3len = length;
-			} else if (cpu.memory.NR31_snd3len & 0x3f == 0) {
+			} else if ((cpu.memory.NR31_snd3len & 0x3f) == 0) {
 				masterCtl &= ~0x04;
 			}
 		} else {
@@ -301,7 +301,7 @@ void sndFrame(int* buffer, int buffSize) {
 					masterCtl &= ~0x08;
 				}
 				cpu.memory.NR41_snd4len = length;
-			} else if (cpu.memory.NR41_snd4len & 0x3f == 0) {
+			} else if ((cpu.memory.NR41_snd4len & 0x3f) == 0) {
 				masterCtl &= ~0x08;
 			}
 		} else {
@@ -394,7 +394,7 @@ void sndInactiveFrame() {
 			}
 			cpu.memory.NR11_snd1len = (cpu.memory.NR11_snd1len & 0xC0) | length;
 		}
-		else if (cpu.memory.NR11_snd1len & 0x3f == 0) {
+		else if ((cpu.memory.NR11_snd1len & 0x3f) == 0) {
 			masterCtl &= ~0x01;
 		}
 
@@ -446,7 +446,7 @@ void sndInactiveFrame() {
 			}
 			cpu.memory.NR21_snd2len = (cpu.memory.NR21_snd2len & 0xC0) | length;
 		}
-		else if (cpu.memory.NR21_snd2len & 0x3f == 0) {
+		else if ((cpu.memory.NR21_snd2len & 0x3f) == 0) {
 			masterCtl &= ~0x02;
 		}
 	}
@@ -467,7 +467,7 @@ void sndInactiveFrame() {
 			}
 			cpu.memory.NR31_snd3len = length;
 		}
-		else if (cpu.memory.NR31_snd3len & 0x3f == 0) {
+		else if ((cpu.memory.NR31_snd3len & 0x3f) == 0) {
 			masterCtl &= ~0x04;
 		}
 	}
@@ -488,7 +488,7 @@ void sndInactiveFrame() {
 			}
 			cpu.memory.NR41_snd4len = length;
 		}
-		else if (cpu.memory.NR41_snd4len & 0x3f == 0) {
+		else if ((cpu.memory.NR41_snd4len & 0x3f) == 0) {
 			masterCtl &= ~0x08;
 		}
 	}

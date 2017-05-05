@@ -16,12 +16,14 @@
 #define ALIGN(x) alignas(x)
 #define LITTLE_E
 #define FORCE_INLINE __forceinline
+#define RESTRICT __restrict
 #include <time.h>
 #else
 #define ALIGN(x) __attribute__((aligned(x)))
 #define BIG_E
 #define override
 #define FORCE_INLINE __attribute__((always_inline)) inline
+#define RESTRICT __restrict__
 #include "fxcg_registers.h"
 #endif
 
