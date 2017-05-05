@@ -106,6 +106,18 @@ bool supportedRAM(ramSizeType type) {
 			mbc.numRamBanks = 4;
 			firstRomCache = 8;
 			return true;
+		case RAM_64KB:
+			// need 4 pages:
+			mbc.ramBank = 0;
+			mbc.numRamBanks = 8;
+			firstRomCache = 16;
+			return true;
+		case RAM_128KB:
+			// need 8 pages:
+			mbc.ramBank = 0;
+			mbc.numRamBanks = 16;
+			firstRomCache = 32;
+			return true;
 	}
 
 	return false;
@@ -117,6 +129,8 @@ unsigned char ramNibbleCount(ramSizeType type) {
 		case RAM_NONE: return 0;
 		case RAM_2KB: return 8;
 		case RAM_32KB:
+		case RAM_64KB:
+		case RAM_128KB:
 		case RAM_8KB: return 32;
 		case RAM_MBC2: return 2;
 	}
