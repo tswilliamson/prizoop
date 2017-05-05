@@ -357,6 +357,8 @@ void drawFramebufferMain(void) {
 			int rtcBackup = RTC_GetTicks();
 			while (tmu1Clocks < simFrameTime && RTC_GetTicks() - rtcBackup < 3) {
 				condSoundUpdate();
+				// sleep .1 milliseconds at a time til we are ready for the frame
+				CMT_Delay_micros(100);
 				tmu1Clocks = counterStart - REG_TMU_TCNT_1;
 			}
 		}
