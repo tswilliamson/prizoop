@@ -6,7 +6,7 @@
 #include <Shlobj.h>
 #include <cstdio>
 
-#include "../src/zx7/zx7.h"
+#include "../../prizm-zx7/zx7.inl"
 
 bool FileOpen(char* intoPath)
 {

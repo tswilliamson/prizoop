@@ -80,14 +80,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\zx7\compress.c" />
-    <ClCompile Include="..\src\zx7\dzx7.c" />
-    <ClCompile Include="..\src\zx7\optimize.c" />
-    <ClCompile Include="..\src\zx7\zx7.c" />
     <ClCompile Include="comp-gb.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\src\zx7\zx7.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -10,7 +10,7 @@
 #include "cgb.h"
 #include "gpu.h"
 
-#include "zx7/zx7.h"
+#include "../../prizm-zx7/zx7.h"
 
 void emulator_screen::DrawBG(const char* filepath) {
 	// try to load the file

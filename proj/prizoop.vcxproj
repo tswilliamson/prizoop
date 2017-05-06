@@ -35,6 +35,20 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\prizm-winsim\prizmsim.cpp" />
+    <ClCompile Include="..\..\prizm-winsim\winmain.cpp" />
+    <ClCompile Include="..\..\prizm-zx7\compress.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\prizm-zx7\dzx7.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\prizm-zx7\optimize.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\prizm-zx7\zx7.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\src\bg_compressed.cpp" />
     <ClCompile Include="..\src\bmp.cpp" />
     <ClCompile Include="..\src\cgb.cpp" />
@@ -63,18 +77,15 @@
     <ClCompile Include="..\src\snd_main.cpp" />
     <ClCompile Include="..\src\snd_prizm.cpp" />
     <ClCompile Include="..\src\snd_winsim.cpp" />
+    <None Include="..\..\prizm-zx7\zx7.inl" />
     <None Include="..\src\tilerow.inl">
       <FileType>Document</FileType>
     </None>
     <ClCompile Include="..\src\timer.cpp" />
-    <ClCompile Include="..\src\zx7\compress.c" />
-    <ClCompile Include="..\src\zx7\dzx7.c" />
-    <ClCompile Include="..\src\zx7\optimize.c" />
-    <ClCompile Include="..\src\zx7\zx7.c" />
-    <ClCompile Include="..\winsim\prizmsim.cpp" />
-    <ClCompile Include="..\winsim\winmain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\prizm-winsim\prizmsim.h" />
+    <ClInclude Include="..\..\prizm-zx7\zx7.h" />
     <ClInclude Include="..\src\cgb.h" />
     <ClInclude Include="..\src\cgb_bootstrap.h" />
     <ClInclude Include="..\src\cpu.h" />
@@ -98,8 +109,6 @@
     <ClInclude Include="..\src\rom.h" />
     <ClInclude Include="..\src\snd.h" />
     <ClInclude Include="..\src\tmu.h" />
-    <ClInclude Include="..\src\zx7\zx7.h" />
-    <ClInclude Include="..\winsim\prizmsim.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile" />
@@ -109,9 +118,6 @@
     <None Include="..\src\cpu_instructions.inl" />
     <None Include="..\src\dmg_scanline.inl" />
     <None Include="..\src\scanline_resolve.inl" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\src\zx7\zx7.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0A1E9BF8-05DD-4F73-81D8-18DA73DB5796}</ProjectGuid>
@@ -300,12 +306,12 @@ clean.bat FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET=PRIZMEMU -DDEBUG=1" 
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>$(ProjectDir)\..\winsim\freeglut\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\..\..\prizm-winsim\freeglut\lib</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
       <PreprocessorDefinitions>TARGET_WINSIM=1;DEBUG=1</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AdditionalIncludeDirectories>..\src\;..\winsim</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\;..\..\prizm-winsim</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <ExceptionHandling>false</ExceptionHandling>

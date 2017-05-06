@@ -4,7 +4,7 @@
 #include "mbc.h"
 #include "keys.h"
 #include "memory.h"
-#include "zx7\zx7.h"
+#include "../../prizm-zx7/zx7.inl"
 
 // cached banks
 mbc_bankcache* cachedBanks[NUM_CACHED_BANKS];

@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="winsim">
-      <UniqueIdentifier>{80e0df14-724b-48b1-8ebd-32f08df57407}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\core">
       <UniqueIdentifier>{49ea25c3-636f-4bea-8131-a1da898cc254}</UniqueIdentifier>
     </Filter>
@@ -28,11 +25,14 @@
     <Filter Include="Source Files\menu">
       <UniqueIdentifier>{59ac1813-d914-4e4b-847f-f6b520fcb177}</UniqueIdentifier>
     </Filter>
-    <Filter Include="zx7">
-      <UniqueIdentifier>{101f6621-ea55-42c5-a919-df436e845d59}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ptune2_simple">
       <UniqueIdentifier>{693d36c5-6996-45ff-a69e-a5ad57b2d2a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="prizm-zx7">
+      <UniqueIdentifier>{101f6621-ea55-42c5-a919-df436e845d59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="prizm-winsim">
+      <UniqueIdentifier>{80e0df14-724b-48b1-8ebd-32f08df57407}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -41,12 +41,6 @@
     </ClCompile>
     <ClCompile Include="..\src\main.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\winsim\winmain.cpp">
-      <Filter>winsim</Filter>
-    </ClCompile>
-    <ClCompile Include="..\winsim\prizmsim.cpp">
-      <Filter>winsim</Filter>
     </ClCompile>
     <ClCompile Include="..\src\emulator.cpp">
       <Filter>Source Files</Filter>
@@ -99,18 +93,6 @@
     <ClCompile Include="..\src\display_preview.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\zx7\compress.c">
-      <Filter>zx7</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\zx7\dzx7.c">
-      <Filter>zx7</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\zx7\optimize.c">
-      <Filter>zx7</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\zx7\zx7.c">
-      <Filter>zx7</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\bg_compressed.cpp">
       <Filter>Source Files\menu</Filter>
     </ClCompile>
@@ -132,6 +114,24 @@
     <ClCompile Include="..\src\timer.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\prizm-zx7\zx7.c">
+      <Filter>prizm-zx7</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\prizm-zx7\compress.c">
+      <Filter>prizm-zx7</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\prizm-zx7\dzx7.c">
+      <Filter>prizm-zx7</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\prizm-zx7\optimize.c">
+      <Filter>prizm-zx7</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\prizm-winsim\winmain.cpp">
+      <Filter>prizm-winsim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\prizm-winsim\prizmsim.cpp">
+      <Filter>prizm-winsim</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\main.h">
@@ -142,9 +142,6 @@
     </ClInclude>
     <ClInclude Include="..\src\tmu.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\winsim\prizmsim.h">
-      <Filter>winsim</Filter>
     </ClInclude>
     <ClInclude Include="..\src\emulator.h">
       <Filter>Header Files</Filter>
@@ -194,9 +191,6 @@
     <ClInclude Include="..\src\screen_settings.h">
       <Filter>Header Files\menu</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\zx7\zx7.h">
-      <Filter>zx7</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\ptune2_simple\Ptune2_direct.h">
       <Filter>ptune2_simple</Filter>
     </ClInclude>
@@ -208,6 +202,12 @@
     </ClInclude>
     <ClInclude Include="..\src\snd.h">
       <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\prizm-zx7\zx7.h">
+      <Filter>prizm-zx7</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\prizm-winsim\prizmsim.h">
+      <Filter>prizm-winsim</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -233,10 +233,8 @@
     <None Include="..\src\tilerow.inl">
       <Filter>Header Files</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\src\zx7\zx7.txt">
-      <Filter>zx7</Filter>
-    </Text>
+    <None Include="..\..\prizm-zx7\zx7.inl">
+      <Filter>prizm-zx7</Filter>
+    </None>
   </ItemGroup>
 </Project>
