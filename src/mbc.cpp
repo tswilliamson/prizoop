@@ -4,6 +4,9 @@
 #include "mbc.h"
 #include "keys.h"
 #include "memory.h"
+#include "emulator.h"
+#include "snd.h"
+
 #include "../../prizm-zx7/zx7.inl"
 
 // cached banks
@@ -239,6 +242,9 @@ mbc_bankcache* cacheBank(unsigned int index) {
 		}
 	}
 
+	// update sound before and after cache misses
+	condSoundUpdate();
+
 	// uncached! using minimum cache request index, read into slot from file and return
 	if (!mbcReadPage(index, cachedBanks[minSlot]->bank,  index != (mbc.numRomBanks * 4 - 1))) {
 		// attempt to escape
@@ -247,6 +253,10 @@ mbc_bankcache* cacheBank(unsigned int index) {
 	} else {
 		cachedBankIndex[minSlot] = index;
 		lastCacheRequestIndex[minSlot] = cacheIndex;
+
+		// update sound before and after cache misses
+		condSoundUpdate();
+
 		return cachedBanks[minSlot];
 	}
 }
