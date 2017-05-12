@@ -141,6 +141,9 @@
     <ClCompile Include="..\..\calctype\calctype_prizm.c">
       <Filter>calctype</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\screen_faq.cpp">
+      <Filter>Source Files\menu</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\main.h">
@@ -220,6 +223,9 @@
     </ClInclude>
     <ClInclude Include="..\..\calctype\calctype.h">
       <Filter>calctype</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\screen_faq.h">
+      <Filter>Header Files\menu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

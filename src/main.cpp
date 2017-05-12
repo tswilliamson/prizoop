@@ -6,7 +6,8 @@
 
 
 #include "../../calctype/calctype.inl"
-#include "../../calctype/fonts/arial_small/arial_small.c"
+#include "../../calctype/fonts/arial_small/arial_small.c"		// For Menus
+#include "../../calctype/fonts/consolas_intl/consolas_intl.c"	// for FAQS
 
 bool shouldExit = false;
 

@@ -7,6 +7,7 @@
 #include "screen_rom.h"
 #include "screen_settings.h"
 #include "screen_play.h"
+#include "screen_faq.h"
 
 emulator_type emulator;
 
@@ -24,10 +25,12 @@ void emulator_type::startUp() {
 	screens[0] = new screen_rom;
 	screens[1] = new screen_settings;
 	screens[2] = new screen_play;
+	screens[3] = new screen_faq;
 
 	screens[0]->fKey = 1;
 	screens[1]->fKey = 2;
 	screens[2]->fKey = 6;
+	screens[3]->fKey = 5;
 
 	for (int i = 0; i < 6; i++) {
 		if (screens[i]) {
@@ -138,6 +141,8 @@ void emulator_type::defaultSettings() {
 	settings.keyMap[emu_button::DOWN] = 37;
 	settings.keyMap[emu_button::STATE_SAVE] = 43;	// 'S'
 	settings.keyMap[emu_button::STATE_LOAD] = 25;   // 'L'
+
+	settings.textOffset = 0;
 
 	// simulator only defaults
 #if TARGET_WINSIM

@@ -31,9 +31,10 @@ namespace emu_scale {
 }
 
 // Emulation settings
-#define SETTINGS_VERSION 3
+#define SETTINGS_VERSION 4
 struct emulator_settings {
 	int version;
+	int textOffset;				// faq text offset (only valid if within size)
 	char selectedRom[32];
 	unsigned char overclock;
 	unsigned char scaleMode;
@@ -56,6 +57,7 @@ struct colorpalette_type {
 extern const unsigned char* bg_menu;
 extern const unsigned char* bg_1x1;
 extern const unsigned char* bg_fit;
+extern const unsigned char* bg_faq;
 
 struct emulator_screen {
 	int fKey;

@@ -42,7 +42,7 @@ void screen_rom::drawFiles() {
 	for (int i = 0; i < numFiles; i++) {
 		int curY = i * 14 - curScroll;
 
-		if (curY > -18 && curY < 180) {
+		if (curY >= 0 && curY < 180) {
 			char buffer[16];
 			memset(buffer, 0, sizeof(buffer));
 			sprintf(buffer, "%d/%d", i + 1, numFiles);
@@ -72,6 +72,7 @@ void screen_rom::select() {
 	discoverFiles();
 
 	DrawBGEmbedded((unsigned char*) bg_menu);
+	//DrawBG("\\\\fls0\\Prizoop\\menu.bmp");
 	DrawPausePreview();
 	SaveVRAM_1();
 
@@ -119,14 +120,14 @@ void screen_rom::deselect() {
 }
 
 bool screen_rom::checkScroll() {
-	int selectY = selectedFile * 18 - curScroll;
+	int selectY = selectedFile * 14 - curScroll;
 
 	if (selectY < 0) {
-		curScroll = 18 * selectedFile - 4;
+		curScroll = 14 * selectedFile - 4;
 		return true;
 	}
 	if (selectY > 170) {
-		curScroll = 18 * selectedFile - 166;
+		curScroll = 14 * selectedFile - 166;
 		return true;
 	}
 	return false;
