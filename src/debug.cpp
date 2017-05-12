@@ -6,6 +6,8 @@
 #include "cpu.h"
 #include "interrupts.h"
 
+#include "../../calctype/fonts/arial_small/arial_small.h"
+
 #if DEBUG_MEMWRITE
 unsigned short debugWriteAddress = 0;
 #endif
@@ -23,8 +25,8 @@ void ScreenPrint(char* buffer) {
 	int x = 5;
 	bool newline = buffer[strlen(buffer) - 1] == '\n';
 	if (newline) buffer[strlen(buffer) - 1] = 0;
-	PrintMini(&x, &printY, buffer, 0x42, 0xffffffff, 0, 0, COLOR_WHITE, COLOR_BLACK, 1, 0);
-	printY = (printY + 18) % 224;
+	CalcType_Draw(&arial_small, buffer, x, printY + 2, COLOR_WHITE, 0, 0);
+	printY = (printY + arial_small.height) % 224;
 }
 
 #if DEBUG

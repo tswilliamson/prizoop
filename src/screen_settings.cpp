@@ -75,7 +75,7 @@ void screen_settings::drawOptions() {
 	int row = 0;
 	for (int i = 0; i < NumOptions(); i++) {
 		bool selected = curOption == i;
-		int y = row * 18 + 4;
+		int y = row * 14 + 4;
 
 		if (options[i].noCGB) continue;
 		row++;

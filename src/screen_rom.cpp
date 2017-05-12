@@ -40,7 +40,7 @@ void screen_rom::discoverFiles() {
 
 void screen_rom::drawFiles() {
 	for (int i = 0; i < numFiles; i++) {
-		int curY = i * 18 - curScroll;
+		int curY = i * 14 - curScroll;
 
 		if (curY > -18 && curY < 180) {
 			char buffer[16];

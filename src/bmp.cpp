@@ -11,6 +11,7 @@
 #include "gpu.h"
 
 #include "../../prizm-zx7/zx7.h"
+#include "../../calctype/fonts/arial_small/arial_small.h"
 
 void emulator_screen::DrawBG(const char* filepath) {
 	// try to load the file
@@ -104,27 +105,25 @@ void emulator_screen::Print(int x, int y, const char* buffer, bool selected, uns
 		int srcY = y;
 
 		x--;
-		PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, COLOR_LIGHTGREEN, COLOR_BLACK, 1, 0);
+		CalcType_Draw(&arial_small, buffer, x, y, COLOR_LIGHTGREEN, 0, 0);
 		x = srcX;
 		y = srcY - 1;
-		PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, COLOR_LIGHTGREEN, COLOR_BLACK, 1, 0);
+		CalcType_Draw(&arial_small, buffer, x, y, COLOR_LIGHTGREEN, 0, 0);
 		x = srcX + 1;
 		y = srcY;
-		PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, COLOR_SPRINGGREEN, COLOR_BLACK, 1, 0);
+		CalcType_Draw(&arial_small, buffer, x, y, COLOR_SPRINGGREEN, 0, 0);
 		x = srcX;
 		y = srcY + 1;
-		PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, COLOR_SPRINGGREEN, COLOR_BLACK, 1, 0);
+		CalcType_Draw(&arial_small, buffer, x, y, COLOR_SPRINGGREEN, 0, 0);
 		x = srcX;
 		y = srcY;
 	}
 
-	PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, color, 0x0001, 1, 0);
+	CalcType_Draw(&arial_small, buffer, x, y, color, 0, 0);
 }
 
 int emulator_screen::PrintWidth(const char* buffer) {
-	int x = 0, y = 0;
-	PrintMini(&x, &y, buffer, 0x42, 0xffffffff, 0, 0, COLOR_BLACK, COLOR_BLACK, 0, 0);
-	return x;
+	return CalcType_Width(&arial_small, buffer);
 }
 
 void emulator_screen::DrawPausePreview() {

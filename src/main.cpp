@@ -4,6 +4,10 @@
 #include "rom.h"
 #include "ptune2_simple\Ptune2_direct.h"
 
+
+#include "../../calctype/calctype.inl"
+#include "../../calctype/fonts/arial_small/arial_small.c"
+
 bool shouldExit = false;
 
 void shutdown() {

@@ -34,6 +34,9 @@
     <Filter Include="prizm-winsim">
       <UniqueIdentifier>{80e0df14-724b-48b1-8ebd-32f08df57407}</UniqueIdentifier>
     </Filter>
+    <Filter Include="calctype">
+      <UniqueIdentifier>{37933317-d9e2-4ed4-8297-a8e5e5b8c6ff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ScopeTimer.cpp">
@@ -132,6 +135,12 @@
     <ClCompile Include="..\..\prizm-winsim\prizmsim.cpp">
       <Filter>prizm-winsim</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\calctype\calctype.c">
+      <Filter>calctype</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\calctype\calctype_prizm.c">
+      <Filter>calctype</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\main.h">
@@ -209,6 +218,9 @@
     <ClInclude Include="..\..\prizm-winsim\prizmsim.h">
       <Filter>prizm-winsim</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\calctype\calctype.h">
+      <Filter>calctype</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile" />
@@ -235,6 +247,9 @@
     </None>
     <None Include="..\..\prizm-zx7\zx7.inl">
       <Filter>prizm-zx7</Filter>
+    </None>
+    <None Include="..\..\calctype\calctype.inl">
+      <Filter>calctype</Filter>
     </None>
   </ItemGroup>
 </Project>

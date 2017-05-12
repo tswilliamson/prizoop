@@ -35,6 +35,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\calctype\calctype.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\calctype\calctype_prizm.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\prizm-winsim\prizmsim.cpp" />
     <ClCompile Include="..\..\prizm-winsim\winmain.cpp" />
     <ClCompile Include="..\..\prizm-zx7\compress.c">
@@ -77,6 +83,9 @@
     <ClCompile Include="..\src\snd_main.cpp" />
     <ClCompile Include="..\src\snd_prizm.cpp" />
     <ClCompile Include="..\src\snd_winsim.cpp" />
+    <None Include="..\..\calctype\calctype.inl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
+    </None>
     <None Include="..\..\prizm-zx7\zx7.inl" />
     <None Include="..\src\tilerow.inl">
       <FileType>Document</FileType>
@@ -84,6 +93,9 @@
     <ClCompile Include="..\src\timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\calctype\calctype.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="..\..\prizm-winsim\prizmsim.h" />
     <ClInclude Include="..\..\prizm-zx7\zx7.h" />
     <ClInclude Include="..\src\cgb.h" />
