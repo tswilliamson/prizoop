@@ -7,15 +7,15 @@ Prizoop is a Game Boy and Game Boy Color emulator for the Casio Prizm series gra
 
 It got its name because it started out as a fork of the multiplatform Game Boy emulator, Cinoop, by CTurt. It has since undergone an almost total rewrite and shares some of the cpu code, organization and constructs from Cinoop, but for the most part resembles Cinoop much less than a normal fork.
 
-### Install
+## Install
 
 Copy the prizoop.g3a file to your Casio Prizm calculator's root path when linked via USB. Gameboy and Gameboy Color roms (.gb and .gbc) also should go inside of the root directory. The filenames for these files should be simple and less than 12 characters, such as MyGame.gbc. 
 
 Additionally, Windows users can compress a .gb and .gbc ROM file into a smaller .gbz file that is also compatible, though the game will be slightly slower when starting a new level, etc due to needing to decompress data on the fly. Some games such as Ghosts and Goblins will compress to ~10% of their original size, enabling you to have a much larger library on your calculator. To compress a ROM file, simply run comp-gb.exe and select the ROM to compress. The tool will automatically create a .gbz file in the same folder.
 
-### Usage
+## Usage
 
-## Menu
+### Menu
 
 In the menu system use the arrow keys and SHIFT to select.
 
@@ -28,7 +28,7 @@ When inside a game, the MENU key will exit to the settings screen, and pressing 
 
 A single save state is supported per ROM, which can be loaded/saved using the remappable keys mentioned in the Controls section.
 
-## In Game
+### In Game
 
 You can configure your own keys in the Settings menu, these are the default I found to work well:
 
@@ -44,7 +44,7 @@ You can configure your own keys in the Settings menu, these are the default I fo
 
 Some games, such as the Mario titles, play much better with a reversed control scheme, where you bind left and right to Shift/Option, and A and B to Cos/Tan. This is because the Prizm directional pad is a little flaky and on the opposite side as a traditional game controller.
 
-## FAQ Viewer
+### FAQ Viewer
 
 ![FAQ View](/Screens/FAQ.png?raw=true)
 
@@ -58,7 +58,7 @@ FAQ viewing controls:
 - F2: Game settings
 - F6: Return to Game
 
-### Support
+## Support
 
 ![Game Banner](/Screens/GameBanner.png?raw=true)
 
@@ -66,11 +66,11 @@ The emulator now plays over 95% of the games I have been able to test smoothly a
 
 The emulator now supports Real Time Clock games such as Pokemon Gold and Silver, utilizing the real time clock on the Prizm.
 
-## Sound
+### Sound
 
 The emulator has full support for sound, though it is somewhat limited due to the 1-bit nature of the Prizm serial port. If you have a 2.5 mm to 3.5 mm headphone adapter, you can enjoy low-lag sound with a decent frequency range in one earphone (left or right, depending on the adaptor). Some adaptors seem to have different voltage output, so you may get some distortion or unusually high volume. Volume and distortion can be simultaneously adjusted with the + and - keys.
 
-### Building
+## Building
 
 My other repositories: calctype, prizm-zx7, and (optionally) prizm-winsim are required to build Prizoop from source. These should be cloned with matching folder names adjacent to your Prizoop clone.
 
@@ -78,7 +78,7 @@ Project root must be within /projects directory of publicly available community 
 
 If you use Visual Studio, a project is included that uses a Windows Simulator I wrote that wraps Prizm OS functions so that the code and emulator can easily be tested and iterated on within Visual Studio. See the prizmsim.cpp/h code for details on its usage.
 
-### Special Thanks
+## Special Thanks
 
 BGB was a huge part of bug fixing and obtaining decent ROM compatibility. It is a Gameboy emulator with great debugging and memory visualization tools:
 http://bgb.bircd.org/
