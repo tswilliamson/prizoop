@@ -411,6 +411,7 @@ void drawFramebufferMain(void) {
 	// frame end.. kill DMA operations to make sure they stay in sync
 	DmaWaitNext();
 	*((volatile unsigned*)MSTPCR0) &= ~(1 << 21);//Clear bit 21
+	curScan = 0;
 
 	// good time to refresh keys and check for os requests and such
 	refreshKeys(true);
