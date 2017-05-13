@@ -10,14 +10,27 @@ void screen_faq::setup() {
 	textOffset = 0;
 }
 
+static unsigned char hashString(const char* str) {
+	int size = strlen(str);
+	unsigned int ret;
+	for (int i = 0; i < size; i++) {
+		ret = ((ret << 5) + (ret >> 27)) ^ str[i];
+	}
+	return (ret & 0xFF00) >> 8;
+}
+
 void screen_faq::select() {
 	//DrawBG("\\\\fls0\\Prizoop\\faq.bmp");
 	DrawBGEmbedded((unsigned char*) bg_faq);
 	SaveVRAM_1();
 
-	textOffset = emulator.settings.textOffset;
+	textOffset = 0;
 
 	if (emulator.settings.selectedRom[0]) {
+		unsigned char faqHash = hashString(emulator.settings.selectedRom);
+		if (((emulator.settings.faqOffset & 0xFF000000) >> 24) == faqHash) {
+			textOffset = emulator.settings.faqOffset & 0x00FFFFFF;
+		}
 		loadFAQ();
 	}
 
@@ -39,7 +52,9 @@ void screen_faq::deselect() {
 
 		// save the text offset
 		textOffset += readOffset;
-		emulator.settings.textOffset = textOffset;
+		unsigned char faqHash = hashString(emulator.settings.selectedRom);
+
+		emulator.settings.faqOffset = (faqHash << 24) | (textOffset & 0x00FFFFFF);
 		emulator.saveSettings();
 	}
 }

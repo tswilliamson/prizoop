@@ -142,7 +142,7 @@ void emulator_type::defaultSettings() {
 	settings.keyMap[emu_button::STATE_SAVE] = 43;	// 'S'
 	settings.keyMap[emu_button::STATE_LOAD] = 25;   // 'L'
 
-	settings.textOffset = 0;
+	settings.faqOffset = 0;
 
 	// simulator only defaults
 #if TARGET_WINSIM

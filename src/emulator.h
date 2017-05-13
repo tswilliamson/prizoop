@@ -34,7 +34,7 @@ namespace emu_scale {
 #define SETTINGS_VERSION 4
 struct emulator_settings {
 	int version;
-	int textOffset;				// faq text offset (only valid if within size)
+	unsigned int faqOffset;		// faq text offset (top 8 bits are name hash, bottom 24 are actual offset)
 	char selectedRom[32];
 	unsigned char overclock;
 	unsigned char scaleMode;
