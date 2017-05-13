@@ -101,23 +101,16 @@ void emulator_screen::DrawBGEmbedded(unsigned char* compressedData) {
 }
 
 void emulator_screen::Print(int x, int y, const char* buffer, bool selected, unsigned short color) {
-	int srcX = x;
 	if (selected) {
-		int srcY = y;
-
-		x--;
-		CalcType_Draw(&arial_small, buffer, x, y, COLOR_LIGHTGREEN, 0, 0);
-		x = srcX;
-		y = srcY - 1;
-		CalcType_Draw(&arial_small, buffer, x, y, COLOR_LIGHTGREEN, 0, 0);
-		x = srcX + 1;
-		y = srcY;
-		CalcType_Draw(&arial_small, buffer, x, y, COLOR_SPRINGGREEN, 0, 0);
-		x = srcX;
-		y = srcY + 1;
-		CalcType_Draw(&arial_small, buffer, x, y, COLOR_SPRINGGREEN, 0, 0);
-		x = srcX;
-		y = srcY;
+		// move slight right
+		x += 1;
+		// bold
+		color = mix565(color, COLOR_WHITE);
+		unsigned short colorDark = mix565(color, 0);
+		CalcType_Draw(&arial_small, buffer, x+1, y, colorDark, 0, 0);
+		CalcType_Draw(&arial_small, buffer, x-1, y, colorDark, 0, 0);
+		CalcType_Draw(&arial_small, buffer, x, y-1, colorDark, 0, 0);
+		CalcType_Draw(&arial_small, buffer, x, y+1, colorDark, 0, 0);
 	}
 
 	CalcType_Draw(&arial_small, buffer, x, y, color, 0, 0);

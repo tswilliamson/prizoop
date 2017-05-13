@@ -80,7 +80,7 @@ protected:
 	static void DrawBGEmbedded(unsigned char* compressedData);
 
 	// Print a string at the given coordinates
-	static void Print(int x, int y, const char* buffer, bool selected, unsigned short color = COLOR_WHITE);
+	static void Print(int x, int y, const char* buffer, bool selected, unsigned short color = COLOR_SILVER);
 
 	// Width of the given string in pixels
 	static int PrintWidth(const char* buffer);
