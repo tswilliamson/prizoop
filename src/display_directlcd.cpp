@@ -408,12 +408,6 @@ void drawFramebufferMain(void) {
 		return;
 	}
 
-	// this doesn't happen often.. scan lines sometimes get lost
-	while (curScan) {
-		renderScanline();
-		condSoundUpdate();
-	}
-
 	// frame end.. kill DMA operations to make sure they stay in sync
 	DmaWaitNext();
 	*((volatile unsigned*)MSTPCR0) &= ~(1 << 21);//Clear bit 21

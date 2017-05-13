@@ -84,6 +84,7 @@ void emulator_screen::DrawBG(const char* filepath) {
 	free(outData);
 #endif
 
+	EnableStatusArea(3);
 	DrawFrame(0);
 }
 
