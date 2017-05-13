@@ -38,12 +38,15 @@ CFLAGS	= -O2 \
 		  -fno-trapv \
 		  -Wno-switch \
 		  $(MACHDEP) $(INCLUDE) $(DEFINES)
+
 CXXFLAGS	=	$(CFLAGS) \
 		  -fpermissive \
 		  -fno-rtti \
 		  -fno-exceptions \
 		  -fno-threadsafe-statics \
 		  -fno-use-cxa-get-exception-ptr 
+
+ASFLAGS	=	$(CFLAGS) 
 
 # add -S -fverbose-asm for assembly output
 
@@ -79,7 +82,6 @@ export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 #---------------------------------------------------------------------------------
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
-sFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.S)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
@@ -94,7 +96,7 @@ endif
 
 export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
 					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) \
-					$(sFILES:.s=.o) $(SFILES:.S=.o)
+					$(SFILES:.S=.o)
 
 #---------------------------------------------------------------------------------
 # build a list of include paths

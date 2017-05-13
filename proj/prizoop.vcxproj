@@ -56,7 +56,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\src\bg_compressed.cpp" />
-    <ClCompile Include="..\src\bmp.cpp" />
     <ClCompile Include="..\src\cgb.cpp" />
     <ClCompile Include="..\src\cgb_bootstrap.cpp" />
     <ClCompile Include="..\src\cpu.cpp" />
@@ -65,6 +64,7 @@
     <ClCompile Include="..\src\display_emu.cpp" />
     <ClCompile Include="..\src\display_preview.cpp" />
     <ClCompile Include="..\src\emulator.cpp" />
+    <ClCompile Include="..\src\emulator_screen.cpp" />
     <ClCompile Include="..\src\mbc.cpp" />
     <ClCompile Include="..\src\ptune2_simple\Ptune2_direct.c" />
     <ClCompile Include="..\src\screen_faq.cpp" />

@@ -40,8 +40,7 @@ void screen_play::handleSelect() {
 }
 
 void screen_play::initRom() {
-	LoadVRAM_1();
-	DrawFrame(0);
+	ResolveBG(bg_menu);
 
 	reset_printf();
 	printf("Loading file \"%s\"...\n", emulator.settings.selectedRom);

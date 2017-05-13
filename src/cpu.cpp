@@ -990,6 +990,7 @@ static unsigned char* const regMap[8] = {
 	&cpu.registers.a
 };
 
+#ifdef DEBUG_TRACKINSTRUCTIONS
 static const char* regNames[8] = {
 	"B",
 	"C",
@@ -1000,6 +1001,7 @@ static const char* regNames[8] = {
 	"(HL)",
 	"A"
 };
+#endif
 
 #define INSTRUCTION_0(name,numticks,func,id,code)   case id: DebugInstruction(name); func(); cpu.clocks += (numticks - 4); code break;
 #define INSTRUCTION_1(name,numticks,func,id,code)   case id: DebugInstruction(name, pc[1]); { cpu.registers.pc += 1; func(pc[1]); cpu.clocks += (numticks - 4); code } break;

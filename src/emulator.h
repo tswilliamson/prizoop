@@ -87,6 +87,9 @@ protected:
 
 	// Draws the pause preview (if valid) to the VRAM
 	static void DrawPausePreview();
+
+	// Resolve the background (using saved VRAM if possible) with the given compressed background data
+	static void ResolveBG(const unsigned char* data);
 };
 
 // The main emulator object

@@ -12,7 +12,7 @@ void screen_faq::setup() {
 
 static unsigned char hashString(const char* str) {
 	int size = strlen(str);
-	unsigned int ret;
+	unsigned int ret = 0;
 	for (int i = 0; i < size; i++) {
 		ret = ((ret << 5) + (ret >> 27)) ^ str[i];
 	}
@@ -20,9 +20,7 @@ static unsigned char hashString(const char* str) {
 }
 
 void screen_faq::select() {
-	//DrawBG("\\\\fls0\\Prizoop\\faq.bmp");
-	DrawBGEmbedded((unsigned char*) bg_faq);
-	SaveVRAM_1();
+	ResolveBG(bg_faq);
 
 	textOffset = 0;
 
@@ -35,7 +33,6 @@ void screen_faq::select() {
 	}
 
 	if (faqHandle < 0) {
-		LoadVRAM_1();
 		Print(10, 10, "No .txt file found for this rom.", false);
 	}
 }
@@ -84,8 +81,7 @@ void screen_faq::loadFAQ() {
 }
 
 void screen_faq::draw() {
-	LoadVRAM_1();
-	DrawFrame(0);
+	ResolveBG(bg_faq);
 
 	int curTextPos = readOffset;
 
@@ -144,10 +140,12 @@ void screen_faq::handleDown() {
 
 	x = 0;
 
-	// go to next line
-	do {
-		readOffset++;
-	} while (readOffset < textSize && textBuffer[readOffset-1] != '\n');
+	// go to next line (twice)
+	for (int i = 0; i < 2; i++) {
+		do {
+			readOffset++;
+		} while (readOffset < textSize && textBuffer[readOffset-1] != '\n');
+	}
 
 	draw();
 }
@@ -160,11 +158,13 @@ void screen_faq::handleUp() {
 
 	x = 0;
 
-	// go to previous line if possible
-	if (readOffset) {
-		do {
-			readOffset--;
-		} while (readOffset > 0 && textBuffer[readOffset-1] != '\n');
+	// go to previous line if possible (twice)
+	for (int i = 0; i < 2; i++) {
+		if (readOffset) {
+			do {
+				readOffset--;
+			} while (readOffset > 0 && textBuffer[readOffset-1] != '\n');
+		}
 	}
 
 	if (!readOffset) {

@@ -35,8 +35,7 @@ void screen_settings::setup() {
 }
 
 void screen_settings::select() {
-	DrawBGEmbedded((unsigned char*)bg_menu);
-	SaveVRAM_1();
+	ResolveBG(bg_menu);
 	DrawPausePreview();
 
 	for (int i = 0; i < NumOptions(); i++) {
@@ -222,7 +221,7 @@ void screen_settings::handleUp() {
 		curOption = (curOption + NumOptions() - 1) % NumOptions();
 	} while (options[curOption].disabled);
 
-	LoadVRAM_1();
+	ResolveBG(bg_menu);
 	DrawPausePreview();
 	drawOptions();
 }
@@ -232,7 +231,7 @@ void screen_settings::handleDown() {
 		curOption = (curOption + 1) % NumOptions();
 	} while (options[curOption].disabled);
 
-	LoadVRAM_1();
+	ResolveBG(bg_menu);
 	DrawPausePreview();
 	drawOptions();
 }
@@ -277,7 +276,7 @@ void screen_settings::handleSelect() {
 		}
 	}
 
-	LoadVRAM_1();
+	ResolveBG(bg_menu);
 	DrawPausePreview();
 	drawOptions();
 }

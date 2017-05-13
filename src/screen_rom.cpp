@@ -39,6 +39,8 @@ void screen_rom::discoverFiles() {
 }
 
 void screen_rom::drawFiles() {
+	ResolveBG(bg_menu);
+
 	for (int i = 0; i < numFiles; i++) {
 		int curY = i * 14 - curScroll;
 
@@ -71,10 +73,8 @@ void screen_rom::select() {
 
 	discoverFiles();
 
-	DrawBGEmbedded((unsigned char*) bg_menu);
-	//DrawBG("\\\\fls0\\Prizoop\\menu.bmp");
+	ResolveBG(bg_menu);
 	DrawPausePreview();
-	SaveVRAM_1();
 
 	// if our selected file from settings is in the rom list
 	selectedFile = 0;
@@ -138,7 +138,6 @@ void screen_rom::handleUp() {
 		selectedFile = (selectedFile + numFiles - 1) % numFiles;
 
 		checkScroll();
-		LoadVRAM_1();
 		drawFiles();
 	}
 }
@@ -148,7 +147,6 @@ void screen_rom::handleDown() {
 		selectedFile = (selectedFile + 1) % numFiles;
 
 		checkScroll();
-		LoadVRAM_1();
 		drawFiles();
 	}
 }
