@@ -710,13 +710,12 @@ void mbcWrite(unsigned short address, unsigned char value) {
 					disableSRAM();
 				}
 			}
-			// TODO : no support for ROM's greater > 256 banks
+			else if (upperNibble <= 0x02) {
+				selectRomBank(value);
+			}
 			else if (upperNibble <= 0x03) {
-				if (value == 0) {
-					selectRomBank(1);
-				} else {
-					selectRomBank(value);
-				}
+				// TODO : no support for ROM's greater > 256 banks
+				// Some games set this to invalid #'s.. hardware will ignore
 			}
 			else if (upperNibble <= 0x05) {
 				if (mbc.rumblePack) {
