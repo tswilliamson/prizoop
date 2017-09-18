@@ -67,7 +67,10 @@ void hblank(void);
 
 void enablePausePreview();
 
-extern int framecounter;
+extern unsigned int framecounter;
+
+// used to resolve window render error on a few games
+extern int windowLineOffset;
 
 // line buffer rendered too during scanline render functions
 #if TARGET_WINSIM

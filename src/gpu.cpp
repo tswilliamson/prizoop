@@ -14,6 +14,8 @@
 
 void(*gpuStep)(void) = NULL;
 
+int windowLineOffset = 0;
+
 unsigned int ppuPalette[64] = { 0 };
 
 unsigned int gpuTimes[5] = {
@@ -186,6 +188,8 @@ void stepLCDOn_VBLANK(void) {
 	if (cpu.clocks >= cpu.gpuTick) {
 		switch (cpu.memory.LY_lcdline) {
 			case 0x00:
+				windowLineOffset = 0;
+
 				// run inactive sound logic if sound disabled
 				if (!emulator.settings.sound) {
 					sndInactiveFrame();

@@ -40,7 +40,7 @@ inline void RenderDMGScanline() {
 		if (cpu.memory.LCDC_ctl & LCDC_WINDOWENABLE)
 		{
 			int wx = cpu.memory.WX_windowx;
-			int y = curLine - cpu.memory.WY_windowy;
+			int y = curLine - cpu.memory.WY_windowy + windowLineOffset;
 
 			if (wx <= 166 && y >= 0) {
 				// select map offset row

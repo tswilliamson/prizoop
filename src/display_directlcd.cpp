@@ -17,7 +17,7 @@
 #include "keys.h"
 #include "ptune2_simple/Ptune2_direct.h"
 
-int framecounter = 0;
+unsigned int framecounter = 0;
 
 static int frameSkip = 0;
 static bool skippingFrame = false;			// whether the current frame is being skipped, determined by frameSkip value
@@ -57,8 +57,8 @@ int* prevLineBuffer = ((int*)0xE5017400);
 void DmaWaitNext(void) {
 	// enable burst mode now that we are waiting
 	// *DMA0_CHCR_0 |= 0x20;
-
-	while (1) {
+	int maxIter = 200000;
+	while (maxIter--) {
 		if ((*DMA0_DMAOR) & 4)//Address error has occurred stop looping
 			break;
 		if ((*DMA0_CHCR_0) & 2)//Transfer is done
@@ -209,7 +209,7 @@ void resolveScanline_HI_200(void) {
 void resolveScanline_LO_150(void) {
 	TIME_SCOPE();
 
-	const int bufferLines = 6;	// 720 bytes * 6 lines = 4320 (this somehow works... I'm not gonna mess with it)
+	const int bufferLines = 4;	// 720 bytes * 4 lines = 2880 bytes 
 	const int scanBufferSize = bufferLines * 480 * 3 / 2;
 
 	curScan++;
@@ -242,7 +242,7 @@ void resolveScanline_LO_150(void) {
 void resolveScanline_HI_150(void) {
 	TIME_SCOPE();
 
-	const int bufferLines = 6;	// 720 bytes * 6 lines = 4320 (this somehow works... I'm not gonna mess with it)
+	const int bufferLines = 4;	// 720 bytes * 4 lines = 2880 bytes
 	const int scanBufferSize = bufferLines * 480 * 3 / 2;
 
 	curScan++;
@@ -355,7 +355,8 @@ void drawFramebufferMain(void) {
 		// clamp speed by waiting for frame time
 		if (emulator.settings.clampSpeed) {
 			int rtcBackup = RTC_GetTicks();
-			while (tmu1Clocks < simFrameTime && RTC_GetTicks() - rtcBackup < 3) {
+			int maxIter = 1000;
+			while (tmu1Clocks < simFrameTime && RTC_GetTicks() - rtcBackup < 3 && maxIter--) {
 				condSoundUpdate();
 				// sleep .1 milliseconds at a time til we are ready for the frame
 				CMT_Delay_micros(100);

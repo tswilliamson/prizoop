@@ -47,10 +47,12 @@ const unsigned char ioReset[0x100] = {
 //		0x07 : TAC, writes to it MAY need to adjust our internal timer also
 //		0x14,0x19,0x1E,0x23 : Sound channel init enable on bit 7
 //		0x26 : NR52, master sound control, avoid writes to sound channel active bits (read only)
+//		0x40 : Toggling the window off and on mid-frame effects the actual window draw position
 //		0x41 : writes to STAT causes interrupt flags in certain situations
 //		0x44 : gpu scanline (read only)
 //		0x46 : sprite DMA register (TODO, check clock cycles on this)
 //		0x47-49 : color palette writes require DMG palette resolves
+//		0x4B : Window enable/disable mid frame effects window render position
 //		0x4D : CGB speed switch (only can change bit 0)
 //		0x4F : CGB VRAM select
 //		0x51-55 : CGB DMA Ops
@@ -66,7 +68,7 @@ unsigned char specialMap[256] ALIGN(256) =
 	0x00, 0x00, 0x00, 0x02,  0x00, 0x00, 0x02, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 
-	0x00, 0x03, 0x00, 0x00,  0x03, 0x00, 0x02, 0x02,  0x02, 0x02, 0x00, 0x00,  0x00, 0x02, 0x00, 0x02,
+	0x02, 0x03, 0x00, 0x00,  0x03, 0x00, 0x02, 0x02,  0x02, 0x02, 0x00, 0x02,  0x00, 0x02, 0x00, 0x02,
 	0x00, 0x02, 0x02, 0x02,  0x02, 0x02, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,  0x00, 0x02, 0x00, 0x02,  0x00, 0x00, 0x00, 0x00,
 	0x02, 0x00, 0x00, 0x00,  0x00, 0x00, 0x02, 0x02,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
@@ -259,6 +261,23 @@ void writeByteSpecial(unsigned int address, unsigned char value) {
 			value = (value & 0x80) | (cpu.memory.NR52_soundmast & 0x7f);
 			cpu.memory.NR52_soundmast = value;
 			break;
+		case 0x40:
+			// check for window bit change mid frame (ppu 'remembers' the position)
+			if ((cpu.memory.LCDC_ctl ^ value) & LCDC_WINDOWENABLE) {
+				if (value & LCDC_WINDOWENABLE) {
+					// re-enabling?
+					if (windowLineOffset) {
+						windowLineOffset -= cpu.memory.LY_lcdline;
+					}
+				} else {
+					// disabling mid frame?
+					if (cpu.memory.LY_lcdline < 0xA0) {
+						windowLineOffset = cpu.memory.LY_lcdline;
+					}
+				}
+			}
+			cpu.memory.LCDC_ctl = value;
+			break;
 		case 0x41:
 			cpu.memory.STAT_lcdstatus = (value & 0x78) | (cpu.memory.STAT_lcdstatus & 0x7);
 			// This may be a DMG only thing?
@@ -288,6 +307,22 @@ void writeByteSpecial(unsigned int address, unsigned char value) {
 			if (!cgb.isCGB) {
 				resolveDMGOBJ1Palette();
 			}
+			break;
+		case 0x4B:
+			if (cpu.memory.LCDC_ctl & LCDC_WINDOWENABLE) {
+				if (value < 0xA7 && cpu.memory.WX_windowx >= 0xA7) {
+					// re-enabling?
+					if (windowLineOffset) {
+						windowLineOffset -= cpu.memory.LY_lcdline;
+					}
+				} else if (value >= 0xA7 && cpu.memory.WX_windowx < 0xA7) {
+					// disabling mid frame?
+					if (cpu.memory.LY_lcdline < 0xA0) {
+						windowLineOffset = cpu.memory.LY_lcdline;
+					}
+				}
+			}
+			cpu.memory.WX_windowx = value;
 			break;
 		case 0x4D:
 			if (cgb.isCGB) {

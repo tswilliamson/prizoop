@@ -1064,6 +1064,16 @@ void cpuStep() {
 			if (gpuCheck()) gpuStep();
 			if (interruptCheck()) interruptStep();
 		}
+
+		// normalize cpu timer when it gets pretty high to prevent math errors
+		const unsigned int normalizeAmt = 1024 * 1024;
+		if (cpu.clocks > normalizeAmt * 2) {
+			updateTimer();
+			cpu.clocks -= normalizeAmt;
+			cpu.timerBase -= normalizeAmt;
+			if (cpu.timerInterrupt != 0xFFFFFFFF) cpu.timerInterrupt -= normalizeAmt;
+			cpu.gpuTick -= normalizeAmt;
+		}
 	}
 }
 

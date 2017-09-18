@@ -9,7 +9,7 @@
 #include "memory.h"
 #include "keys.h"
 
-int framecounter = 0;
+unsigned int framecounter = 0;
 
 bool skippingFrame = false;
 int frameSkip = 0;

@@ -91,7 +91,7 @@ inline bool RenderCGBScanline_BG() {
 		if (cpu.memory.LCDC_ctl & LCDC_WINDOWENABLE)
 		{
 			int wx = cpu.memory.WX_windowx;
-			int y = cpu.memory.LY_lcdline - cpu.memory.WY_windowy;
+			int y = cpu.memory.LY_lcdline - cpu.memory.WY_windowy + windowLineOffset;
 
 			if (wx <= 166 && y >= 0) {
 				// select map offset row
