@@ -7,7 +7,7 @@
 #include "emulator.h"
 #include "snd.h"
 
-#include "../../prizm-zx7/zx7.inl"
+#include "zx7/zx7.h"
 
 // cached banks
 mbc_bankcache* cachedBanks[NUM_CACHED_BANKS];

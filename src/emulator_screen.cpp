@@ -10,8 +10,8 @@
 #include "cgb.h"
 #include "gpu.h"
 
-#include "../../prizm-zx7/zx7.h"
-#include "../../calctype/fonts/arial_small/arial_small.h"
+#include "zx7/zx7.h"
+#include "calctype/fonts/arial_small/arial_small.h"
 
 void emulator_screen::DrawBG(const char* filepath) {
 	// try to load the file

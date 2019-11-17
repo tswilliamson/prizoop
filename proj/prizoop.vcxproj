@@ -35,26 +35,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\calctype\calctype.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\calctype\calctype_prizm.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\prizm-winsim\prizmsim.cpp" />
-    <ClCompile Include="..\..\prizm-winsim\winmain.cpp" />
-    <ClCompile Include="..\..\prizm-zx7\compress.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\prizm-zx7\dzx7.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\prizm-zx7\optimize.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\prizm-zx7\zx7.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\src\bg_compressed.cpp" />
     <ClCompile Include="..\src\cgb.cpp" />
     <ClCompile Include="..\src\cgb_bootstrap.cpp" />
@@ -84,21 +64,13 @@
     <ClCompile Include="..\src\snd_main.cpp" />
     <ClCompile Include="..\src\snd_prizm.cpp" />
     <ClCompile Include="..\src\snd_winsim.cpp" />
-    <None Include="..\..\calctype\calctype.inl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
-    </None>
-    <None Include="..\..\prizm-zx7\zx7.inl" />
+    <None Include="..\..\..\common\prizm_rules" />
     <None Include="..\src\tilerow.inl">
       <FileType>Document</FileType>
     </None>
     <ClCompile Include="..\src\timer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\calctype\calctype.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="..\..\prizm-winsim\prizmsim.h" />
-    <ClInclude Include="..\..\prizm-zx7\zx7.h" />
     <ClInclude Include="..\src\cgb.h" />
     <ClInclude Include="..\src\cgb_bootstrap.h" />
     <ClInclude Include="..\src\cpu.h" />
@@ -202,13 +174,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DeviceRelease|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\include;..\..\..\utils</IncludePath>
     <NMakeBuildCommandLine>cd..
-make.bat -j 8 FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET_PRIZM=1 -DDEBUG=0" CONFIG=$(Configuration)</NMakeBuildCommandLine>
+make.bat -j 8 DEFINES="-DTARGET_PRIZM=1 -DDEBUG=0" CONFIG=$(Configuration)</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>cd..
-rebuild.bat FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET_PRIZM=1 -DDEBUG=0" CONFIG=$(Configuration)</NMakeReBuildCommandLine>
+rebuild.bat DEFINES="-DTARGET_PRIZM=1 -DDEBUG=0" CONFIG=$(Configuration)</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>cd..
-clean.bat FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET_PRIZM=1 -DDEBUG=0" CONFIG=$(Configuration)</NMakeCleanCommandLine>
+clean.bat DEFINES="-DTARGET_PRIZM=1 -DDEBUG=0" CONFIG=$(Configuration)</NMakeCleanCommandLine>
     <NMakeOutput>$(ProjectDir)\..\$(ProjectName).g3a</NMakeOutput>
     <NMakeIncludeSearchPath>$(ProjectDir)\..\..\include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>TARGET_PRIZM</NMakePreprocessorDefinitions>
@@ -225,13 +197,13 @@ clean.bat FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET=PRIZM -DDEBUG=0" CON
     <NMakeIncludeSearchPath>$(ProjectDir)\..\..\include</NMakeIncludeSearchPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DeviceDebug|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\include;..\..\..\utils</IncludePath>
     <NMakeBuildCommandLine>cd..
-make.bat FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET_PRIZM=1 -DDEBUG=1" CONFIG=$(Configuration)</NMakeBuildCommandLine>
+make.bat DEFINES="-DTARGET_PRIZM=1 -DDEBUG=1" CONFIG=$(Configuration)</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>cd..
-rebuild.bat FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET_PRIZM=1 -DDEBUG=1" CONFIG=$(Configuration)</NMakeReBuildCommandLine>
+rebuild.bat DEFINES="-DTARGET_PRIZM=1 -DDEBUG=1" CONFIG=$(Configuration)</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>cd..
-clean.bat FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET_PRIZM=1 -DDEBUG=1" CONFIG=$(Configuration)</NMakeCleanCommandLine>
+clean.bat DEFINES="-DTARGET_PRIZM=1 -DDEBUG=1" CONFIG=$(Configuration)</NMakeCleanCommandLine>
     <NMakeOutput>$(ProjectDir)\..\$(ProjectName).g3a</NMakeOutput>
     <NMakeIncludeSearchPath>$(ProjectDir)\..\..\include</NMakeIncludeSearchPath>
     <NMakePreprocessorDefinitions>TARGET_PRIZM;DEBUG=1</NMakePreprocessorDefinitions>
@@ -320,17 +292,19 @@ clean.bat FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET=PRIZMEMU -DDEBUG=1" 
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>$(ProjectDir)\..\..\prizm-winsim\freeglut\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\..\..\..\utils\lib;$(ProjectDir)\..\..\..\utils\winsim\freeglut\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winsim.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
       <PreprocessorDefinitions>TARGET_WINSIM=1;DEBUG=1</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <AdditionalIncludeDirectories>..\src\;..\..\prizm-winsim</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\;..\..\..\utils\winsim;..\..\..\utils</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <ExceptionHandling>false</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <CustomBuildStep>
       <Command>
@@ -341,7 +315,7 @@ clean.bat FXCGSDK=$(ProjectDir)/../../../ DEFINES="-DTARGET=PRIZMEMU -DDEBUG=1" 
       </Message>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)..\..\prizm-winsim\freeglut\bin\*.dll" "$(TargetDir)"</Command>
+      <Command>copy /Y "$(SolutionDir)..\..\..\utils\winsim\freeglut\bin\*.dll" "$(TargetDir)"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copying FreeGLUT dll</Message>

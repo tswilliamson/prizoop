@@ -28,15 +28,6 @@
     <Filter Include="ptune2_simple">
       <UniqueIdentifier>{693d36c5-6996-45ff-a69e-a5ad57b2d2a1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="prizm-zx7">
-      <UniqueIdentifier>{101f6621-ea55-42c5-a919-df436e845d59}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="prizm-winsim">
-      <UniqueIdentifier>{80e0df14-724b-48b1-8ebd-32f08df57407}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="calctype">
-      <UniqueIdentifier>{37933317-d9e2-4ed4-8297-a8e5e5b8c6ff}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ScopeTimer.cpp">
@@ -113,30 +104,6 @@
     </ClCompile>
     <ClCompile Include="..\src\timer.cpp">
       <Filter>Source Files\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\prizm-zx7\zx7.c">
-      <Filter>prizm-zx7</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\prizm-zx7\compress.c">
-      <Filter>prizm-zx7</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\prizm-zx7\dzx7.c">
-      <Filter>prizm-zx7</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\prizm-zx7\optimize.c">
-      <Filter>prizm-zx7</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\prizm-winsim\winmain.cpp">
-      <Filter>prizm-winsim</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\prizm-winsim\prizmsim.cpp">
-      <Filter>prizm-winsim</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\calctype\calctype.c">
-      <Filter>calctype</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\calctype\calctype_prizm.c">
-      <Filter>calctype</Filter>
     </ClCompile>
     <ClCompile Include="..\src\screen_faq.cpp">
       <Filter>Source Files\menu</Filter>
@@ -215,15 +182,6 @@
     <ClInclude Include="..\src\snd.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\prizm-zx7\zx7.h">
-      <Filter>prizm-zx7</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\prizm-winsim\prizmsim.h">
-      <Filter>prizm-winsim</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\calctype\calctype.h">
-      <Filter>calctype</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\screen_faq.h">
       <Filter>Header Files\menu</Filter>
     </ClInclude>
@@ -251,11 +209,6 @@
     <None Include="..\src\tilerow.inl">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\prizm-zx7\zx7.inl">
-      <Filter>prizm-zx7</Filter>
-    </None>
-    <None Include="..\..\calctype\calctype.inl">
-      <Filter>calctype</Filter>
-    </None>
+    <None Include="..\..\..\common\prizm_rules" />
   </ItemGroup>
 </Project>

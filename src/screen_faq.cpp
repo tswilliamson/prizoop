@@ -2,7 +2,7 @@
 
 #include "platform.h"
 #include "screen_faq.h"
-#include "../../calctype/fonts/consolas_intl/consolas_intl.h"
+#include "calctype/fonts/consolas_intl/consolas_intl.h"
 
 void screen_faq::setup() {
 	faqHandle = -1;
