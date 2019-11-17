@@ -72,9 +72,7 @@ The emulator has full support for sound, though it is somewhat limited due to th
 
 ## Building
 
-My other repositories: calctype, prizm-zx7, and (optionally) prizm-winsim are required to build Prizoop from source. These should be cloned with matching folder names adjacent to your Prizoop clone.
-
-Project root must be within /projects directory of publicly available community SDK v0.3 for Prizm. The SDK must be patched with the latest version of libFXCG as well which has the latest syscalls defined. You can use the version of the PrizmSDK I've uploaded on my github instead if you prefer to avoid building all the individual libraries.
+My other repository, PrizmSDK, is required to build Prizoop from source. These should be cloned with matching folder names adjacent to your Prizoop clone.
 
 To build on a Windows machine, I recommed using the project files using Visual Studio Community Edition, where I have NMAKE set up nicely. For other systems please refer to your Prizm SDK documentation on how to compile projects. Refer to the configuration options in make-DeviceRelease.bat.
 
