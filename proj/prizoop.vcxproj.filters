@@ -28,6 +28,9 @@
     <Filter Include="ptune2_simple">
       <UniqueIdentifier>{693d36c5-6996-45ff-a69e-a5ad57b2d2a1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\core\asm">
+      <UniqueIdentifier>{1b462fc4-017b-45ad-a89d-44282c2ebad6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ScopeTimer.cpp">
@@ -210,5 +213,8 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\..\common\prizm_rules" />
+    <None Include="..\src\asm\ResolveTileRow.S">
+      <Filter>Source Files\core\asm</Filter>
+    </None>
   </ItemGroup>
 </Project>
