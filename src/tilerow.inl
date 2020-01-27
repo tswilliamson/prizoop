@@ -91,67 +91,9 @@ FORCE_INLINE void resolveTileRowReversePal(int palette, int* scanline, unsigned 
 
 #else
 
-FORCE_INLINE void resolveTileRow(int* scanline, unsigned int tileRow) {
-	unsigned int row1 = tileRow >> 8;
-	unsigned int row2 = tileRow;
-	
-	asm(
-		// line 1
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"mov.l	r1, @(28, %0)					\n\t"
-		// line 2
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"mov.l	r1, @(24, %0)					\n\t"
-		// line 3
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"mov.l	r1, @(20, %0)					\n\t"
-		// line 4
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"mov.l	r1, @(16, %0)					\n\t"
-		// line 5
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"mov.l	r1, @(12, %0)					\n\t"
-		// line 6
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"mov.l	r1, @(8, %0)					\n\t"
-		// line 7
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"mov.l	r1, @(4, %0)					\n\t"
-		// line 8
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"mov.l	r1, @%0							\n\t"
-		// outputs
-		: 
-		// inputs
-		: "r" (scanline), "r" (row2), "r" (row1)
-		// clobbers
-		: "r1"
-	);
-}
+extern "C" {
+	void resolveTileRow(int* scanline, unsigned int tileRow);
+};
 
 FORCE_INLINE void resolveTileRowReverse(int* scanline, unsigned int tileRow) {
 	unsigned int row1 = tileRow >> 8;

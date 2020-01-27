@@ -14,7 +14,7 @@
     <ProjectGuid>{AEBE76A4-DB41-479F-86B2-D6236D7AA3EF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>compgb</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

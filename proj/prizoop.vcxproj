@@ -65,6 +65,7 @@
     <ClCompile Include="..\src\snd_prizm.cpp" />
     <ClCompile Include="..\src\snd_winsim.cpp" />
     <None Include="..\..\..\common\prizm_rules" />
+    <None Include="..\src\asm\ResolveTileRow.S" />
     <None Include="..\src\tilerow.inl">
       <FileType>Document</FileType>
     </None>
@@ -108,7 +109,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0A1E9BF8-05DD-4F73-81D8-18DA73DB5796}</ProjectGuid>
     <Keyword>MakeFileProj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DeviceRelease|x64'" Label="Configuration">
