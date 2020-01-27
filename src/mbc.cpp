@@ -144,15 +144,8 @@ unsigned char ramNibbleCount(ramSizeType type) {
 
 // la dee da implementing my own syscall
 #if !TARGET_WINSIM
-#define SCA 0xD201D002
-#define SCB 0x422B0009
-#define SCE 0x80020070
-typedef int(*sc_ipiii)(int,int,unsigned int*);
-const unsigned int sc1DAA[] = { SCA, SCB, SCE, 0x1DAA };
-#define Bfile_GetBlockAddress (*(sc_ipiii)sc1DAA)
-
 // support up to a 4 MB ROM 
-static unsigned int BlockAddresses[1024] = { 0 };
+static unsigned char* BlockAddresses[1024] = { 0 };
 void mbcFileUpdate() {
 	int numBlocks = (Bfile_GetFileSize_OS(mbc.romFile) + 4095) / 4096; // 16k ROM banks means 4 4k blocks a piece
 	for (int i = 0; i < numBlocks; i++) {
@@ -175,7 +168,7 @@ static int mbcReadFile(unsigned char* into, unsigned int size, unsigned int offs
 	int blockAddr = offset % 4096;
 	while (sizeLeft) {
 		int blockRem = min(4096 - blockAddr, sizeLeft);
-		memcpy(into, (const void*)(BlockAddresses[block]+blockAddr), blockRem);
+		memcpy(into, BlockAddresses[block]+blockAddr, blockRem);
 		into += blockRem;
 		sizeLeft -= blockRem;
 

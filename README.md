@@ -72,7 +72,7 @@ The emulator has full support for sound, though it is somewhat limited due to th
 
 ## Building
 
-My other repository, PrizmSDK, is required to build Prizoop from source. These should be cloned with matching folder names adjacent to your Prizoop clone.
+My other repository, PrizmSDK, is required to build Prizoop from source. Put your Prizoop clone in the SDK projects directory.
 
 To build on a Windows machine, I recommed using the project files using Visual Studio Community Edition, where I have NMAKE set up nicely. For other systems please refer to your Prizm SDK documentation on how to compile projects. Refer to the configuration options in make-DeviceRelease.bat.
 
