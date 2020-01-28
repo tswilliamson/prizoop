@@ -142,8 +142,6 @@ unsigned char ramNibbleCount(ramSizeType type) {
 	return 0;
 }
 
-// la dee da implementing my own syscall
-#if !TARGET_WINSIM
 // support up to a 4 MB ROM 
 static unsigned char* BlockAddresses[1024] = { 0 };
 void mbcFileUpdate() {
@@ -155,13 +153,8 @@ void mbcFileUpdate() {
 			return;
 	}
 }
-#else
-void mbcFileUpdate() {
-}
-#endif
 
 static int mbcReadFile(unsigned char* into, unsigned int size, unsigned int offset) {
-#if !TARGET_WINSIM
 	// use block addresses to do direct copy
 	int sizeLeft = size;
 	int block = offset / 4096;
@@ -176,9 +169,6 @@ static int mbcReadFile(unsigned char* into, unsigned int size, unsigned int offs
 		blockAddr = 0;
 	}
 	return size;
-#else
-	return Bfile_ReadFile_OS(mbc.romFile, into, size, offset);
-#endif
 }
 
 bool mbcReadPage(unsigned int bankIndex, unsigned char* target, bool instrOverlap) {
