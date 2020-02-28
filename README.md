@@ -46,7 +46,7 @@ Some games, such as the Mario titles, play much better with a reversed control s
 
 ### FAQ Viewer
 
-![FAQ View](/Screens/FAQ.png?raw=true)
+![FAQ View](https://github.com/tswilliamson/prizoop/raw/master/Screens/FAQ.png?raw=true)
 
 If you have a text file (.txt) with the same base filename as any of your ROM's, this text file can now be viewed inside of Prizoop for easy reference. The FAQ is viewed with a calctype font (see my other repo) that is a clear and easy to read text at just 5 pixels wide per character. To read the FAQ, just use the new FAQ option from within the menu. Prizoop will save your most recently viewed FAQ position to make it simple to go back and forth with the game and between sessions.
 
@@ -60,7 +60,7 @@ FAQ viewing controls:
 
 ## Support
 
-![Game Banner](/Screens/GameBanner.png?raw=true)
+![Game Banner](https://github.com/tswilliamson/prizoop/raw/master/Screens/GameBanner.png?raw=true)
 
 The emulator now plays over 95% of the games I have been able to test smoothly at this point. Some games where timing accuracy is very important suffer, specifically racing games. Road Rash and F1 Race are playable but have some visual issues, and F1 Pole Position does not play at all. Pokemon Rouge (the French Pokemon Red) now officially works.
 
@@ -86,5 +86,5 @@ http://bgb.bircd.org/
 A huge special thanks obviously goes to CTurt, who's simple explanations and easy to read source got this project rolling by making it seem much less scary. See the original Cinoop source code here:
 https://github.com/CTurt/Cinoop
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTIwNzA1NDA5NjZdfQ==
+eyJoaXN0b3J5IjpbMTY3NDc2NDM3OF19
 -->
