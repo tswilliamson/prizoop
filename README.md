@@ -1,4 +1,4 @@
-![Options Screen](/Screens/Options.png?raw=true)
+![Options Screen](https://github.com/tswilliamson/prizoop/raw/master/Screens/Options.png?raw=true)
 
 Prizoop v 1.1
 =============
@@ -85,3 +85,6 @@ http://bgb.bircd.org/
 
 A huge special thanks obviously goes to CTurt, who's simple explanations and easy to read source got this project rolling by making it seem much less scary. See the original Cinoop source code here:
 https://github.com/CTurt/Cinoop
+<!--stackedit_data:
+eyJoaXN0b3J5IjpbLTIwNzA1NDA5NjZdfQ==
+-->
