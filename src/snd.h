@@ -2,9 +2,9 @@
 
 // sound baud rate
 #if TARGET_PRIZM
-#define SOUND_RATE (7168 * 2)
+#define SOUND_RATE 14400
 #else
-#define SOUND_RATE 8192
+#define SOUND_RATE 32000
 #endif
 
 // initializes the platform sound system, called when emulation begins. Returns false on error
@@ -16,7 +16,7 @@ void sndUpdate();
 // cleans up the platform sound system, called when emulation ends
 void sndCleanup();
 
-// volume controls (called per 10 frames or so if button pressed, if platform implemented)
+// volume controls (called per 8 frames if button pressed, if platform implemented)
 void sndVolumeUp();
 void sndVolumeDown();
 

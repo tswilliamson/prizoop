@@ -96,35 +96,89 @@ struct st_scif0 {                                      /* struct SCIF0 */
 
 static int curSoundBuffer[BUFF_SIZE];
 static int sampleNum = 0;
-static int volDivisor = 96;		// default volume
+
+static int sndSettings[5] = {
+	3,			// volDivisor (2-5)
+	4,			// sampleScale (out of 16)
+	14,			// latency (out of 16)
+	4,			// voltageDrop (out of 64)
+	2,			// blendMode (out of 4)
+};
+
+int minVoltage = 0;
+int maxVoltage = 0;
+
+const int numSoundSettings = 5;
+
 unsigned int lastSoundCounter;
 
 struct BTCEntry {
 	unsigned char bits;
-	int voltageOffset;
+	short voltageOffset;
 };
 
 static BTCEntry* btcTable = NULL;
 
-void computeBTCTable(int divisor) {
-	for (int i = 0; i < 1024; i++) {
-		int curVoltage = 16384;
-		int curSample = i * 32;
+inline const int ApplyLatency(const int val) {
+	return val * sndSettings[2] / 16;
+}
 
-		unsigned byte = 0;
-		for (int b = 0; b < 8; b++) {
-			if (curVoltage < curSample) {
-				curVoltage += (65536 / divisor);
-				byte |= (1 << b);
+inline const int ApplyDrop(const int val) {
+	return val * sndSettings[3] / 64;
+}
+
+void computeBTCTable() {
+	const int volDivisor = 1 << sndSettings[0];
+	const int baseRise = 6400;
+	const int baseDrop = ApplyDrop(baseRise);
+	minVoltage = min(baseDrop * 8 / volDivisor, 4096);
+	maxVoltage = max(16384 - baseRise * 8 / volDivisor, 12288);
+
+	for (int targetVoltage = 8; targetVoltage < 32768 + 8; targetVoltage += 16) {
+		for (int rollingBitState = 0; rollingBitState < 2; rollingBitState++) {
+			unsigned bitState = rollingBitState;
+			int voltage = 16384;
+			unsigned word = 0;
+
+			for (int b = 0; b < 8; b++) {
+				int bit1Voltage, bit0Voltage;
+				switch (bitState) {
+					case 0:
+						bit1Voltage = voltage + ApplyLatency(baseRise) / volDivisor;
+						bit0Voltage = voltage - baseDrop / volDivisor;
+						break;
+					case 1:
+						bit1Voltage = voltage + baseRise / volDivisor;
+						bit0Voltage = voltage - ApplyLatency(baseDrop) / volDivisor;
+						break;
+				}
+						
+				if (abs(bit0Voltage - targetVoltage) > abs(bit1Voltage - targetVoltage)) {
+					// bit1 is closer
+					word |= (1 << b);
+					bitState = 1;
+					voltage = bit1Voltage;
+				} else {
+					bitState = 0;
+					voltage = bit0Voltage;
+				}
 			}
-			else {
-				curVoltage -= (24576 / divisor);
-			}
+
+			int entry = (targetVoltage / 16) * 2 + rollingBitState;
+			btcTable[entry].bits = word;
+			btcTable[entry].voltageOffset = voltage - 16384;
 		}
 
-		btcTable[i].bits = byte;
-		btcTable[i].voltageOffset = curVoltage - 16384;
 	}
+}
+
+inline unsigned char LookupBTC(int& curVoltage, int destVoltage, unsigned short lastBits) {
+	int voltageOffset = (destVoltage + 16384 - curVoltage);
+	const BTCEntry& entry = btcTable[(voltageOffset / 16) * 2 + (lastBits & 1)];
+	curVoltage += entry.voltageOffset;
+	if (curVoltage < minVoltage) curVoltage = minVoltage;
+	else if (curVoltage > maxVoltage) curVoltage = maxVoltage;
+	return entry.bits;
 }
 
 // initializes the platform sound system, called when emulation begins. Returns false on error
@@ -159,15 +213,13 @@ bool sndInit() {
 		}
 	}
 
-	btcTable = (BTCEntry*) malloc(sizeof(BTCEntry) * 1024);
-	computeBTCTable(volDivisor);
+	btcTable = (BTCEntry*) malloc(sizeof(BTCEntry) * 4096);
+	computeBTCTable();
 
 	return true;
 }
 
 static void feed() {
-	TIME_SCOPE();
-
 	sndFrame(curSoundBuffer, BUFF_SIZE);
 	sampleNum = 0;
 }
@@ -175,50 +227,75 @@ static void feed() {
 // platform update from emulator for sound system, called 8 times per frame (should be enough!)
 void sndUpdate() {
 	{
-		int toAdd = Serial_PollTX();
+		int toAdd = Serial_PollTX() & 0x1FE;
 
 		// perform this update every 1/360th of a second or so
 		lastSoundCounter = REG_TMU_TCNT_1 - 40;
 
-		while (toAdd > 64)
+		if (toAdd > 0)
 		{
 			TIME_SCOPE();
 
 			static int curVoltage = 0;
-			static int curSample = 16384;
+			static int curSample = 0;
 
 			if (toAdd == 256) {
 				// reset voltage because we missed too many samples
-				curVoltage = max(curSample - 16383, 0);
+				curVoltage = curSample;
 			}
 
-			unsigned char writeBuffer[64];
-			for (int iter = 0; iter < 64; iter += 2) {
+			unsigned char writeBuffer[256];
+			int target1 = 0, target2 = 0;
+			for (int iter = 0; iter < toAdd; iter += 2) {
 				if (sampleNum == BUFF_SIZE) {
 					feed();
 					sampleNum = 0;
 				}
 				int lastSample = curSample;
-				curSample = curSoundBuffer[sampleNum] + 16384;
+				const int sampleScale = sndSettings[1];
+				int baseVoltage = 8192 - sampleScale * 512;
+				curSample = curSoundBuffer[sampleNum] * sampleScale / 16 + baseVoltage;
 				sampleNum++;
-
-				{
-					int tableEntry = ((((curSample + lastSample) >> 1) + 16384 - curVoltage) >> 5) & 0x03FF;
-					const BTCEntry& e = btcTable[tableEntry];
-					curVoltage += e.voltageOffset;
-					writeBuffer[iter] = e.bits;
+				
+				switch (sndSettings[4]) {
+					case 0:
+					{
+						// no blending
+						target1 = curSample;
+						target2 = curSample;
+						break;
+					}
+					case 1:
+					{
+						// single average
+						target1 = (curSample + lastSample) >> 1;
+						target2 = curSample;
+						break;
+					}
+					case 2:
+					{
+						// walking average
+						target1 = (curSample + lastSample * 3) >> 2;
+						target2 = (curSample * 3 + lastSample) >> 2;
+						break;
+					}
+					case 3:
+					{
+						// embedded average
+						target1 = (curSample + lastSample * 2 + curVoltage) >> 2;
+						target2 = (curSample * 2 + lastSample + curVoltage) >> 2;
+						break;
+					}
 				}
 
-				{
-					int tableEntry = ((curSample + 16384 - curVoltage) >> 5) & 0x03FF;
-					const BTCEntry& e = btcTable[tableEntry];
-					curVoltage += e.voltageOffset;
-					writeBuffer[iter + 1] = e.bits;
-				}
+				static unsigned char bits = 0;
+				bits = LookupBTC(curVoltage, target1, bits);
+				writeBuffer[iter] = bits;
+				bits = LookupBTC(curVoltage, target2, bits);
+				writeBuffer[iter + 1] = bits;
 			}
 
-			Serial_Write(writeBuffer, 64);
-			toAdd -= 64;
+			Serial_Write(writeBuffer, toAdd);
 		}
 	}
 }
@@ -233,18 +310,36 @@ void sndCleanup() {
 	}
 }
 
+const int perVolumeSettings[4][5] = {
+	{ 2,6,15,4,2 },
+	{ 3,4,14,4,2 },
+	{ 4,3,14,8,2 },
+	{ 5,6,12,33,1 },
+};
+
+void updateSettings() {
+	const int* settings = perVolumeSettings[sndSettings[0] - 2];
+	for (int i = 0; i < numSoundSettings; i++) {
+		sndSettings[i] = settings[i];
+	}
+
+	computeBTCTable();
+}
 
 void sndVolumeUp() {
-	if (volDivisor < 4096) {
-		volDivisor <<= 1;
-		computeBTCTable(volDivisor);
+	if (sndSettings[0] < 5) {
+		sndSettings[0]++;
+
+		updateSettings();
 	}
 }
 
+
 void sndVolumeDown() {
-	if (volDivisor > 16) {
-		volDivisor >>= 1;
-		computeBTCTable(volDivisor);
+	if (sndSettings[0] > 2) {
+		sndSettings[0]--;
+
+		updateSettings();
 	}
 }
 
