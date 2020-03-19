@@ -57,7 +57,7 @@ inline bool RenderCGBScanline_BG() {
 				ShortSwap(tileRow);
 
 				// attribute bit 0-2 is bg palette
-				int paletteMask = (attr & 0x07) << 2;
+				int paletteMask = (attr & 0x07) << 4;
 
 				if (priorityBG) {
 					swapLine = scanline;
@@ -124,7 +124,7 @@ inline bool RenderCGBScanline_BG() {
 					ShortSwap(tileRow);
 
 					// attribute bit 0-2 is bg palette
-					int paletteMask = (attr & 0x07) << 2;
+					int paletteMask = (attr & 0x07) << 4;
 
 					if (priorityBG) {
 						swapLine = scanline;
@@ -208,17 +208,17 @@ inline void RenderCGBScanline() {
 					}
 
 					// bit 0-2 are palette #'s for CGB
-					int paletteBase = 32 + (OAM_ATTR_PAL_NUM(sprite->attr) << 2);
+					int paletteBase = (32 + (OAM_ATTR_PAL_NUM(sprite->attr) << 2)) << 2;
 
 					if (OAM_ATTR_PRIORITY(sprite->attr) && forceSpritePriority) {
-						if (!(scanline[0] & 3) && colors[0]) scanline[0] = paletteBase | colors[0];
-						if (!(scanline[1] & 3) && colors[1]) scanline[1] = paletteBase | colors[1];
-						if (!(scanline[2] & 3) && colors[2]) scanline[2] = paletteBase | colors[2];
-						if (!(scanline[3] & 3) && colors[3]) scanline[3] = paletteBase | colors[3];
-						if (!(scanline[4] & 3) && colors[4]) scanline[4] = paletteBase | colors[4];
-						if (!(scanline[5] & 3) && colors[5]) scanline[5] = paletteBase | colors[5];
-						if (!(scanline[6] & 3) && colors[6]) scanline[6] = paletteBase | colors[6];
-						if (!(scanline[7] & 3) && colors[7]) scanline[7] = paletteBase | colors[7];
+						if (!(scanline[0] & 12) && colors[0]) scanline[0] = paletteBase | colors[0];
+						if (!(scanline[1] & 12) && colors[1]) scanline[1] = paletteBase | colors[1];
+						if (!(scanline[2] & 12) && colors[2]) scanline[2] = paletteBase | colors[2];
+						if (!(scanline[3] & 12) && colors[3]) scanline[3] = paletteBase | colors[3];
+						if (!(scanline[4] & 12) && colors[4]) scanline[4] = paletteBase | colors[4];
+						if (!(scanline[5] & 12) && colors[5]) scanline[5] = paletteBase | colors[5];
+						if (!(scanline[6] & 12) && colors[6]) scanline[6] = paletteBase | colors[6];
+						if (!(scanline[7] & 12) && colors[7]) scanline[7] = paletteBase | colors[7];
 					} else {
 						if (colors[0]) scanline[0] = paletteBase | colors[0];
 						if (colors[1]) scanline[1] = paletteBase | colors[1];

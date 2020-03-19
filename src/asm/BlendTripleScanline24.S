@@ -30,14 +30,12 @@ _BlendTripleScanline24:
 	mov #40, r8
 _BTS24_Inner_Loop:
 	mov.l @r5+, r0	
-	shll2 r0
 	mov.l @(r0,r7), r1
 	mov.w r1, @r11		// scanline1[0] = color00
 	mov.l @r5+, r0	
-	shll2 r0
-	mov.l @(r0,r7), r0  
+	mov.l @(r0,r7), r2
+	mov r2, r0
 	mov.w r0, @(4, r11)	// scanline1[2] = color01
-	mov r0, r2  
 	xor r1, r2  // r2 = r1 ^ r0
 	add r1, r0	// r0 = r1 + r0
 	and r4, r2	// r2 = r2 & mix
@@ -46,15 +44,13 @@ _BTS24_Inner_Loop:
 	mov.w r0, @(2, r11)	// scanline1[1] = color00 mixed w/ color01
 	
 	mov.l @r5+, r0	
-	shll2 r0
 	mov.l @(r0,r7), r1
 	mov r1, r0
 	mov.w r0, @(6, r11)	// scanline1[3] = color02
 	mov.l @r5+, r0	
-	shll2 r0
-	mov.l @(r0,r7), r0  
+	mov.l @(r0,r7), r2
+	mov r2, r0
 	mov.w r0, @(10, r11)	// scanline1[5] = color03
-	mov r0, r2  
 	xor r1, r2  // r2 = r1 ^ r0
 	add r1, r0	// r0 = r1 + r0
 	and r4, r2	// r2 = r2 & mix
@@ -63,14 +59,12 @@ _BTS24_Inner_Loop:
 	mov.w r0, @(8, r11)	// scanline1[4] = color02 mixed w/ color03
 
 	mov.l @r6+, r0	
-	shll2 r0
 	mov.l @(r0,r7), r1  
 	mov.w r1, @r13		// scanline3[0] = color10
 	mov.l @r6+, r0	
-	shll2 r0
-	mov.l @(r0,r7), r0  
+	mov.l @(r0,r7), r2
+	mov r2, r0
 	mov.w r0, @(4, r13)	// scanline3[2] = color11
-	mov r0, r2  
 	xor r1, r2  // r2 = r1 ^ r0
 	add r1, r0	// r0 = r1 + r0
 	and r4, r2	// r2 = r2 & mix
@@ -79,15 +73,13 @@ _BTS24_Inner_Loop:
 	mov.w r0, @(2, r13)	// scanline3[1] = color10 mixed w/ color11
 	
 	mov.l @r6+, r0	
-	shll2 r0
 	mov.l @(r0,r7), r1
 	mov r1, r0  
 	mov.w r0, @(6, r13)	// scanline3[3] = color12
 	mov.l @r6+, r0	
-	shll2 r0
-	mov.l @(r0,r7), r0  
+	mov.l @(r0,r7), r2
+	mov r2, r0
 	mov.w r0, @(10, r13)	// scanline3[5] = color13
-	mov r0, r2  
 	xor r1, r2  // r2 = r1 ^ r0
 	add r1, r0	// r0 = r1 + r0
 	and r4, r2	// r2 = r2 & mix

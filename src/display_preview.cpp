@@ -20,7 +20,7 @@ static void renderPreviewLine() {
 			unsigned char* previewLine = &emulator.pausePreview[80 * cpu.memory.LY_lcdline / 2];
 			// every other pixel goes into the preview line, packed at 8 bpp
 			for (int i = 7; i < 167; i += 2) {
-				*(previewLine++) = lineBuffer[i];
+				*(previewLine++) = lineBuffer[i] >> 2;
 			}
 		} else {
 			RenderDMGScanline();
@@ -28,7 +28,7 @@ static void renderPreviewLine() {
 			unsigned char* previewLine = &emulator.pausePreview[80 * cpu.memory.LY_lcdline / 2];
 			// every other pixel goes into the preview line, packed at 4 bpp
 			for (int i = 7; i < 167; i += 2) {
-				*(previewLine++) = (lineBuffer[i+1] << 4) | lineBuffer[i];
+				*(previewLine++) = (lineBuffer[i+1] << 2) | (lineBuffer[i] >> 2);
 			}
 		}
 
