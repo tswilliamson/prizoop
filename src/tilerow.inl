@@ -1,301 +1,86 @@
 
+extern unsigned short MortonTable[256];
+extern unsigned short ReverseMortonTable[256];
+
 #if TARGET_WINSIM
 
 FORCE_INLINE void resolveTileRow(int* scanline, unsigned int tileRow) {
-	unsigned int row1 = tileRow >> 8;
-	unsigned int row2 = (tileRow << 1) & 0x1FE;
-
-	scanline[7] = (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[6] = (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[5] = (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[4] = (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[3] = (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[2] = (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[1] = (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[0] = (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
+	unsigned int bits = ReverseMortonTable[tileRow >> 8] | (ReverseMortonTable[tileRow & 0xFF] << 1);
+	scanline[0] = bits & 3; bits >>= 2;
+	scanline[1] = bits & 3; bits >>= 2;
+	scanline[2] = bits & 3; bits >>= 2;
+	scanline[3] = bits & 3; bits >>= 2;
+	scanline[4] = bits & 3; bits >>= 2;
+	scanline[5] = bits & 3; bits >>= 2;
+	scanline[6] = bits & 3; bits >>= 2;
+	scanline[7] = bits & 3; 
 }
 
 FORCE_INLINE void resolveTileRowReverse(int* scanline, unsigned int tileRow) {
-	unsigned int row1 = tileRow >> 8;
-	unsigned int row2 = (tileRow << 1) & 0x1FE;
+	unsigned int bits = MortonTable[tileRow >> 8] | (MortonTable[tileRow & 0xFF] << 1);
 
-	scanline[0] = (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[1] = (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[2] = (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[3] = (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[4] = (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[5] = (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[6] = (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[7] = (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
+	scanline[0] = bits & 3; bits >>= 2;
+	scanline[1] = bits & 3; bits >>= 2;
+	scanline[2] = bits & 3; bits >>= 2;
+	scanline[3] = bits & 3; bits >>= 2;
+	scanline[4] = bits & 3; bits >>= 2;
+	scanline[5] = bits & 3; bits >>= 2;
+	scanline[6] = bits & 3; bits >>= 2;
+	scanline[7] = bits & 3;
 }
 
 FORCE_INLINE void resolveTileRowPal(int palette, int* scanline, unsigned int tileRow) {
-	unsigned int row1 = tileRow >> 8;
-	unsigned int row2 = (tileRow << 1) & 0x1FE;
+	unsigned int bits = ReverseMortonTable[tileRow >> 8] | (ReverseMortonTable[tileRow & 0xFF] << 1);
 
-	scanline[7] = palette | (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[6] = palette | (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[5] = palette | (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[4] = palette | (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[3] = palette | (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[2] = palette | (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[1] = palette | (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[0] = palette | (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
+	scanline[0] = palette | (bits & 3); bits >>= 2;
+	scanline[1] = palette | (bits & 3); bits >>= 2;
+	scanline[2] = palette | (bits & 3); bits >>= 2;
+	scanline[3] = palette | (bits & 3); bits >>= 2;
+	scanline[4] = palette | (bits & 3); bits >>= 2;
+	scanline[5] = palette | (bits & 3); bits >>= 2;
+	scanline[6] = palette | (bits & 3); bits >>= 2;
+	scanline[7] = palette | (bits & 3);
 }
 
 FORCE_INLINE void resolveTileRowReversePal(int palette, int* scanline, unsigned int tileRow) {
-	unsigned int row1 = tileRow >> 8;
-	unsigned int row2 = (tileRow << 1) & 0x1FE;
+	unsigned int bits = MortonTable[tileRow >> 8] | (MortonTable[tileRow & 0xFF] << 1);
 
-	scanline[0] = palette | (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[1] = palette | (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[2] = palette | (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[3] = palette | (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[4] = palette | (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[5] = palette | (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[6] = palette | (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
-	scanline[7] = palette | (row1 & 1) | (row2 & 2);
-	row1 >>= 1; row2 >>= 1;
+	scanline[0] = palette | (bits & 3); bits >>= 2;
+	scanline[1] = palette | (bits & 3); bits >>= 2;
+	scanline[2] = palette | (bits & 3); bits >>= 2;
+	scanline[3] = palette | (bits & 3); bits >>= 2;
+	scanline[4] = palette | (bits & 3); bits >>= 2;
+	scanline[5] = palette | (bits & 3); bits >>= 2;
+	scanline[6] = palette | (bits & 3); bits >>= 2;
+	scanline[7] = palette | (bits & 3);
 }
 
 #else
 
 extern "C" {
-	void resolveTileRow(int* scanline, unsigned int tileRow);
+	void BitsToScanline(unsigned int bits, int* scanline);
+	void BitsToScanline_Palette(unsigned int bits, int* scanline, int palette);
 };
 
+
+FORCE_INLINE void resolveTileRow(int* scanline, unsigned int tileRow) {
+	unsigned int bits = ReverseMortonTable[tileRow >> 8] | (ReverseMortonTable[tileRow & 0xFF] << 1);
+	BitsToScanline(bits, scanline);
+}
+
 FORCE_INLINE void resolveTileRowReverse(int* scanline, unsigned int tileRow) {
-	unsigned int row1 = tileRow >> 8;
-	unsigned int row2 = tileRow;
-	
-	asm(
-		// line 1
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"mov.l	r1, @%0							\n\t"
-		// line 2
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"mov.l	r1, @(4, %0)					\n\t"
-		// line 3
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"mov.l	r1, @(8, %0)					\n\t"
-		// line 4
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"mov.l	r1, @(12, %0)					\n\t"
-		// line 5
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"mov.l	r1, @(16, %0)					\n\t"
-		// line 6
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"mov.l	r1, @(20, %0)					\n\t"
-		// line 7
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"mov.l	r1, @(24, %0)					\n\t"
-		// line 8
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"mov.l	r1, @(28, %0)					\n\t"
-		// outputs
-		: 
-		// inputs
-		: "r" (scanline), "r" (row2), "r" (row1)
-		// clobbers
-		: "r1"
-	);
+	unsigned int bits = MortonTable[tileRow >> 8] | (MortonTable[tileRow & 0xFF] << 1);
+	BitsToScanline(bits, scanline);
 }
 
 FORCE_INLINE void resolveTileRowPal(int palette, int* scanline, unsigned int tileRow) {
-	unsigned int row1 = tileRow >> 8;
-	unsigned int row2 = tileRow;
-	
-	asm(
-		// line 1
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"or %3, r1								\n\t"
-		"mov.l	r1, @(28, %0)					\n\t"
-		// line 2
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"or %3, r1								\n\t"
-		"mov.l	r1, @(24, %0)					\n\t"
-		// line 3
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"or %3, r1								\n\t"
-		"mov.l	r1, @(20, %0)					\n\t"
-		// line 4
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"or %3, r1								\n\t"
-		"mov.l	r1, @(16, %0)					\n\t"
-		// line 5
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"or %3, r1								\n\t"
-		"mov.l	r1, @(12, %0)					\n\t"
-		// line 6
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"or %3, r1								\n\t"
-		"mov.l	r1, @(8, %0)					\n\t"
-		// line 7
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"or %3, r1								\n\t"
-		"mov.l	r1, @(4, %0)					\n\t"
-		// line 8
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"or %3, r1								\n\t"
-		"mov.l	r1, @%0							\n\t"
-		// outputs
-		: 
-		// inputs
-		: "r" (scanline), "r" (row2), "r" (row1), "r" (palette)
-		// clobbers
-		: "r1"
-	);
+	unsigned int bits = ReverseMortonTable[tileRow >> 8] | (ReverseMortonTable[tileRow & 0xFF] << 1);
+	BitsToScanline_Palette(bits, scanline, palette);
 }
 
 FORCE_INLINE void resolveTileRowReversePal(int palette, int* scanline, unsigned int tileRow) {
-	unsigned int row1 = tileRow >> 8;
-	unsigned int row2 = tileRow;
-	
-	asm(
-		// line 1
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"or %3, r1								\n\t"
-		"mov.l	r1, @%0							\n\t"
-		// line 2
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"or %3, r1								\n\t"
-		"mov.l	r1, @(4, %0)					\n\t"
-		// line 3
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"or %3, r1								\n\t"
-		"mov.l	r1, @(8, %0)					\n\t"
-		// line 4
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"or %3, r1								\n\t"
-		"mov.l	r1, @(12, %0)					\n\t"
-		// line 5
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"or %3, r1								\n\t"
-		"mov.l	r1, @(16, %0)					\n\t"
-		// line 6
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"or %3, r1								\n\t"
-		"mov.l	r1, @(20, %0)					\n\t"
-		// line 7
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"or %3, r1								\n\t"
-		"mov.l	r1, @(24, %0)					\n\t"
-		// line 8
-		"shlr %1								\n\t"
-		"movt r1								\n\t"
-		"shlr %2								\n\t"
-		"rotcl r1								\n\t"
-		"or %3, r1								\n\t"
-		"mov.l	r1, @(28, %0)					\n\t"
-		// outputs
-		: 
-		// inputs
-		: "r" (scanline), "r" (row2), "r" (row1), "r" (palette)
-		// clobbers
-		: "r1"
-	);
+	unsigned int bits = MortonTable[tileRow >> 8] | (MortonTable[tileRow & 0xFF] << 1);
+	BitsToScanline_Palette(bits, scanline, palette);
 }
-
 
 #endif

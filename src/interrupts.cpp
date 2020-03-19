@@ -31,8 +31,6 @@ inline void issueInterrupt(unsigned char flagMask, unsigned short toPC) {
 }
 
 void interruptStep(void) {
-	TIME_SCOPE();
-
 	// update timer in case it sends an interrupt
 	if (cpu.clocks >= cpu.timerInterrupt) {
 		updateTimer();

@@ -213,7 +213,13 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\..\common\prizm_rules" />
-    <None Include="..\src\asm\ResolveTileRow.S">
+    <None Include="..\src\asm\BitsToScanline_Palette.S">
+      <Filter>Source Files\core\asm</Filter>
+    </None>
+    <None Include="..\src\asm\BitsToScanline.S">
+      <Filter>Source Files\core\asm</Filter>
+    </None>
+    <None Include="..\src\asm\BlendTripleScanline24.S">
       <Filter>Source Files\core\asm</Filter>
     </None>
   </ItemGroup>

@@ -167,11 +167,16 @@ static int mbcReadFile(unsigned char* into, unsigned int size, unsigned int offs
 
 		block++;
 		blockAddr = 0;
+
+		// update sound around all file reads
+		condSoundUpdate();
 	}
 	return size;
 }
 
 bool mbcReadPage(unsigned int bankIndex, unsigned char* target, bool instrOverlap) {
+	TIME_SCOPE();
+
 	unsigned int overlapBytes = instrOverlap ? 2 : 0;
 
 	if (mbc.compressed) {
@@ -225,9 +230,6 @@ mbc_bankcache* cacheBank(unsigned int index) {
 		}
 	}
 
-	// update sound before and after cache misses
-	condSoundUpdate();
-
 	// uncached! using minimum cache request index, read into slot from file and return
 	if (!mbcReadPage(index, cachedBanks[minSlot]->bank,  index != (mbc.numRomBanks * 4 - 1))) {
 		// attempt to escape
@@ -236,9 +238,6 @@ mbc_bankcache* cacheBank(unsigned int index) {
 	} else {
 		cachedBankIndex[minSlot] = index;
 		lastCacheRequestIndex[minSlot] = cacheIndex;
-
-		// update sound before and after cache misses
-		condSoundUpdate();
 
 		return cachedBanks[minSlot];
 	}
@@ -253,8 +252,6 @@ unsigned short numSwitchableBanksFromType(unsigned char romSizeByte) {
 // selects the given rom bank
 void selectRomBank(unsigned char bankNum) {
 	if (bankNum < mbc.numRomBanks && bankNum != mbc.romBank) {
-		TIME_SCOPE();
-		
 		mbc.romBank = bankNum;
 
 		// invalidate addresses in memory map for reading

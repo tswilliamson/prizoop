@@ -248,11 +248,11 @@ void resolveScanline_HI_150(void) {
 	curScan++;
 	if (curScan == bufferLines) {
 		// we've rendered as much as we can buffer, resolve to pixels and DMA it:
-		prevLineBuffer = ((int*)0xE5017000);
-		lineBuffer = ((int*)0xE5017000) + 176;
+		prevLineBuffer = ((int*)0xE5017000) + 7;
+		lineBuffer = ((int*)0xE5017000) + 176 + 7;
 		unsigned int* scanline = (unsigned int*)&scanGroup[curScanBuffer*scanBufferSize];
 		for (int i = 0; i < bufferLines; i += 2) {
-			BlendTripleScanline24(scanline, scanline + 120, scanline + 240);
+			BlendTripleScanline24(scanline, &prevLineBuffer[0], &lineBuffer[0], ppuPalette);
 			scanline += 360;
 			lineBuffer += 176 * 2;
 			prevLineBuffer += 176 * 2;

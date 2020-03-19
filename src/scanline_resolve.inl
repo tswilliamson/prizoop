@@ -91,11 +91,17 @@ inline void BlendMixedScanline24(unsigned int* dest) {
 	}
 }
 
+#if TARGET_PRIZM
+extern "C" {
+	void BlendTripleScanline24(unsigned int* scanline, int*src0, int* src1, unsigned int* ppuPalette);
+};
+#else
 // resolve 2 blended scanlines to three 1.5x lines of 24-bit wide pixels (150%) with no blending (direct copy)
-inline void BlendTripleScanline24(unsigned int* scanline1, unsigned int* scanline2, unsigned int* scanline3) {
+inline void BlendTripleScanline24(unsigned int* scanline, int*src0, int* src1, unsigned int* ppuPalette) {
 	// 4 src pixels over 6 dest pixels (3 ints)
-	int* src0 = &prevLineBuffer[7];
-	int* src1 = &lineBuffer[7];
+	unsigned int* scanline1 = scanline;
+	unsigned int* scanline2 = scanline+120;
+	unsigned int* scanline3 = scanline+240;
 	for (int i = 0; i < 40; i++, scanline1 += 3, scanline2 += 3, scanline3 += 3, src0 += 4, src1 += 4) {
 		const unsigned short color00 = (unsigned short) ppuPalette[src0[0]];
 		const unsigned short color01 = (unsigned short) ppuPalette[src0[1]];
@@ -133,6 +139,7 @@ inline void BlendTripleScanline24(unsigned int* scanline1, unsigned int* scanlin
 		scanline3[2] = dest22;
 	}
 }
+#endif
 
 // resolve 2 scanlines to three 1.5x lines of 24-bit wide pixels (150%) with no blending (direct copy)
 inline void DirectTripleScanline24(unsigned int* scanline1, unsigned int* scanline2, unsigned int* scanline3) {

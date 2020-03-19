@@ -57,6 +57,9 @@ void refreshKeys(bool systemCalls) {
 		if (emulator.settings.sound && framecounter % 8 == 0) {
 			if (keyDown_fast(42)) sndVolumeUp();
 			if (keyDown_fast(32)) sndVolumeDown();
+			while (keyDown_fast(42) || keyDown_fast(32)) {
+				condSoundUpdate();
+			}
 		}
 
 #if DEBUG
