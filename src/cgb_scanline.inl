@@ -11,7 +11,6 @@
 template<bool priorityBG>
 inline bool RenderCGBScanline_BG() {
 	bool hasPriority = false;
-	unsigned char* swapLine;
 	unsigned char priorityLine[8];
 
 	// background/window
@@ -41,13 +40,9 @@ inline bool RenderCGBScanline_BG() {
 
 				int attr = vram[mapOffset + lineOffset + 0x2000];
 				if (((attr & 0x80) == 0) == priorityBG) {
-					// priority background
-					if (priorityBG) {
-						scanline += 8;
-						continue;
-					} else {
-						hasPriority = true;
-					}
+					hasPriority = true;
+					scanline += 8;
+					continue;
 				}
 
 				int tile = vram[mapOffset + lineOffset];
@@ -61,27 +56,28 @@ inline bool RenderCGBScanline_BG() {
 				int paletteMask = (attr & 0x07) << 4;
 
 				if (priorityBG) {
-					swapLine = scanline;
-					scanline = priorityLine;
-				}
+					// bit 5 is hflip
+					if (attr & 0x20) {
+						resolveTileRowReverse<false>(priorityLine, tileRow);
+					} else {
+						resolveTileRow<false>(priorityLine, tileRow);
+					}
 
-				// bit 5 is hflip
-				if (attr & 0x20) {
-					resolveTileRowReversePal<false>(paletteMask, scanline, tileRow);
+					if (priorityLine[0]) scanline[0] = priorityLine[0] | paletteMask;
+					if (priorityLine[1]) scanline[1] = priorityLine[1] | paletteMask;
+					if (priorityLine[2]) scanline[2] = priorityLine[2] | paletteMask;
+					if (priorityLine[3]) scanline[3] = priorityLine[3] | paletteMask;
+					if (priorityLine[4]) scanline[4] = priorityLine[4] | paletteMask;
+					if (priorityLine[5]) scanline[5] = priorityLine[5] | paletteMask;
+					if (priorityLine[6]) scanline[6] = priorityLine[6] | paletteMask;
+					if (priorityLine[7]) scanline[7] = priorityLine[7] | paletteMask;
 				} else {
-					resolveTileRowPal<false>(paletteMask, scanline, tileRow);
-				}
-
-				if (priorityBG) {
-					if (scanline[0] & 3) swapLine[0] = scanline[0];
-					if (scanline[1] & 3) swapLine[1] = scanline[1];
-					if (scanline[2] & 3) swapLine[2] = scanline[2];
-					if (scanline[3] & 3) swapLine[3] = scanline[3];
-					if (scanline[4] & 3) swapLine[4] = scanline[4];
-					if (scanline[5] & 3) swapLine[5] = scanline[5];
-					if (scanline[6] & 3) swapLine[6] = scanline[6];
-					if (scanline[7] & 3) swapLine[7] = scanline[7];
-					scanline = swapLine;
+					// bit 5 is hflip
+					if (attr & 0x20) {
+						resolveTileRowReversePal<false>(paletteMask, scanline, tileRow);
+					} else {
+						resolveTileRowPal<false>(paletteMask, scanline, tileRow);
+					}
 				}
 
 				scanline += 8;
