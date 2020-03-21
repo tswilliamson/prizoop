@@ -22,6 +22,9 @@ unsigned int framecounter = 0;
 static int frameSkip = 0;
 static bool skippingFrame = false;			// whether the current frame is being skipped, determined by frameSkip value
 
+unsigned char* lineBuffer = ((unsigned char*)0xE5017000);
+unsigned char* prevLineBuffer = ((unsigned char*)0xE5017400);
+
 // default render callbacks to 0
 void(*renderScanline)(void) = 0;
 void(*renderBlankScanline)(void) = 0;
@@ -50,9 +53,6 @@ static int curScanBuffer = 0;
 
 // current line within the scanline buffer
 static int curScan = 0;
-
-int* lineBuffer = ((int*)0xE5017000);
-int* prevLineBuffer = ((int*)0xE5017400);
 
 void DmaWaitNext(void) {
 	// enable burst mode now that we are waiting
@@ -112,12 +112,13 @@ void resolveScanline_NONE() {
 	curScan++;
 	if (curScan == bufferLines) {
 		// we've rendered as much as we can buffer, resolve to pixels and DMA it:
-		lineBuffer = ((int*)0xE5017000);
+		unsigned char* curLineBuffer = ((unsigned char*)0xE5017000);
 		unsigned int* scanline = (unsigned int*)&scanGroup[curScanBuffer*scanBufferSize];
 		for (int i = 0; i < bufferLines; i++) {
+			lineBuffer = curLineBuffer + curLineBuffer[0];
 			DirectScanline16(scanline);
 			scanline += 80;
-			lineBuffer += 176;
+			curLineBuffer += lineBufferSize;
 
 			condSoundUpdate();
 		}
@@ -126,10 +127,10 @@ void resolveScanline_NONE() {
 		flushScanBuffer(118, 277, 36 + cpu.memory.LY_lcdline - bufferLines + 1, 36 + cpu.memory.LY_lcdline, scanBufferSize);
 
 		// move line buffer to front
-		lineBuffer = ((int*)0xE5017000);
+		lineBuffer = ((unsigned char*)0xE5017000);
 	} else {
 		// move line buffer down a line
-		lineBuffer += 176;
+		lineBuffer += lineBufferSize;
 	}
 }
 
@@ -149,14 +150,15 @@ void resolveScanline_LO_200(void) {
 	curScan++;
 	if (curScan == bufferLines) {
 		// we've rendered as much as we can buffer, resolve to pixels and DMA it:
-		prevLineBuffer = ((int*)0xE5017000);
-		lineBuffer = ((int*)0xE5017000) + 176;
+		unsigned char* curLineBuffer = ((unsigned char*)0xE5017000);
 		unsigned int* scanline = (unsigned int*)&scanGroup[curScanBuffer*scanBufferSize];
 		for (int i = 0; i < bufferLines; i += 2) {
+			prevLineBuffer = curLineBuffer + curLineBuffer[0];
+			lineBuffer = curLineBuffer + lineBufferSize + curLineBuffer[lineBufferSize];
+
 			DirectTripleScanline32(scanline, scanline + 160, scanline + 320);
 			scanline += 480;
-			lineBuffer += 176 * 2;
-			prevLineBuffer += 176 * 2;
+			curLineBuffer += lineBufferSize * 2;
 
 			condSoundUpdate();
 		}
@@ -166,10 +168,10 @@ void resolveScanline_LO_200(void) {
 		flushScanBuffer(38, 357, startLine, startLine + bufferLines * 3 / 2 - 1, scanBufferSize);
 
 		// move line buffer to front
-		lineBuffer = ((int*)0xE5017000);
+		lineBuffer = ((unsigned char*)0xE5017000);
 	} else {
 		// move line buffer down a line
-		lineBuffer += 176;
+		lineBuffer += lineBufferSize;
 	}
 }
 
@@ -182,14 +184,15 @@ void resolveScanline_HI_200(void) {
 	curScan++;
 	if (curScan == bufferLines) {
 		// we've rendered as much as we can buffer, resolve to pixels and DMA it:
-		prevLineBuffer = ((int*)0xE5017000);
-		lineBuffer = ((int*)0xE5017000) + 176;
+		unsigned char* curLineBuffer = ((unsigned char*)0xE5017000);
 		unsigned int* scanline = (unsigned int*)&scanGroup[curScanBuffer*scanBufferSize];
 		for (int i = 0; i < bufferLines; i += 2) {
+			prevLineBuffer = curLineBuffer + curLineBuffer[0];
+			lineBuffer = curLineBuffer + lineBufferSize + curLineBuffer[lineBufferSize];
+
 			BlendTripleScanline32(scanline, scanline + 160, scanline + 320);
 			scanline += 480;
-			lineBuffer += 176 * 2;
-			prevLineBuffer += 176 * 2;
+			curLineBuffer += lineBufferSize * 2;
 
 			condSoundUpdate();
 		}
@@ -199,10 +202,10 @@ void resolveScanline_HI_200(void) {
 		flushScanBuffer(38, 357, startLine, startLine + bufferLines * 3 / 2 - 1, scanBufferSize);
 
 		// move line buffer to front
-		lineBuffer = ((int*)0xE5017000);
+		lineBuffer = ((unsigned char*)0xE5017000);
 	} else {
 		// move line buffer down a line
-		lineBuffer += 176;
+		lineBuffer += lineBufferSize;
 	}
 }
 
@@ -214,15 +217,15 @@ void resolveScanline_LO_150(void) {
 
 	curScan++;
 	if (curScan == bufferLines) {
-		// we've rendered as much as we can buffer, resolve to pixels and DMA it:
-		prevLineBuffer = ((int*)0xE5017000);
-		lineBuffer = ((int*)0xE5017000) + 176;
+		unsigned char* curLineBuffer = ((unsigned char*)0xE5017000);
 		unsigned int* scanline = (unsigned int*)&scanGroup[curScanBuffer*scanBufferSize];
 		for (int i = 0; i < bufferLines; i += 2) {
+			prevLineBuffer = curLineBuffer + curLineBuffer[0];
+			lineBuffer = curLineBuffer + lineBufferSize + curLineBuffer[lineBufferSize];
+
 			DirectTripleScanline24(scanline, scanline + 120, scanline + 240);
 			scanline += 360;
-			lineBuffer += 176 * 2;
-			prevLineBuffer += 176 * 2;
+			curLineBuffer += lineBufferSize * 2;
 
 			condSoundUpdate();
 		}
@@ -232,10 +235,10 @@ void resolveScanline_LO_150(void) {
 		flushScanBuffer(78, 317, startLine, startLine + bufferLines * 3 / 2 - 1, scanBufferSize);
 
 		// move line buffer to front
-		lineBuffer = ((int*)0xE5017000);
+		lineBuffer = ((unsigned char*)0xE5017000);
 	} else {
 		// move line buffer down a line
-		lineBuffer += 176;
+		lineBuffer += lineBufferSize;
 	}
 }
 
@@ -248,14 +251,15 @@ void resolveScanline_HI_150(void) {
 	curScan++;
 	if (curScan == bufferLines) {
 		// we've rendered as much as we can buffer, resolve to pixels and DMA it:
-		prevLineBuffer = ((int*)0xE5017000) + 7;
-		lineBuffer = ((int*)0xE5017000) + 176 + 7;
+		unsigned char* curLineBuffer = ((unsigned char*)0xE5017000);
 		unsigned int* scanline = (unsigned int*)&scanGroup[curScanBuffer*scanBufferSize];
 		for (int i = 0; i < bufferLines; i += 2) {
+			prevLineBuffer = curLineBuffer + curLineBuffer[0] + 8;
+			lineBuffer = curLineBuffer + lineBufferSize + curLineBuffer[lineBufferSize] + 8;
+
 			BlendTripleScanline24(scanline, &prevLineBuffer[0], &lineBuffer[0], ppuPalette);
 			scanline += 360;
-			lineBuffer += 176 * 2;
-			prevLineBuffer += 176 * 2;
+			curLineBuffer += lineBufferSize * 2;
 
 			condSoundUpdate();
 		}
@@ -265,10 +269,10 @@ void resolveScanline_HI_150(void) {
 		flushScanBuffer(78, 317, startLine, startLine + bufferLines * 3 / 2 - 1, scanBufferSize);
 
 		// move line buffer to front
-		lineBuffer = ((int*)0xE5017000);
+		lineBuffer = ((unsigned char*)0xE5017000);
 	} else {
 		// move line buffer down a line
-		lineBuffer += 176;
+		lineBuffer += lineBufferSize;
 	}
 }
 
@@ -302,7 +306,7 @@ void scanlineBlank(void) {
 
 	TIME_SCOPE();
 
-	memset(lineBuffer, 0, sizeof(int) * 167);
+	memset(lineBuffer, 0, 167);
 	resolveRenderedLine();
 }
 
@@ -426,8 +430,8 @@ void SetupDisplayDriver(char withFrameskip) {
 	renderScanline = cgb.isCGB ? scanlineCGB : scanlineDMG;
 	renderBlankScanline = scanlineBlank;
 
-	lineBuffer = ((int*)0xE5017000);
-	prevLineBuffer = ((int*)0xE5017400);
+	lineBuffer = ((unsigned char*)0xE5017000);
+	prevLineBuffer = ((unsigned char*)0xE5017400);
 
 	switch (emulator.settings.scaleMode) {
 		case emu_scale::LO_150:

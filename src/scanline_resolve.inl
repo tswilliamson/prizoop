@@ -11,7 +11,7 @@ inline unsigned int GetPaletteForSrc(int srcValue) {
 // resolve scanline to 16 bit wide pixels (100%)
 inline void DirectScanline16(unsigned int* scanline) {
 	// middle 160 bytes of linebuffer go into scanline
-	for (int i = 7; i < 167; i += 2) {
+	for (int i = 8; i < 168; i += 2) {
 #ifdef LITTLE_E
 		*(scanline++) = (GetPaletteForSrc(lineBuffer[i+1]) << 16) | ((unsigned short) GetPaletteForSrc(lineBuffer[i]));
 #else
@@ -23,7 +23,7 @@ inline void DirectScanline16(unsigned int* scanline) {
 // resolve scanline to 24-bit wide pixels (150%) with no blending (direct copy)
 inline void DirectScanline24(unsigned int* dest) {
 	// 4 src pixels over 6 dest pixels (3 ints)
-	int* src = &lineBuffer[7];
+	unsigned char* src = &lineBuffer[8];
 	for (int i = 0; i < 40; i++, dest += 3, src += 4) {
 		dest[0] = GetPaletteForSrc(src[0]);		// first two pixels are just the src[0] twice
 
@@ -48,7 +48,7 @@ inline void DirectScanline24(unsigned int* dest) {
 // resolve scanline to blended 24-bit wide pixel lines (150%)
 inline void BlendScanline24(unsigned int* dest) {
 	// 4 src pixels over 6 dest pixels (3 ints)
-	int* src = &lineBuffer[7];
+	unsigned char* src = &lineBuffer[8];
 	for (int i = 0; i < 40; i++, dest += 3, src += 4) {
 		unsigned short color0 = (unsigned short) GetPaletteForSrc(src[0]);
 		unsigned short color1 = (unsigned short) GetPaletteForSrc(src[1]);
@@ -73,8 +73,8 @@ inline void BlendScanline24(unsigned int* dest) {
 // resolve a blended 24-bit scanline that is a mix of the line buffer with the previous line
 inline void BlendMixedScanline24(unsigned int* dest) {
 	// 4 src pixels over 6 dest pixels (3 ints)
-	int* src = &lineBuffer[7];
-	int* src2 = &prevLineBuffer[7];
+	unsigned char* src = &lineBuffer[8];
+	unsigned char* src2 = &prevLineBuffer[8];
 	for (int i = 0; i < 40; i++, dest += 3, src += 4, src2 += 4) {
 		unsigned short color0 = mix565((unsigned short) GetPaletteForSrc(src[0]), (unsigned short) GetPaletteForSrc(src2[0]));
 		unsigned short color1 = mix565((unsigned short) GetPaletteForSrc(src[1]), (unsigned short) GetPaletteForSrc(src2[1]));
@@ -98,11 +98,11 @@ inline void BlendMixedScanline24(unsigned int* dest) {
 
 #if TARGET_PRIZM
 extern "C" {
-	void BlendTripleScanline24(unsigned int* scanline, int*src0, int* src1, unsigned int* ppuPalette);
+	void BlendTripleScanline24(unsigned int* scanline, unsigned char *src0, unsigned char* src1, unsigned int* ppuPalette);
 };
 #else
 // resolve 2 blended scanlines to three 1.5x lines of 24-bit wide pixels (150%) with no blending (direct copy)
-inline void BlendTripleScanline24(unsigned int* scanline, int*src0, int* src1, unsigned int* ppuPalette) {
+inline void BlendTripleScanline24(unsigned int* scanline, unsigned char *src0, unsigned char* src1, unsigned int* ppuPalette) {
 	// 4 src pixels over 6 dest pixels (3 ints)
 	unsigned int* scanline1 = scanline;
 	unsigned int* scanline2 = scanline+120;
@@ -149,8 +149,8 @@ inline void BlendTripleScanline24(unsigned int* scanline, int*src0, int* src1, u
 // resolve 2 scanlines to three 1.5x lines of 24-bit wide pixels (150%) with no blending (direct copy)
 inline void DirectTripleScanline24(unsigned int* scanline1, unsigned int* scanline2, unsigned int* scanline3) {
 	// 4 src pixels over 6 dest pixels (3 ints)
-	int* src0 = &prevLineBuffer[7];
-	int* src1 = &lineBuffer[7];
+	unsigned char* src0 = &prevLineBuffer[8];
+	unsigned char* src1 = &lineBuffer[8];
 	for (int i = 0; i < 40; i++, scanline1 += 3, scanline2 += 3, scanline3 += 3, src0 += 4, src1 += 4) {
 		// first two pixels are just the src[0] twice
 		scanline1[0] = GetPaletteForSrc(src0[0]);		
@@ -201,14 +201,14 @@ inline void DirectTripleScanline24(unsigned int* scanline1, unsigned int* scanli
 // resolve scanline to 32-bit wide pixels (200%) with no blending (direct copy)
 inline void DirectScanline32(unsigned int* scanline) {
 	// middle 160 bytes of linebuffer go into scanline
-	for (int i = 7; i < 167; i++) {
+	for (int i = 8; i < 168; i++) {
 		*(scanline++) = GetPaletteForSrc(lineBuffer[i]);
 	}
 }
 
 // resolve scanline to two 32-bit wide pixel lines simultenously (for speedy scale)
 inline void DirectDoubleScanline32(unsigned int* scanline1, unsigned int* scanline2) {
-	for (int i = 7; i < 167; i++) {
+	for (int i = 8; i < 168; i++) {
 		*(scanline1++) = GetPaletteForSrc(lineBuffer[i]);
 		*(scanline2++) = GetPaletteForSrc(lineBuffer[i]);
 	}
@@ -217,8 +217,8 @@ inline void DirectDoubleScanline32(unsigned int* scanline1, unsigned int* scanli
 // resolve a blended 32-bit scanline that is a mix of the line buffer with the previous line
 inline void BlendMixedScanline32(unsigned int* dest) {
 	// 4 src pixels over 6 dest pixels (3 ints)
-	int* src = &lineBuffer[7];
-	int* src2 = &prevLineBuffer[7];
+	unsigned char* src = &lineBuffer[8];
+	unsigned char* src2 = &prevLineBuffer[8];
 	for (int i = 0; i < 160; i++, dest++, src++, src2++) {
 		dest[0] = mix565_32(GetPaletteForSrc(*src), GetPaletteForSrc(*src2));
 	}
@@ -226,7 +226,7 @@ inline void BlendMixedScanline32(unsigned int* dest) {
 
 // resolve 2 blended scanlines to three 1.5x scaled 32-bit wide pixel lines simultenously
 inline void BlendTripleScanline32(unsigned int* scanline1, unsigned int* scanline2, unsigned int* scanline3) {
-	for (int i = 7; i < 167; i++) {
+	for (int i = 8; i < 168; i++) {
 		const unsigned int color0 = GetPaletteForSrc(prevLineBuffer[i]);
 		const unsigned int color1 = GetPaletteForSrc(lineBuffer[i]);
 		*(scanline1++) = color0;
@@ -236,7 +236,7 @@ inline void BlendTripleScanline32(unsigned int* scanline1, unsigned int* scanlin
 }
 // resolve 2 scanlines to three 1.5x scaled 32-bit wide pixel lines simultenously
 inline void DirectTripleScanline32(unsigned int* scanline1, unsigned int* scanline2, unsigned int* scanline3) {
-	for (int i = 7; i < 167; i++) {
+	for (int i = 8; i < 168; i++) {
 		const unsigned int color1 = GetPaletteForSrc(lineBuffer[i]);
 		*(scanline1++) = GetPaletteForSrc(prevLineBuffer[i]);
 		*(scanline2++) = color1;

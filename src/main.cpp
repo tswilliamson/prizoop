@@ -3,6 +3,7 @@
 #include "emulator.h"
 #include "rom.h"
 #include "ptune2_simple\Ptune2_direct.h"
+#include "debug.h"
 
 #include "calctype/fonts/arial_small/arial_small.c"		// For Menus
 #include "calctype/fonts/consolas_intl/consolas_intl.c"	// for FAQS
@@ -30,6 +31,40 @@ int main(void) {
 
 	// allocate cached mbc banks on the stack
 	ALLOCATE_CACHED_BANKS();
+
+	for (int b = 0; b < 256; b++) {
+		unsigned char bytes[4] = {
+			(unsigned char) (((b & 0x80) ? 4 : 0) | ((b & 0x08) ? 16 : 0)),
+			(unsigned char) (((b & 0x40) ? 4 : 0) | ((b & 0x04) ? 16 : 0)),
+			(unsigned char) (((b & 0x20) ? 4 : 0) | ((b & 0x02) ? 16 : 0)),
+			(unsigned char) (((b & 0x10) ? 4 : 0) | ((b & 0x01) ? 16 : 0))
+		};
+
+		if (b % 8 == 0) {
+			OutputLog("\t");
+		}
+		OutputLog("0x%02x, 0x%02x, 0x%02x, 0x%02x, ", bytes[0], bytes[1], bytes[2], bytes[3]);
+		if (b % 8 == 7) {
+			OutputLog("\n");
+		}
+	}
+	OutputLog("\n\n");
+	for (int b = 0; b < 256; b++) {
+		unsigned char bytes[4] = {
+			(unsigned char) (((b & 0x01) ? 4 : 0) | ((b & 0x10) ? 16 : 0)),
+			(unsigned char) (((b & 0x02) ? 4 : 0) | ((b & 0x20) ? 16 : 0)),
+			(unsigned char) (((b & 0x04) ? 4 : 0) | ((b & 0x40) ? 16 : 0)),
+			(unsigned char) (((b & 0x08) ? 4 : 0) | ((b & 0x80) ? 16 : 0))
+		};
+
+		if (b % 8 == 0) {
+			OutputLog("\t");
+		}
+		OutputLog("0x%02x, 0x%02x, 0x%02x, 0x%02x, ", bytes[0], bytes[1], bytes[2], bytes[3]);
+		if (b % 8 == 7) {
+			OutputLog("\n");
+		}
+	}
 
 	reset_printf();
 	memset(GetVRAMAddress(), 0, LCD_HEIGHT_PX * LCD_WIDTH_PX * 2);

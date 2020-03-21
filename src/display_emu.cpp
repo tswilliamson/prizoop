@@ -14,8 +14,9 @@ unsigned int framecounter = 0;
 bool skippingFrame = false;
 int frameSkip = 0;
 
-int lineBuffer[176] ALIGN(32) = { 0 };
-int prevLineBuffer[168] ALIGN(32) = { 0 };
+unsigned char useLineBuffer[lineBufferSize] = { 0 };
+unsigned char* lineBuffer = useLineBuffer;
+unsigned char prevLineBuffer[168] = { 0 };
 
 #include "tilerow.inl"
 #include "dmg_scanline.inl"
@@ -24,7 +25,8 @@ int prevLineBuffer[168] ALIGN(32) = { 0 };
 
 static void resolveLine() {
 	static unsigned short* const vram = (unsigned short*)GetVRAMAddress();
-	
+	lineBuffer = useLineBuffer + useLineBuffer[0];
+
 	unsigned int* scanline;
 	switch (emulator.settings.scaleMode) {
 		case emu_scale::NONE:
@@ -73,6 +75,8 @@ static void resolveLine() {
 			}
 			break;
 	}
+
+	lineBuffer = useLineBuffer;
 }
 
 void renderEmu() {

@@ -73,13 +73,8 @@ extern unsigned int framecounter;
 extern int windowLineOffset;
 
 // line buffer rendered too during scanline render functions
-#if TARGET_WINSIM
-extern int lineBuffer[176] ALIGN(32);
-extern int prevLineBuffer[168] ALIGN(32);
-#else
-extern int* lineBuffer;
-extern int* prevLineBuffer;
-#endif
+const int lineBufferSize = 180;
+extern unsigned char* lineBuffer;
 
 inline void resolveDMGBGPalette() {
 	ppuPalette[0] = ppuPalette[12 + ((cpu.memory.BGP_bgpalette & 0x03) >> 0)];

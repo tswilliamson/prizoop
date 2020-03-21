@@ -18,8 +18,9 @@ inline void RenderDMGScanline() {
 			int mapOffset = ((cpu.memory.LCDC_ctl & LCDC_BGTILEMAP) ? 0x1c00 : 0x1800) +
 						    ((((curLine + cpu.memory.SCY_bgscrolly) & 255) >> 3) << 5);
 
-			// start to the left of pixel 7 (our leftmost linebuffer pixel) based on scrollx
-			int* scanline = (int*) &lineBuffer[7 - (cpu.memory.SCX_bgscrollx & 7)];
+			// start to the left of pixel 8 (our leftmost linebuffer pixel) based on scrollx
+			unsigned char* scanline = &lineBuffer[8];
+			lineBuffer[0] = cpu.memory.SCX_bgscrollx & 7;
 
 			int lineOffset = cpu.memory.SCX_bgscrollx >> 3;
 
@@ -29,7 +30,7 @@ inline void RenderDMGScanline() {
 				unsigned int tileRow = *((unsigned short*)&vram[tile * 16 + y]);
 				ShortSwap(tileRow);
 
-				resolveTileRow(scanline, tileRow);
+				resolveTileRow<false>(scanline, tileRow);
 
 				scanline += 8;
 				lineOffset = (lineOffset + 1) & 0x1F;
@@ -49,18 +50,32 @@ inline void RenderDMGScanline() {
 
 				y = (y & 0x07) * 2;
 
-				int* scanline = (int*) &lineBuffer[wx];
+				unsigned char* scanline = &lineBuffer[wx+1+lineBuffer[0]];
+				bool unsafeAlignment = (size_t(scanline) & 3) != 0;
 				unsigned char* curTile = &vram[mapOffset];
 
-				for (; wx < 167; wx += 8) {
-					int tile = *curTile++;
-					if (!(tile & 0x80)) tile += tileOffset;
-					unsigned int tileRow = *((unsigned short*)&vram[tile * 16 + y]);
-					ShortSwap(tileRow);
+				if (unsafeAlignment) {
+					for (; wx < 167; wx += 8) {
+						int tile = *curTile++;
+						if (!(tile & 0x80)) tile += tileOffset;
+						unsigned int tileRow = *((unsigned short*)&vram[tile * 16 + y]);
+						ShortSwap(tileRow);
 
-					resolveTileRow(scanline, tileRow);
+						resolveTileRow<true>(scanline, tileRow);
 
-					scanline += 8;
+						scanline += 8;
+					}
+				} else {
+					for (; wx < 167; wx += 8) {
+						int tile = *curTile++;
+						if (!(tile & 0x80)) tile += tileOffset;
+						unsigned int tileRow = *((unsigned short*)&vram[tile * 16 + y]);
+						ShortSwap(tileRow);
+
+						resolveTileRow<false>(scanline, tileRow);
+
+						scanline += 8;
+					}
 				}
 			}
 		}
@@ -95,16 +110,16 @@ inline void RenderDMGScanline() {
 					unsigned int tileRow = *((unsigned short*)&vram[tile * 16 + y * 2]);
 					ShortSwap(tileRow);
 
-					int colors[8];
+					unsigned char colors[8];
 					if (!OAM_ATTR_XFLIP(sprite->attr)) {
-						resolveTileRow(colors, tileRow);
+						resolveTileRow<false>(colors, tileRow);
 					} else {
-						resolveTileRowReverse(colors, tileRow);
+						resolveTileRowReverse<false>(colors, tileRow);
 					}
 
 					// sprite position on scanline
-					int* scanline = (int*)&lineBuffer[sprite->x - 1];
-					int paletteBase = OAM_ATTR_PALETTE(sprite->attr) ? 8 : 4;
+					unsigned char* scanline = &lineBuffer[sprite->x+lineBuffer[0]];
+					int paletteBase = OAM_ATTR_PALETTE(sprite->attr) ? 32 : 16;
 					if (OAM_ATTR_PRIORITY(sprite->attr)) {
 						if (!scanline[0] && colors[0]) scanline[0] = paletteBase | colors[0];
 						if (!scanline[1] && colors[1]) scanline[1] = paletteBase | colors[1];

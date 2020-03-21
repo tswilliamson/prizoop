@@ -36,6 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\bg_compressed.cpp" />
+    <ClCompile Include="..\src\bit_table.cpp" />
     <ClCompile Include="..\src\cgb.cpp" />
     <ClCompile Include="..\src\cgb_bootstrap.cpp" />
     <ClCompile Include="..\src\cpu.cpp" />
@@ -67,6 +68,7 @@
     <None Include="..\..\..\common\prizm_rules" />
     <None Include="..\src\asm\BitsToScanline.S" />
     <None Include="..\src\asm\BitsToScanline_Palette.S" />
+    <None Include="..\src\asm\BitsToScanline_Unsafe.S" />
     <None Include="..\src\asm\BlendTripleScanline24.S" />
     <None Include="..\src\tilerow.inl">
       <FileType>Document</FileType>

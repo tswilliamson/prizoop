@@ -1,5 +1,5 @@
 
-# void BlendTripleScanline24(unsigned short* scanline, int*src0, int* src1, unsigned int* ppuPalette) {
+# void BlendTripleScanline24(unsigned short* scanline, unsigned char* src0, unsigned char* src1, unsigned int* ppuPalette) {
 # r4 = scanline
 # r5 = src0
 # r6 = src1
@@ -29,10 +29,12 @@ _BlendTripleScanline24:
 
 	mov #40, r8
 _BTS24_Inner_Loop:
-	mov.l @r5+, r0	
+	mov.b @r5+, r0	
+	extu.b r0,r0
 	mov.l @(r0,r7), r1
 	mov.w r1, @r11		// scanline1[0] = color00
-	mov.l @r5+, r0	
+	mov.b @r5+, r0	
+	extu.b r0,r0
 	mov.l @(r0,r7), r2
 	mov r2, r0
 	mov.w r0, @(4, r11)	// scanline1[2] = color01
@@ -43,11 +45,13 @@ _BTS24_Inner_Loop:
 	shlr r0
 	mov.w r0, @(2, r11)	// scanline1[1] = color00 mixed w/ color01
 	
-	mov.l @r5+, r0	
+	mov.b @r5+, r0	
+	extu.b r0,r0
 	mov.l @(r0,r7), r1
 	mov r1, r0
 	mov.w r0, @(6, r11)	// scanline1[3] = color02
-	mov.l @r5+, r0	
+	mov.b @r5+, r0	
+	extu.b r0,r0
 	mov.l @(r0,r7), r2
 	mov r2, r0
 	mov.w r0, @(10, r11)	// scanline1[5] = color03
@@ -58,10 +62,12 @@ _BTS24_Inner_Loop:
 	shlr r0
 	mov.w r0, @(8, r11)	// scanline1[4] = color02 mixed w/ color03
 
-	mov.l @r6+, r0	
+	mov.b @r6+, r0	
+	extu.b r0,r0
 	mov.l @(r0,r7), r1  
 	mov.w r1, @r13		// scanline3[0] = color10
-	mov.l @r6+, r0	
+	mov.b @r6+, r0	
+	extu.b r0,r0
 	mov.l @(r0,r7), r2
 	mov r2, r0
 	mov.w r0, @(4, r13)	// scanline3[2] = color11
@@ -72,11 +78,13 @@ _BTS24_Inner_Loop:
 	shlr r0
 	mov.w r0, @(2, r13)	// scanline3[1] = color10 mixed w/ color11
 	
-	mov.l @r6+, r0	
+	mov.b @r6+, r0	
+	extu.b r0,r0
 	mov.l @(r0,r7), r1
 	mov r1, r0  
 	mov.w r0, @(6, r13)	// scanline3[3] = color12
-	mov.l @r6+, r0	
+	mov.b @r6+, r0	
+	extu.b r0,r0
 	mov.l @(r0,r7), r2
 	mov r2, r0
 	mov.w r0, @(10, r13)	// scanline3[5] = color13

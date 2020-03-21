@@ -11,8 +11,8 @@
 template<bool priorityBG>
 inline bool RenderCGBScanline_BG() {
 	bool hasPriority = false;
-	int* swapLine;
-	int priorityLine[8];
+	unsigned char* swapLine;
+	unsigned char priorityLine[8];
 
 	// background/window
 	{
@@ -32,8 +32,9 @@ inline bool RenderCGBScanline_BG() {
 			int mapOffset = (cpu.memory.LCDC_ctl & LCDC_BGTILEMAP) ? 0x1c00 : 0x1800;
 			mapOffset += (((cpu.memory.LY_lcdline + cpu.memory.SCY_bgscrolly) & 255) >> 3) << 5;
 
-			// start to the left of pixel 7 (our leftmost linebuffer pixel) based on scrollx
-			int* scanline = (int*)&lineBuffer[7 - (cpu.memory.SCX_bgscrollx & 7)];
+			// always start at pixel 8 for alignment, store 7 pixel alignment in unused 0th index
+			unsigned char* scanline = &lineBuffer[8];
+			lineBuffer[0] = cpu.memory.SCX_bgscrollx & 7;
 
 			for (i = 0; i < 168; i += 8) {
 				int lineOffset = ((unsigned char)(cpu.memory.SCX_bgscrollx + i)) >> 3;
@@ -66,9 +67,9 @@ inline bool RenderCGBScanline_BG() {
 
 				// bit 5 is hflip
 				if (attr & 0x20) {
-					resolveTileRowReversePal(paletteMask, scanline, tileRow);
+					resolveTileRowReversePal<false>(paletteMask, scanline, tileRow);
 				} else {
-					resolveTileRowPal(paletteMask, scanline, tileRow);
+					resolveTileRowPal<false>(paletteMask, scanline, tileRow);
 				}
 
 				if (priorityBG) {
@@ -104,7 +105,8 @@ inline bool RenderCGBScanline_BG() {
 				yVal[0] = y * 2;
 				yVal[1] = (7 - y) * 2;
 
-				int* scanline = (int*)&lineBuffer[wx];
+				unsigned char* scanline = &lineBuffer[wx+1+lineBuffer[0]];
+				bool unsafeAlignment = (size_t(scanline) & 3) != 0;
 
 				for (; wx < 167; wx += 8) {
 					lineOffset = lineOffset + 1;
@@ -127,27 +129,38 @@ inline bool RenderCGBScanline_BG() {
 					int paletteMask = (attr & 0x07) << 4;
 
 					if (priorityBG) {
-						swapLine = scanline;
-						scanline = priorityLine;
-					}
+						// bit 5 is hflip
+						if (attr & 0x20) {
+							resolveTileRowReverse<false>(priorityLine, tileRow);
+						} else {
+							resolveTileRow<false>(priorityLine, tileRow);
+						}
 
-					// bit 5 is hflip
-					if (attr & 0x20) {
-						resolveTileRowReversePal(paletteMask, scanline, tileRow);
+						if (priorityLine[0]) scanline[0] = priorityLine[0] | paletteMask;
+						if (priorityLine[1]) scanline[1] = priorityLine[1] | paletteMask;
+						if (priorityLine[2]) scanline[2] = priorityLine[2] | paletteMask;
+						if (priorityLine[3]) scanline[3] = priorityLine[3] | paletteMask;
+						if (priorityLine[4]) scanline[4] = priorityLine[4] | paletteMask;
+						if (priorityLine[5]) scanline[5] = priorityLine[5] | paletteMask;
+						if (priorityLine[6]) scanline[6] = priorityLine[6] | paletteMask;
+						if (priorityLine[7]) scanline[7] = priorityLine[7] | paletteMask;
 					} else {
-						resolveTileRowPal(paletteMask, scanline, tileRow);
-					}
-
-					if (priorityBG) {
-						if (scanline[0] & 3) swapLine[0] = scanline[0];
-						if (scanline[1] & 3) swapLine[1] = scanline[1];
-						if (scanline[2] & 3) swapLine[2] = scanline[2];
-						if (scanline[3] & 3) swapLine[3] = scanline[3];
-						if (scanline[4] & 3) swapLine[4] = scanline[4];
-						if (scanline[5] & 3) swapLine[5] = scanline[5];
-						if (scanline[6] & 3) swapLine[6] = scanline[6];
-						if (scanline[7] & 3) swapLine[7] = scanline[7];
-						scanline = swapLine;
+						// rendering directly to scanline.. do alignment check
+						if (unsafeAlignment) {
+							// bit 5 is hflip
+							if (attr & 0x20) {
+								resolveTileRowReversePal<true>(paletteMask, scanline, tileRow);
+							} else {
+								resolveTileRowPal<true>(paletteMask, scanline, tileRow);
+							}
+						} else {
+							// bit 5 is hflip
+							if (attr & 0x20) {
+								resolveTileRowReversePal<false>(paletteMask, scanline, tileRow);
+							} else {
+								resolveTileRowPal<false>(paletteMask, scanline, tileRow);
+							}
+						}
 					}
 
 					scanline += 8;
@@ -186,7 +199,7 @@ inline void RenderCGBScanline() {
 
 				if (sy <= cpu.memory.LY_lcdline && (sy + spriteSize) >= cpu.memory.LY_lcdline) {
 					// sprite position
-					int* scanline = (int*)&lineBuffer[sprite->x - 1];
+					unsigned char* scanline = &lineBuffer[sprite->x + lineBuffer[0]];
 
 					int y;
 					int tile = sprite->tile;
@@ -200,11 +213,11 @@ inline void RenderCGBScanline() {
 					unsigned int tileRow = *((unsigned short*)&vram[tileIndex]);
 					ShortSwap(tileRow);
 
-					int colors[8];
+					unsigned char colors[8];
 					if (!OAM_ATTR_XFLIP(sprite->attr)) {
-						resolveTileRow(colors, tileRow);
+						resolveTileRow<false>(colors, tileRow);
 					} else {
-						resolveTileRowReverse(colors, tileRow);
+						resolveTileRowReverse<false>(colors, tileRow);
 					}
 
 					// bit 0-2 are palette #'s for CGB
