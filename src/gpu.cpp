@@ -9,7 +9,7 @@
 #include "emulator.h"
 
 #include "gpu.h"
-#include "snd.h"
+#include "snd/snd.h"
 #include "keys.h"
 
 void(*gpuStep)(void) = NULL;

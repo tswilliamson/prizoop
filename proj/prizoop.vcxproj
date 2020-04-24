@@ -47,7 +47,6 @@
     <ClCompile Include="..\src\emulator.cpp" />
     <ClCompile Include="..\src\emulator_screen.cpp" />
     <ClCompile Include="..\src\mbc.cpp" />
-    <ClCompile Include="..\src\ptune2_simple\Ptune2_direct.c" />
     <ClCompile Include="..\src\screen_faq.cpp" />
     <ClCompile Include="..\src\screen_settings.cpp" />
     <ClCompile Include="..\src\screen_play.cpp" />
@@ -63,8 +62,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\src\snd_main.cpp" />
-    <ClCompile Include="..\src\snd_prizm.cpp" />
-    <ClCompile Include="..\src\snd_winsim.cpp" />
     <None Include="..\..\..\common\prizm_rules" />
     <None Include="..\src\asm\BitsToScanline.S" />
     <None Include="..\src\asm\BitsToScanline_Palette.S" />
@@ -83,8 +80,6 @@
     <ClInclude Include="..\src\display.h" />
     <ClInclude Include="..\src\emulator.h" />
     <ClInclude Include="..\src\mbc.h" />
-    <ClInclude Include="..\src\ptune2_simple\Ptune2_direct.h" />
-    <ClInclude Include="..\src\ptune2_simple\SH7305_CPG_BSC.h" />
     <ClInclude Include="..\src\screen_faq.h" />
     <ClInclude Include="..\src\screen_settings.h" />
     <ClInclude Include="..\src\screen_play.h" />
@@ -98,8 +93,6 @@
     <ClInclude Include="..\src\platform.h" />
     <ClInclude Include="..\src\registers.h" />
     <ClInclude Include="..\src\rom.h" />
-    <ClInclude Include="..\src\snd.h" />
-    <ClInclude Include="..\src\tmu.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile" />

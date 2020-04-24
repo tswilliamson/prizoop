@@ -8,7 +8,8 @@
 #include "keys.h"
 #include "debug.h"
 #include "cgb.h"
-#include "snd.h"
+#include "emulator.h"
+#include "snd/snd.h"
 
 #include "memory.h"
 

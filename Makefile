@@ -26,7 +26,7 @@ INCLUDES	:=
 # options for code and add-in generation
 #---------------------------------------------------------------------------------
 
-MKG3AFLAGS := -n basic:Prizoop -i uns:../unselected.bmp -i sel:../selected.bmp
+MKG3AFLAGS := -n basic:PrizoopN -i uns:../unselected.bmp -i sel:../selected.bmp
 
 CBASEFLAGS	= -O2 \
 		  -Wall \
@@ -50,12 +50,13 @@ ASFLAGS	=	$(CFLAGS)
 
 # add -S -fverbose-asm for assembly output
 
-LDFLAGS	= $(MACHDEP) -O2 -T$(FXCGSDK)/common/prizm.ld -Wl,-static -Wl,-gc-sections
+LDFLAGS	= $(MACHDEP) -O2 -T$(FXCGSDK)/common/prizm.ld -Wl,-static -Wl,-gc-sections -Xlinker -Map=output.map
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:=	-lfxcg -lm -lc -lgcc -lzx7 -lcalctype
+SYSTEMLIBS :=  -lfxcg -lm -lc -lgcc
+LIBS	:=	-lzx7 -lcalctype -lsnd -lptune2_simple $(SYSTEMLIBS)
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

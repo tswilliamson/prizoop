@@ -10,7 +10,7 @@
 #include "display.h"
 #include "main.h"
 #include "cgb.h"
-#include "snd.h"
+#include "snd/snd.h"
 #include "emulator.h"
 
 cpu_type cpu ALIGN(256);

@@ -11,6 +11,7 @@
 #include "fxcg\rtc.h"
 #include "fxcg\system.h"
 #include "fxcg\serial.h"
+#include "fxcg\tmu.h"
 
 #if TARGET_WINSIM
 #define ALIGN(x) alignas(x)
@@ -56,14 +57,6 @@ static inline void EndianSwap(unsigned int& i) {
 #ifndef min
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
-
-enum DeviceType {
-	DT_CG20,			// or CG10
-	DT_CG50,
-	DT_Winsim
-};
-
-extern DeviceType getDeviceType();
 
 #include "ScopeTimer.h"
 

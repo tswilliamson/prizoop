@@ -1,6 +1,6 @@
 
-extern unsigned char BitResolveTable[256 * 4];
-extern unsigned char BitResolveTableRev[256 * 4];
+extern unsigned int BitResolveTable[256];
+extern unsigned int BitResolveTableRev[256];
 
 #if TARGET_WINSIM
 
@@ -50,11 +50,11 @@ extern "C" {
 #endif
 
 FORCE_INLINE unsigned int GetTableEntry(unsigned int entry) {
-	return *((unsigned int*) &BitResolveTable[entry * 4]);
+	return BitResolveTable[entry];
 }
 
 FORCE_INLINE unsigned int GetTableEntryRev(unsigned int entry) {
-	return *((unsigned int*) &BitResolveTableRev[entry * 4]);
+	return BitResolveTableRev[entry];
 }
 
 template<bool isUnsafe>

@@ -5,7 +5,7 @@
 #include "keys.h"
 #include "memory.h"
 #include "emulator.h"
-#include "snd.h"
+#include "snd/snd.h"
 
 #include "zx7/zx7.h"
 

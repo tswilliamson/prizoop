@@ -2,7 +2,7 @@
 
 #if !TARGET_WINSIM && DEBUG
 
-#include "tmu.h"
+#include "fxcg/tmu.h"
 
 struct ScopeTimer {
 	unsigned int cycleCount;

@@ -2,7 +2,7 @@
 #include "emulator.h"
 #include "debug.h"
 #include "gpu.h"
-#include "snd.h"
+#include "snd/snd.h"
 
 struct keys_type keys;
 

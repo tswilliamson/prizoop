@@ -133,3 +133,12 @@ struct emulator_type {
 };
 
 extern emulator_type emulator;
+
+// sound channel inits come from writes to bit 7 of certain IO mem regs
+void sndChannelInit(int channelNum);
+
+// called on rom start up to initialize sound registers
+void sndStartup();
+
+// called from emulator (once per frame, so not quite every 1/64th of a second) to emulate register updates when sound emulation is turned off
+void sndInactiveFrame();

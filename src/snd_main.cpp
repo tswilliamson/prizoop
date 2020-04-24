@@ -2,7 +2,7 @@
 #include "platform.h"
 #include "debug.h"
 #include "cpu.h"
-#include "snd.h"
+#include "snd/snd.h"
 
 struct sound_status {
 	int ch1EnvCounter;

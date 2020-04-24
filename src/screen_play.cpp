@@ -4,7 +4,7 @@
 #include "rom.h"
 #include "memory.h"
 #include "cgb.h"
-#include "snd.h"
+#include "snd/snd.h"
 #include "cgb_bootstrap.h"
 #include "ptune2_simple/Ptune2_direct.h"
 

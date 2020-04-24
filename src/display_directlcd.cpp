@@ -13,7 +13,7 @@
 
 #include "display.h"
 
-#include "snd.h"
+#include "snd/snd.h"
 #include "keys.h"
 #include "ptune2_simple/Ptune2_direct.h"
 
