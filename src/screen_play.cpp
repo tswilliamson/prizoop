@@ -69,12 +69,19 @@ void screen_play::postStateChange() {
 	drawPlayBG();
 }
 
+bool bSoundEnabled = false;
+
 void screen_play::play() {
 	mbcFileUpdate();
 
 	drawPlayBG();
 
-	bool soundInitted = sndInit();
+	bool soundInitted = false;
+	
+	if (emulator.settings.sound) {
+		soundInitted = sndInit();
+		bSoundEnabled = soundInitted;
+	}
 
 	// Apply settings
 	bool doOverclock = Ptune2_GetSetting() == PT2_DEFAULT;
