@@ -46,8 +46,7 @@ CXXFLAGS	=	$(CBASEFLAGS) \
 		  -fno-rtti \
 		  -fno-exceptions \
 		  -fno-threadsafe-statics \
-		  -fno-use-cxa-get-exception-ptr \
-		  -std=c++11
+		  -fno-use-cxa-get-exception-ptr
 
 ASFLAGS	=	$(CFLAGS) 
 

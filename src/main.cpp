@@ -59,6 +59,12 @@ void* operator new[](unsigned int size) {
 void operator delete[](void* addr) {
 	free(addr);
 }
+void operator delete(void* addr, unsigned int size) {
+	free(addr);
+}
+void operator delete[](void* addr, unsigned int size) {
+	free(addr);
+}
 #else
 DeviceType getDeviceType() {
 	return DT_Winsim;
