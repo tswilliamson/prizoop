@@ -22,10 +22,15 @@
 #else
 #define ALIGN(x) __attribute__((aligned(x)))
 #define BIG_E
-#define override
 #define FORCE_INLINE __attribute__((always_inline)) inline
 #define RESTRICT __restrict__
 #include "fxcg_registers.h"
+#include "fxcg\heap.h"
+#define malloc sys_malloc
+#define calloc sys_calloc
+#define realloc sys_realloc
+#define free sys_free
+
 #endif
 
 #ifdef LITTLE_E
@@ -45,7 +50,7 @@ static inline void EndianSwap(unsigned int& i) {
 
 // compile time assert, will throw negative subscript error
 #ifdef __GNUC__
-#define CT_ASSERT(cond) typedef char __attribute__((error("assertion failure: '" #cond "' not true"))) badCompileTimeAssertion [(cond) ? 1 : -1];
+#define CT_ASSERT(cond) static_assert(cond);
 #else
 #define CT_ASSERT(cond) typedef char check##__LINE__ [(cond) ? 1 : -1];
 #endif

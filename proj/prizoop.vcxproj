@@ -62,7 +62,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='WindowsSim|Win32'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\src\snd_main.cpp" />
-    <None Include="..\..\..\common\prizm_rules" />
+    <None Include="..\..\..\toolchain\prizm_rules" />
     <None Include="..\src\asm\BitsToScanline.S" />
     <None Include="..\src\asm\BitsToScanline_Palette.S" />
     <None Include="..\src\asm\BitsToScanline_Unsafe.S" />
@@ -181,7 +181,7 @@ rebuild.bat DEFINES="-DTARGET_PRIZM=1 -DDEBUG=0" CONFIG=$(Configuration)</NMakeR
 clean.bat DEFINES="-DTARGET_PRIZM=1 -DDEBUG=0" CONFIG=$(Configuration)</NMakeCleanCommandLine>
     <NMakeOutput>$(ProjectDir)\..\$(ProjectName).g3a</NMakeOutput>
     <NMakeIncludeSearchPath>$(ProjectDir)\..\..\include</NMakeIncludeSearchPath>
-    <NMakePreprocessorDefinitions>TARGET_PRIZM</NMakePreprocessorDefinitions>
+    <NMakePreprocessorDefinitions>TARGET_PRIZM=1;DEBUG=0</NMakePreprocessorDefinitions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DeviceRelease|Win32'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\include</IncludePath>
@@ -204,7 +204,7 @@ rebuild.bat DEFINES="-DTARGET_PRIZM=1 -DDEBUG=1" CONFIG=$(Configuration)</NMakeR
 clean.bat DEFINES="-DTARGET_PRIZM=1 -DDEBUG=1" CONFIG=$(Configuration)</NMakeCleanCommandLine>
     <NMakeOutput>$(ProjectDir)\..\$(ProjectName).g3a</NMakeOutput>
     <NMakeIncludeSearchPath>$(ProjectDir)\..\..\include</NMakeIncludeSearchPath>
-    <NMakePreprocessorDefinitions>TARGET_PRIZM;DEBUG=1</NMakePreprocessorDefinitions>
+    <NMakePreprocessorDefinitions>TARGET_PRIZM=1;DEBUG=1</NMakePreprocessorDefinitions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DeviceDebug|Win32'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\include</IncludePath>

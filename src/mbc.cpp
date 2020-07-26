@@ -231,7 +231,7 @@ mbc_bankcache* cacheBank(unsigned int index) {
 	}
 
 	// uncached! using minimum cache request index, read into slot from file and return
-	if (!mbcReadPage(index, cachedBanks[minSlot]->bank,  index != (mbc.numRomBanks * 4 - 1))) {
+	if (!mbcReadPage(index, cachedBanks[minSlot]->bank,  index != unsigned(mbc.numRomBanks * 4 - 1))) {
 		// attempt to escape
 		keys.exit = true;
 		return cachedBanks[0];

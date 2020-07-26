@@ -191,7 +191,6 @@
     <None Include="..\src\tilerow.inl">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\..\common\prizm_rules" />
     <None Include="..\src\asm\BitsToScanline_Palette.S">
       <Filter>Source Files\core\asm</Filter>
     </None>
@@ -204,5 +203,6 @@
     <None Include="..\src\asm\BitsToScanline_Unsafe.S">
       <Filter>Source Files\core\asm</Filter>
     </None>
+    <None Include="..\..\..\toolchain\prizm_rules" />
   </ItemGroup>
 </Project>

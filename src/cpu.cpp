@@ -1024,7 +1024,7 @@ void cpuStep() {
 		for (int b = 0; b < BATCHES; b++) {
 			if (cpu.stopped || cpu.halted) {
 				// just advance the clock til something happens
-				int numClocks = max(cpu.gpuTick - cpu.clocks, 4);
+				unsigned int numClocks = max(cpu.gpuTick - cpu.clocks, 4);
 
 				if (cpu.memory.TAC_timerctl & 0x04) {
 					numClocks = min(cpu.timerInterrupt - cpu.clocks, numClocks);
@@ -1033,7 +1033,7 @@ void cpuStep() {
 				cpu.clocks += numClocks;
 			} else {
 				// 8 clocks per instruction is about the average from empirical testing
-				int numInstr = min(max(cpu.gpuTick - cpu.clocks, (MIN_CPU_BATCH * 8)) / 8, MAX_CPU_BATCH);
+				unsigned int numInstr = min(max(cpu.gpuTick - cpu.clocks, (MIN_CPU_BATCH * 8)) / 8, MAX_CPU_BATCH);
 
 				if (cpu.memory.TAC_timerctl & 0x04) {
 					numInstr = min(max(cpu.timerInterrupt - cpu.clocks, (MIN_CPU_BATCH * 8)) / 8, numInstr);
@@ -1042,7 +1042,7 @@ void cpuStep() {
 				// instructions start with a "base" of 4 clocks a piece
 				cpu.clocks += numInstr * 4;
 
-				for (int i = 0; i < numInstr; i++) {
+				for (unsigned int i = 0; i < numInstr; i++) {
 					DebugPC(cpu.registers.pc);
 					unsigned char* pc = getInstrByte(cpu.registers.pc++);
 					// perform inlined instruction op
