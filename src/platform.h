@@ -19,6 +19,11 @@
 #define FORCE_INLINE __forceinline
 #define RESTRICT __restrict
 #include <time.h>
+
+extern "C" {
+	int simmain(void);
+}
+
 #else
 #define ALIGN(x) __attribute__((aligned(x)))
 #define BIG_E
