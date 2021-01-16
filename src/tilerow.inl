@@ -11,6 +11,9 @@ FORCE_INLINE void BitsToScanline(unsigned char* scanline, unsigned int bits) {
 	((unsigned int*)scanline)[0] = bits & mask;
 	bits >>= 2;
 	((unsigned int*)scanline)[1] = bits & mask;
+
+	EndianSwap(((unsigned int*)scanline)[0]);
+	EndianSwap(((unsigned int*)scanline)[1]);
 }
 
 FORCE_INLINE void BitsToScanline_Palette(unsigned char* scanline, unsigned int bits, unsigned int palette) {
@@ -22,6 +25,9 @@ FORCE_INLINE void BitsToScanline_Palette(unsigned char* scanline, unsigned int b
 	((unsigned int*)scanline)[0] = (bits & mask) | palette;
 	bits >>= 2;
 	((unsigned int*)scanline)[1] = (bits & mask) | palette;
+
+	EndianSwap(((unsigned int*)scanline)[0]);
+	EndianSwap(((unsigned int*)scanline)[1]);
 }
 
 // unsafe alignment (slower!)
