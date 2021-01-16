@@ -19,6 +19,11 @@
 #define FORCE_INLINE __forceinline
 #define RESTRICT __restrict
 #include <time.h>
+
+extern "C" {
+	int simmain(void);
+}
+
 #else
 #define ALIGN(x) __attribute__((aligned(x)))
 #define BIG_E
@@ -63,7 +68,7 @@ static inline void EndianSwap(unsigned int& i) {
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
 
-#include "ScopeTimer.h"
+#include "scope_timer/scope_timer.h"
 
 extern void ScreenPrint(char* buffer);
 extern void reset_printf();

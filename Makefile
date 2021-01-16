@@ -26,7 +26,7 @@ INCLUDES	:=
 # options for code and add-in generation
 #---------------------------------------------------------------------------------
 
-MKG3AFLAGS := -n basic:PrizoopN -i uns:../unselected.bmp -i sel:../selected.bmp
+MKG3AFLAGS := -n basic:Prizoop -i uns:../unselected.bmp -i sel:../selected.bmp
 
 OPTIMIZATION = -O2
 
@@ -58,7 +58,7 @@ LDFLAGS	=  -Xlinker -Map=$(CURDIR)/output.map $(MACHDEP) $(OPTIMIZATION) -T$(FXC
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
 SYSTEMLIBS :=  -lc -lfxcg -lgcc
-LIBS	:=	-lzx7 -lcalctype -lsnd -lptune2_simple $(SYSTEMLIBS)
+LIBS	:=	-lzx7 -lcalctype -lsnd -lscope_timer -lptune2_simple $(SYSTEMLIBS)
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

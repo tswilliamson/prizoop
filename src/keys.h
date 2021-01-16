@@ -52,7 +52,9 @@ struct keys_type {
 
 extern keys_type keys;
 
-bool keyDown_fast(unsigned char keyCode);
+extern "C" {
+	bool keyDown_fast(unsigned char keyCode);
+}
 
 // refresh key values (ignore system calls if systemCalls set to false so this can be safely called mid-frame)
 void refreshKeys(bool systemCalls);

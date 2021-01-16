@@ -137,6 +137,8 @@ void stepLCDOn_HBLANK(void) {
 		SetLY(cpu.memory.LY_lcdline + 1);
 
 		if (cpu.memory.LY_lcdline == 144) {
+			ScopeTimer::ReportFrame();
+
 			if (drawFramebuffer && !invalidFrame) {
 				drawFramebuffer();
 			}

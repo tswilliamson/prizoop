@@ -45,7 +45,7 @@ void screen_faq::deselect() {
 
 	if (faqHandle >= 0) {
 		Bfile_CloseFile_OS(faqHandle);
-		faqHandle = 0;
+		faqHandle = -1;
 
 		// save the text offset
 		textOffset += readOffset;
@@ -65,7 +65,7 @@ void screen_faq::loadFAQ() {
 
 	Bfile_StrToName_ncpy(wFile, filename, 64);
 	faqHandle = Bfile_OpenFile_OS(wFile, READ, 0);
-	if (faqHandle < -1) {
+	if (faqHandle < 0) {
 		return;
 	}
 

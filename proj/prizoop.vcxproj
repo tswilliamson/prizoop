@@ -51,7 +51,6 @@
     <ClCompile Include="..\src\screen_settings.cpp" />
     <ClCompile Include="..\src\screen_play.cpp" />
     <ClCompile Include="..\src\screen_rom.cpp" />
-    <ClCompile Include="..\src\ScopeTimer.cpp" />
     <ClCompile Include="..\src\gpu.cpp" />
     <ClCompile Include="..\src\interrupts.cpp" />
     <ClCompile Include="..\src\keys.cpp" />
@@ -84,7 +83,6 @@
     <ClInclude Include="..\src\screen_settings.h" />
     <ClInclude Include="..\src\screen_play.h" />
     <ClInclude Include="..\src\screen_rom.h" />
-    <ClInclude Include="..\src\ScopeTimer.h" />
     <ClInclude Include="..\src\gpu.h" />
     <ClInclude Include="..\src\interrupts.h" />
     <ClInclude Include="..\src\keys.h" />
